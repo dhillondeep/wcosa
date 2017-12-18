@@ -1,0 +1,17 @@
+#####################################################################
+# simple AVR executable
+#####################################################################
+file(GLOB_RECURSE SRC_FILES "*.cpp" "*.cc")
+
+add_avr_executable(
+   ${PROJECT_NAME}
+   ${SRC_FILES}
+)
+
+#####################################################################
+# libraries to link to
+#####################################################################
+target_link_libraries(
+   ${PROJECT_NAME}-${AVR_MCU}.elf
+   ${PROJECT_NAME}-lib-${AVR_MCU}
+)
