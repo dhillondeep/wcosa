@@ -8,7 +8,7 @@
 #
 # Matthias Kleemann
 ##########################################################################
-cmake_minimum_required(VERSION 2.8)
+cmake_minimum_required(%cmake-version)
 
 ### TOOLCHAIN SETUP AREA #################################################
 # Set any variables used in the toolchain prior project() call. In that
@@ -41,17 +41,17 @@ endif()
 ##########################################################################
 # AVR and fuses needs to be set
 ##########################################################################
-set(AVR_MCU $AVR_MCU)
-set(AVR_H_FUSE $AVR_H_FUSE)
-set(AVR_L_FUSE $AVR_L_FUSE)
+set(AVR_MCU %avr-mcu)
+set(AVR_H_FUSE %avr-h-fuse)
+set(AVR_L_FUSE %avr-l-fuse)
 
 ### END TOOLCHAIN SETUP AREA #############################################
-include(cmake/generic-gcc-avr.cmake)
+include(%generic-gcc-avr-cmake-path)
 
 ##########################################################################
 # name your project
 ##########################################################################
-project($PROJECT_NAME)
+project(%project-name)
 
 ##########################################################################
 # status messages
@@ -67,12 +67,12 @@ message(STATUS "Current L_FUSE is set to: ${AVR_L_FUSE}")
 ##########################################################################
 # set build type
 ##########################################################################
-set(CMAKE_BUILD_TYPE $BUILD_TYPE)
+set(CMAKE_BUILD_TYPE %build-type)
 
 ##########################################################################
 # needs to be defined for AVR toolchain
 ##########################################################################
-set(MCU_SPEED $MCU_SPEED)
+set(MCU_SPEED %mcu-speed)
 
 ##########################################################################
 # some cmake cross-compile necessities
@@ -118,13 +118,13 @@ message(STATUS "Set CMAKE_SYSTEM_LIBRARY_PATH to ${CMAKE_SYSTEM_LIBRARY_PATH}")
 # set compiler options for build types
 ##########################################################################
 if(CMAKE_BUILD_TYPE MATCHES Release)
-   set(CMAKE_C_FLAGS_RELEASE $C_RELEASE_FLAGS)
-   set(CMAKE_CXX_FLAGS_RELEASE $CXX_RELEASE_FLAGS)
+   set(CMAKE_C_FLAGS_RELEASE %cmake-c-flags-release)
+   set(CMAKE_CXX_FLAGS_RELEASE %cmake-cxx-flags-release)
 endif(CMAKE_BUILD_TYPE MATCHES Release)
 
 if(CMAKE_BUILD_TYPE MATCHES Debug)
-   set(CMAKE_C_FLAGS_DEBUG $C_DEBUG_FLAGS)
-   set(CMAKE_CXX_FLAGS_DEBUG $CXX_DEBUG_FLAGS)
+   set(CMAKE_C_FLAGS_DEBUG %cmake-c-flags-debug)
+   set(CMAKE_CXX_FLAGS_DEBUG %cmake-cxx-flags-debug)
 endif(CMAKE_BUILD_TYPE MATCHES Debug)
 
 ##########################################################################
@@ -150,5 +150,19 @@ include_directories(lib)
 ##########################################################################
 # building library and application in their subdirectories
 ##########################################################################
+# add cosa and it's library and build it
+file(GLOB_RECURSE COSA_FILES "%cosa-path/*.cpp" "%cosa-path/*.cc" "%cosa-path/*.h" "%cosa-path/*.hh")
+file(GLOB_RECURSE COSA_LIB_FILES "%cosa-lib-path/*.cpp" "%cosa-lib-path/*.cc" "%cosa-lib-path/*.h" "%cosa-lib-path/*.hh")
+
+add_avr_library(
+   "cosa"
+   ${COSA_FILES}
+)
+
+add_avr_library(
+   "cosa-lib"
+   ${COSA_LIB_FILES}
+)
+
 add_subdirectory(lib)
 add_subdirectory(src)

@@ -1,0 +1,17 @@
+{
+    "__comment__": "First element is whether to put quotation marks or not and second is the value of the tag",
+    "project-name":[false, ""],
+    "cmake-version": [false, "2.8"],
+    "build-type":[false, ""],
+    "cosa-path":[false, ""],
+    "cosa-lib-path":[false, ""],
+    "generic-gcc-avr-cmake-path":[true, ""],
+    "avr-mcu":[false, ""],
+    "avr-h-fuse":[false, ""],
+    "avr-l-fuse":[false, ""],
+    "mcu-speed":[false, ""],
+    "cmake-c-flags-release":[true, ""],
+    "cmake-cxx-flags-release":[true, ""],
+    "cmake-c-flags-debug":[true, ""],
+    "cmake-cxx-flags-debug":[true, ""]
+}

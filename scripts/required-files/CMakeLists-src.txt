@@ -13,5 +13,7 @@ add_avr_executable(
 #####################################################################
 target_link_libraries(
    ${PROJECT_NAME}-${AVR_MCU}.elf
+   cosa-${AVR_MCU}
+   cosa-lib-${AVR_MCU}
    ${PROJECT_NAME}-lib-${AVR_MCU}
 )
