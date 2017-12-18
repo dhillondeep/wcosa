@@ -12,7 +12,7 @@ export GCC_AVR_VER=gcc-avr-4.2
 BOARDS_TXT_LOC=$COSA_DIR/build/boards.txt
 WMAKE_LOCK=$CUR_DIR/wmake.lock
 WMAKE_CONF=$CUR_DIR/wmake.ini
-SRC_DIR=$CUR_DIR/src
+SRC_DIR="$CUR_DIR/src"
 MAIN_CPP=$SRC_DIR/main.cpp
 
 set -o nounset
@@ -94,7 +94,7 @@ _pre() {
     echo "Checking for dependencies"
     if [[ $OS_TYPE == 'linux' ]] ; then
       echo "Checking apt-get for gcc-avr, avr-libc, avrdude"
-      sudo apt-get install gcc-avr avr-libc avrdude
+      #sudo apt-get install gcc-avr avr-libc avrdude
     elif [[ $OS_TYPE == 'macos' ]] ; then
       xcode-select --install || :
       echo "Checking HomeBrew for avr-gcc"
@@ -160,13 +160,14 @@ _check_src_main() {
 _build_compile() {
   _config
   _check_src_main
-  (cd $SRC_DIR && $COSA_DIR/build/cosa $WMAKE_BOARD)
+  echo $WMAKE_BOARD
+  (cd "$SRC_DIR" && "$COSA_DIR/build/cosa" $WMAKE_BOARD)
 }
 
 _build_upload() {
   _config
   _check_src_main
-  (cd $SRC_DIR && $COSA_DIR/build/cosa $WMAKE_BOARD upload)
+  (cd "$SRC_DIR" && "$COSA_DIR/build/cosa" $WMAKE_BOARD upload)
 }
 
 _build_clean() {
