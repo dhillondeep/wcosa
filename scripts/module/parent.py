@@ -31,12 +31,6 @@ class Parent(object):
             # Other
             self.operating_system = platform
 
-    def linux_path(self, path):
-        """Converts Windows style path to linux style path"""
-        path = path.replace("\\", "/")
-        path = path.replace(" ", "\\")
-        return path
-
     def parse(self):
         """Parse command line arguments"""
 

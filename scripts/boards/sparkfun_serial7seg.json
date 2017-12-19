@@ -1,0 +1,22 @@
+{
+  "build": {
+    "core": "arduino",
+    "extra_flags": "-DARDUINO_AVR_SERIAL_7_SEGMENT",
+    "f_cpu": "8000000L",
+    "mcu": "atmega328p",
+    "variant": "sparkfun_ser7seg"
+  },
+  "frameworks": [
+    "arduino"
+  ],
+  "name": "SparkFun Serial 7-Segment Display",
+  "upload": {
+    "maximum_ram_size": 2048,
+    "maximum_size": 32256,
+    "protocol": "arduino",
+    "require_upload_port": true,
+    "speed": 57600
+  },
+  "url": "https://www.sparkfun.com/products/11441",
+  "vendor": "SparkFun"
+}

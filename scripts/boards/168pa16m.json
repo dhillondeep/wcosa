@@ -1,0 +1,22 @@
+{
+  "build": {
+    "extra_flags": "-DARDUINO_AVR_MICRODUINO_CORE",
+    "core": "arduino",
+    "f_cpu": "16000000L",
+    "mcu": "atmega168p",
+    "variant": "standard"
+  },
+  "frameworks": [
+    "arduino"
+  ],
+  "name": "Microduino Core (Atmega168PA@16M,5V)",
+  "upload": {
+    "maximum_ram_size": 1024,
+    "maximum_size": 15872,
+    "protocol": "arduino",
+    "require_upload_port": true,
+    "speed": 115200
+  },
+  "url": "http://wiki.microduinoinc.com/Microduino-Module_Core",
+  "vendor": "Microduino"
+}
