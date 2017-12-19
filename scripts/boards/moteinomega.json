@@ -1,0 +1,28 @@
+{
+  "build": {
+    "core": "arduino",
+    "extra_flags": "-DARDUINO_AVR_MOTEINOMEGA",
+    "f_cpu": "16000000L",
+    "mcu": "atmega1284p",
+    "variant": "moteinomega"
+  },
+  "frameworks": [
+    "arduino"
+  ],
+  "fuses": {
+    "efuse": "0xFD",
+    "hfuse": "0xDE",
+    "lfuse": "0xDE",
+    "lock": "0xCF"
+  },
+  "name": "LowPowerLab MoteinoMEGA",
+  "upload": {
+    "maximum_ram_size": 16384,
+    "maximum_size": 130048,
+    "protocol": "arduino",
+    "require_upload_port": true,
+    "speed": 115200
+  },
+  "url": "http://lowpowerlab.com/blog/2014/08/09/moteinomega-available-now/",
+  "vendor": "LowPowerLab"
+}

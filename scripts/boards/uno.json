@@ -1,0 +1,13 @@
+{
+  "core": "arduino",
+  "board-flag": "-DARDUINO_AVR_UNO",
+  "f_cpu": "16000000L",
+  "mcu": "atmega328p",
+  "variant": "standard",
+  "efuse": "0x05",
+  "hfuse": "0xDE",
+  "lfuse": "0xFF",
+  "lock": "0x3F",
+  "url": "https://www.arduino.cc/en/Main/ArduinoBoardUno",
+  "vendor": "Arduino"
+}
