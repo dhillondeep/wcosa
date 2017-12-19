@@ -1,19 +1,22 @@
 """@package module
-Parent class parses the command line arguments and makes every base class extend handle_args
-method to do the work
+Parent provides similar functionality that each component of the tool will use.
+This includes paths and information about operating system 
 """
 
+import argparse
+import os
 import abc
 from sys import platform
+import module.helper as helper
 
 
 class Parent(object):
-    """Parent class parses and has an abstract argument handler"""
+    """Parent class is an abstract class for all the build, create and serial moduels"""
 
     __metaclass__ = abc.ABCMeta
 
-    def __init__(self):
-        """Initialize the operating system"""
+    def __init__(self, path, board, ide):
+        """Initialize the paths, operating system and the parser"""
 
          # check operating system
         if platform == "linux" or platform == "linux2":
@@ -31,26 +34,21 @@ class Parent(object):
             # Other
             self.operating_system = platform
 
-    def parse(self):
-        """Parse command line arguments"""
+        if path is None:
+            self.curr_path = helper.linux_path(os.getcwd(), self.operating_system)
+        else:
+            self.curr_path = path
 
-        from sys import argv
-        args = {}  # Empty dictionary to store key-value pairs.
-        while argv:  # While there are arguments left to parse...
-            if argv[0][0] == '-':  # Found a "-name value" pair.
-                if len(argv) == 1:
-                    args[argv[0]] = ""
-                else:
-                    args[argv[0]] = argv[1]  # Add key and value to the dictionary.
-            argv = argv[1:]  # Reduce the argument list by copying it starting from index 1.
-        return args
+        self.dir_name = os.path.basename(self.curr_path)
 
-    @abc.abstractmethod
-    def handle_args(self, args):
-        """Handle command line arguments"""
-        return
+        self.wcosa_path = helper.linux_path(os.path.abspath(os.path.dirname(
+            os.path.abspath(__file__)) + "/../.."), self.operating_system)
+        self.cmake_templates_path = self.wcosa_path + "/build/cmake-files"
+        self.config_files_path = self.wcosa_path + "/build/config-files"
 
-    def start(self):
-        """Entry Point of script which starts everything"""
+        if ide is None:
+            self.ide = "None"
+        else:
+            self.ide = ide
 
-        self.handle_args(self.parse())
+        self.board = board

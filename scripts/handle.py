@@ -1,5 +1,5 @@
 """
-Handle creating and updating WCosa projects
+Handle handles creating and updating WCosa projects
 """
 import os
 import json
@@ -9,24 +9,42 @@ from shutil import copyfile
 from shutil import which
 from colorama import Fore
 from module.parent import Parent
+from module.Parser import Parser
 from module.output import write, writeln
 import module.helper as helper
 
 
+class HandleParser(Parser):
+    """Parser for Handle class and parser to look for create and update"""
+    
+    def __init__(self):
+        super(HandleParser, self).__init__(
+            "create and update wcosa AVR projects",
+            "Handle", 40)
+
+        self.parser.add_argument('-a', '--action', help='action to do (create or update)', type=str, required=True)
+        self.parser.add_argument('-b', '--board', help='board to use for wcosa project', type=str)
+        self.parser.add_argument('-p', '--path', help='path to create/update project in', type=str)
+        self.parser.add_argument('-i', '--ide', help='create wcosa project for specific IDE', type=str)
+
+    def parse(self):
+        """Parser Handle command line arguments"""
+        opts = self.parser.parse_args()
+
+        if opts.action == "create":
+            if opts.board is None:
+                self.parser.error("board is required for wcosa project creation")
+            else:
+                Handler(opts.path, opts.board, opts.ide).create_cosa()
+        else:
+            if opts.ide is not None:
+                self.parser.error("IDE cannot be defined in update process")
+            else:
+                Handler(opts.path, opts.board, "Same").update_cosa()
+
+
 class Handler(Parent):
     """Handles creating and update of WCosa projects"""
-
-    def __init__(self):
-        """Initialize paths to use for creation"""
-
-        super(Handler, self).__init__()
-        self.curr_path = helper.linux_path(os.getcwd(), self.operating_system)
-        self.dir_name = os.path.basename(self.curr_path)
-        self.wcosa_path = helper.linux_path(os.path.abspath(os.path.dirname(
-            os.path.abspath(__file__)) + "/.."), self.operating_system)
-        self.cmake_templates_path = self.wcosa_path + "/build/cmake-files"
-        self.config_files_path = self.wcosa_path + "/build/config-files"
-        self.ide = "None"
 
     def get_avr_paths(self):
         """Get Paths of AVR libraries and tools"""
@@ -34,8 +52,6 @@ class Handler(Parent):
         avr = []
         if self.operating_system == "windows" or self.operating_system == "cygwin":
             arduino_sdk_path = os.environ.get("ARDUINO_SDK_PATH")
-
-            print(arduino_sdk_path)
 
             if arduino_sdk_path is None:
                 write("ERROR: AVR tools and libraries not found,", Fore.RED)
@@ -89,7 +105,10 @@ class Handler(Parent):
 
         # go through all the tags and update
         config_data["os"] = self.operating_system
-        config_data["ide"] = self.ide
+
+        if self.ide != "Same":
+            config_data["ide"] = self.ide
+
         config_data["wcosa-path"] = self.wcosa_path
         config_data["project-name"] = self.dir_name
         config_data["cmake-version"] = "2.8"
@@ -109,8 +128,6 @@ class Handler(Parent):
         config_file = open(config_path, "w")
         json.dump(config_data, config_file, indent=4)
         config_file.close()
-
-        writeln(which("avr-gcc.exe"))
 
     def parse_library_includes(self, lib_path, cmake_path):
         """Gathers library paths based on their folder structure and adds them to cmake file"""
@@ -160,6 +177,8 @@ class Handler(Parent):
         self.parse_library_includes(self.curr_path + "/lib", self.curr_path + "/CMakeListsPrivate.txt")
 
     def update_build_cmake(self, cmake_path, config_path):
+        """Updates the template strings in normal build cmake files"""
+
         config_file = open(config_path)
         config_data = json.load(config_file, object_pairs_hook=OrderedDict)
         config_file.close()
@@ -169,7 +188,7 @@ class Handler(Parent):
         # parse libraries and the add them to cmake
         self.parse_library_includes(self.curr_path + "/lib", cmake_path)
 
-    def create_cosa(self, board):
+    def create_cosa(self):
         """Creates WCosa project"""
 
         write("Creating work environment - ", color=Fore.CYAN)
@@ -178,8 +197,8 @@ class Handler(Parent):
         helper.create_folder(self.curr_path + "/src")
         helper.create_folder(self.curr_path + "/lib")
         helper.create_folder(self.curr_path + "/wcosa")
-        helper.create_folder(self.curr_path + "/wcosa/bin")
         helper.create_folder(self.curr_path + "/wcosa/cmake")
+        helper.create_folder(self.curr_path + "/wcosa/cmake/bin")
         helper.create_folder(self.curr_path + "/wcosa/config")
 
         # copy cmake files and config files
@@ -202,7 +221,7 @@ class Handler(Parent):
         user_config_data = json.load(user_config_file, object_pairs_hook=OrderedDict)
         user_config_file.close()
 
-        user_config_data["board"] = board
+        user_config_data["board"] = self.board
         user_config_data["framework"] = "cosa"
 
         user_config_file = open(self.curr_path + "/config.json", "w")
@@ -211,7 +230,7 @@ class Handler(Parent):
 
         # update internal config file based on information we have
         self.update_internal_config(self.curr_path + "/wcosa/config/internal-config.json",
-                                    self.wcosa_path + "/build/boards/" + board + ".json")
+                                    self.wcosa_path + "/build/boards/" + user_config_data["board"] + ".json")
 
         # copy ide specific CMakeFile
         if self.ide is not None:
@@ -223,7 +242,8 @@ class Handler(Parent):
 
                 # update the CMakeLists files by filling in the templates
                 self.update_clion_cmake(self.curr_path + "/wcosa/config/internal-config.json")
-            else:
+            elif self.ide != "None":
+                print(self.ide)
                 writeln("ERROR: This ide is not supported", Fore.RED)
                 quit(2)
 
@@ -232,26 +252,23 @@ class Handler(Parent):
 
         writeln("done")
 
-        writeln("Finished Creation: ", Fore.CYAN)
-        writeln("src        -> Source files", Fore.CYAN)
-        writeln("lib        -> Library files (each library in seperate folder)", Fore.CYAN)
-        writeln("bin        -> Binary files", Fore.CYAN)
-        writeln("wcosa      -> Internal files used for build process", Fore.CYAN)
-        writeln("Do not touch bin and wcosa folder", Fore.YELLOW)
+        writeln("Finished Creation: ", Fore.YELLOW)
+        writeln("src        -> Source files", Fore.YELLOW)
+        writeln("lib        -> Library files (each library in seperate folder)", Fore.YELLOW)
+        writeln("wcosa      -> Internal files used for build process", Fore.YELLOW)
+        writeln("Do not touch wcosa folder. It contains build specific files", Fore.YELLOW)
 
-    def update_cosa(self, newBoard):
+    def update_cosa(self):
         """update the cosa project"""
-        writeln("Updating " + self.dir_name + " project: ", Fore.CYAN)
+        write("Updating " + self.dir_name + " project - ", Fore.CYAN)
 
          # create src, lib, bin and wcosa folders
         helper.create_folder(self.curr_path + "/src")
         helper.create_folder(self.curr_path + "/lib")
         helper.create_folder(self.curr_path + "/wcosa")
-        helper.create_folder(self.curr_path + "/wcosa/bin")
         helper.create_folder(self.curr_path + "/wcosa/cmake")
+        helper.create_folder(self.curr_path + "/wcosa/cmake/bin")
         helper.create_folder(self.curr_path + "/wcosa/config")
-
-        # create a .gitignore file and add wcosa and CMak
 
         # copy cmake files, config files and gitignore file
         copyfile(self.cmake_templates_path + "/build/CMakeLists.txt",
@@ -264,7 +281,8 @@ class Handler(Parent):
         user_config_data = json.load(user_config_file, object_pairs_hook=OrderedDict)
         user_config_file.close()
 
-        user_config_data["board"] = newBoard
+        if self.board is not None:
+            user_config_data["board"] = self.board
 
         user_config_file = open(self.curr_path + "/config.json", "w")
         json.dump(user_config_data, user_config_file, indent=4)
@@ -272,8 +290,8 @@ class Handler(Parent):
 
          # update internal config file based on information we have
         self.update_internal_config(self.curr_path + "/wcosa/config/internal-config.json",
-                                    self.wcosa_path + "/build/boards/" + newBoard + ".json")
-        
+                                    self.wcosa_path + "/build/boards/" + user_config_data["board"] + ".json")
+
         # get configuration from config file
         user_config_file = open(self.curr_path + "/wcosa/config/internal-config.json")
         user_config_data = json.load(user_config_file, object_pairs_hook=OrderedDict)
@@ -282,26 +300,13 @@ class Handler(Parent):
         if user_config_data["ide"] == "clion":
             copyfile(self.cmake_templates_path + "/clion/CMakeListsPrivate.txt",
                          self.curr_path + "/CMakeListsPrivate.txt")
-    
+
             self.update_clion_cmake(self.curr_path + "/wcosa/config/internal-config.json")
 
         # update the build CMakeLists files by filling in the templates
         self.update_build_cmake(self.curr_path + "/wcosa/cmake/CMakeLists.txt", self.curr_path + "/wcosa/config/internal-config.json")
-    
-    def handle_args(self, args):
-        """Allocates tasks for creating and updating based on the args received"""
 
-        if "-path" in args:
-            self.curr_path = helper.linux_path(args["-path"], self.operating_system)
-
-        if "-ide" in args:
-            self.ide = args["-ide"]
-
-        if "-create" in args:
-            self.create_cosa(args["-create"])
-        elif "-update" in args:
-            self.update_cosa(args["-update"])
-
+        writeln("done")
 
 if __name__ == '__main__':
-    Handler().start()
+    HandleParser().parse()
