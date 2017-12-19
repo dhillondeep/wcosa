@@ -38,7 +38,7 @@ option(WITH_MCU "Add the MCU type to the target file name." ON)
 ##########################################################################
 if ((${OS} STREQUAL windows) OR (${OS} STREQUAL cygwin))
       # window upload tool
-      set(AVR_UPLOADTOOL "${AVR_PATH}/bin/avrdude.exe")
+      set(AVR_UPLOADTOOL "${AVR_PATH}/avrdude.exe")
       set(AVR_PROGRAMMER avrispmkII)
       set(AVR_UPLOADTOOL_PORT usb)
 else()
@@ -53,11 +53,11 @@ endif()
 ##########################################################################
 if ((${OS} STREQUAL windows) OR (${OS} STREQUAL cygwin))
       # window paths
-      set(AVR_CC "${AVR_PATH}/bin/avr-gcc.exe")
-      set(AVR_CXX "${AVR_PATH}/bin/avr-g++.exe")
-      set(AVR_OBJCOPY "${AVR_PATH}/bin/avr-objcopy.exe")
-      set(AVR_SIZE_TOOL "${AVR_PATH}/bin/avr-size.exe")
-      set(AVR_OBJDUMP "${AVR_PATH}/bin/avr-objdump.exe")
+      set(AVR_CC "${AVR_TOOL_PATH}/avr-gcc.exe")
+      set(AVR_CXX "${AVR_TOOL_PATH}/avr-g++.exe")
+      set(AVR_OBJCOPY "${AVR_TOOL_PATH}/avr-objcopy.exe")
+      set(AVR_SIZE_TOOL "${AVR_TOOL_PATH}/avr-size.exe")
+      set(AVR_OBJDUMP "${AVR_TOOL_PATH}/avr-objdump.exe")
 else()
       # linux/unix paths
       find_program(AVR_CC avr-gcc)

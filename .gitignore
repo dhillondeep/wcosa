@@ -3,4 +3,5 @@ scripts/.ideas/
 *.iml
 wmake.lock
 scripts/module/__pycache__/
+scripts/module/*.pyc
 scripts/.idea/

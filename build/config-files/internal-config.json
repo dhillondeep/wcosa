@@ -1,0 +1,21 @@
+{
+	"os":"",
+	"ide":"",
+	"wcosa-path":"",
+    "project-name":"",
+    "cmake-version": "",
+	"cmake-c-flags-debug":"-O0 -save-temps -g -gdwarf-3 -gstrict-dwarf",
+    "cmake-cxx-flags-debug":"-O0 -save-temps -g -gdwarf-3 -gstrict-dwarf",
+	"cmake-c-flags-release":"-Os",
+    "cmake-cxx-flags-release":"-Os",
+	"cmake-c-flags":"-std=gnu11 -fno-fat-lto-objects -g -Os -Wall -ffunction-sections -fdata-sections -flto",
+    "cmake-cxx-flags":"-fno-exceptions -fno-threadsafe-statics -fpermissive -std=gnu++11 -g -Os -Wall -ffunction-sections -fdata-sections -flt",
+	"avr-path":"",
+	"avr-tool-path":"",
+	"custom-definitions":"",
+	"board":"",
+    "avr-mcu":"",
+    "avr-h-fuse":"",
+    "avr-l-fuse":"",
+    "avr-f-cpu":""
+}

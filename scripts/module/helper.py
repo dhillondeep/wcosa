@@ -21,10 +21,6 @@ def fill_template(file_path, data):
     file.close()
 
     for key in data:
-        # ignore the comment
-        if key == "__comment__":
-            continue
-
         file_str = file_str.replace("%" + key, data[key])
 
     file = open(file_path, "w")
