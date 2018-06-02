@@ -11,3 +11,4 @@ dist/
 .goreleaser.yml
 Makefile
 CONTRIBUTING.md
+*.tgz

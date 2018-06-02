@@ -4,7 +4,8 @@
   "description": "An Embedded Development Environment",
   "main": "index.js",
   "scripts": {
-    "preinstall": "node npm-go/preinstall.js"
+    "preinstall": "node npm-go/preinstall.js",
+    "postinstall": "node npm-go/remove-exe.js"
   },
   "bin": "./bin/wio",
   "repository": {
@@ -28,11 +29,13 @@
   "goBinary": {
     "name": "wio",
     "path": "./bin",
-    "url": "https://github.com/dhillondeep/wio/releases/download/v{{version}}/wio_{{version}}_{{platform}}_{{arch}}.tar.gz"
+    "url": "https://github.com/dhillondeep/wio/releases/download/v{{version}}/wio_{{version}}_{{platform}}_{{arch}}.{{format}}"
   },
   "dependencies": {
+    "decompress": "^4.2.0",
     "mkdirp": "^0.5.1",
-    "request": "^2.81.0",
-    "tar": "^2.2.1"
+    "request": "^2.87.0",
+    "tar": "^2.2.1",
+    "unzip": "^0.1.11"
   }
 }

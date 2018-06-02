@@ -22,6 +22,7 @@ import (
     "net/http"
     "regexp"
     "strconv"
+    "time"
 )
 
 const (
@@ -134,7 +135,24 @@ func handlePublish(directory string) {
         log.Norm.Green(true, "success")
     }
 
-    log.Norm.Cyan(false, "creating package manager files ... ")
+    log.Norm.Cyan(false, "packing project files ... ")
+
+    pacDir := directory+io.Sep+".wio"+io.Sep+"pac"+io.Sep+strconv.Itoa(time.Now().Nanosecond())
+
+    // copy src and include folder to .wio/pac folder
+    commands.RecordError(utils.CopyDir(directory+io.Sep+"src",
+        pacDir+io.Sep+"src"), "failure")
+    commands.RecordError(utils.CopyDir(directory+io.Sep+"include",
+        pacDir+io.Sep+"include"), "failure")
+    commands.RecordError(utils.CopyFile(directory+io.Sep+"README.md",
+        pacDir+io.Sep+"README.md"), "failure")
+    commands.RecordError(utils.CopyFile(directory+io.Sep+"LICENSE",
+        pacDir+io.Sep+"LICENSE"), "failure")
+
+    log.Norm.Green(true, "success")
+
+
+    log.Verb.Verbose(false, "creating package manager files ... ")
 
     // npm config
     npmConfig := types.NpmConfig{}
@@ -164,23 +182,23 @@ func handlePublish(directory string) {
     }
 
     // write package.json file
-    if err := io.NormalIO.WriteJson(directory+io.Sep+"package.json", &npmConfig); err != nil {
+    if err := io.NormalIO.WriteJson(pacDir+io.Sep+"package.json", &npmConfig); err != nil {
         commands.RecordError(err, "failure")
     }
 
     // write .wio.js file so that this is the entry point
-    if err := io.NormalIO.WriteFile(directory+io.Sep+".wio.js", []byte("console.log('H"+
+    if err := io.NormalIO.WriteFile(pacDir+io.Sep+".wio.js", []byte("console.log('H"+
         "i!!! Welcome to Wio world!')")); err != nil {
-        removeNpmFiles(directory)
+        removeNpmFiles(pacDir)
         commands.RecordError(err, "failure")
     }
 
-    log.Norm.Green(true, "success")
+    log.Verb.Verbose(true, "success")
     log.Norm.Cyan(false, "running publish command ... ")
 
     // execute cmake command
-    npmPublishCommand := exec.Command("npm", "publish")
-    npmPublishCommand.Dir = directory
+    npmPublishCommand := exec.Command("npm", "pack")
+    npmPublishCommand.Dir = pacDir
 
     // Stderr buffer
     cmdErrOutput := &bytes.Buffer{}
@@ -191,7 +209,7 @@ func handlePublish(directory string) {
     }
     err := npmPublishCommand.Run()
     if err != nil {
-        removeNpmFiles(directory)
+        removeNpmFiles(pacDir)
 
         // this means user needs to login
         if strings.Contains(cmdErrOutput.String(), "npm adduser") ||
@@ -207,7 +225,7 @@ func handlePublish(directory string) {
         log.Norm.Green(true, "success")
     }
 
-    removeNpmFiles(directory)
+    removeNpmFiles(pacDir)
 
     log.Verb.Verbose(true, "success")
     log.Norm.Yellow(true, pkgConfig.MainTag.Name+"@"+pkgConfig.MainTag.Version+" published!!")
@@ -277,15 +295,9 @@ func dependencyCheck(directory string, dependencyName string, dependencyVersion 
 func removeNpmFiles(directory string) {
     log.Verb.Verbose(false, "removing npm files ... ")
 
-    if err := os.RemoveAll(directory + io.Sep + "package.json"); err != nil {
-        commands.RecordError(err, "failure")
-    }
-
-    if err := os.RemoveAll(directory + io.Sep + ".wio.js"); err != nil {
-        commands.RecordError(err, "failure")
-    }
+    commands.RecordError(os.RemoveAll(directory), "failure")
+    log.Verb.Verbose(true, "success")
 }
-
 // gets and updates the packages to the versions specified in wio.yml file
 func handleGet(directory string, clean bool) {
     log.Norm.Yellow(true, "Getting packages from npm server")

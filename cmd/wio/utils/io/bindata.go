@@ -132,7 +132,7 @@ func assetsCliHelperAppHelpTxt() (*asset, error) {
 		return nil, err
 	}
 
-	info := bindataFileInfo{name: "assets/cli-helper/app-help.txt", size: 1243, mode: os.FileMode(420), modTime: time.Unix(1527786612, 0)}
+	info := bindataFileInfo{name: "assets/cli-helper/app-help.txt", size: 1243, mode: os.FileMode(420), modTime: time.Unix(1527804280, 0)}
 	a := &asset{bytes: bytes, info: info}
 	return a, nil
 }
@@ -152,7 +152,7 @@ func assetsCliHelperCommandHelpTxt() (*asset, error) {
 		return nil, err
 	}
 
-	info := bindataFileInfo{name: "assets/cli-helper/command-help.txt", size: 425, mode: os.FileMode(420), modTime: time.Unix(1527786616, 0)}
+	info := bindataFileInfo{name: "assets/cli-helper/command-help.txt", size: 425, mode: os.FileMode(420), modTime: time.Unix(1527804280, 0)}
 	a := &asset{bytes: bytes, info: info}
 	return a, nil
 }
@@ -172,7 +172,7 @@ func assetsCliHelperSubcommandHelpTxt() (*asset, error) {
 		return nil, err
 	}
 
-	info := bindataFileInfo{name: "assets/cli-helper/subcommand-help.txt", size: 477, mode: os.FileMode(420), modTime: time.Unix(1527786615, 0)}
+	info := bindataFileInfo{name: "assets/cli-helper/subcommand-help.txt", size: 477, mode: os.FileMode(420), modTime: time.Unix(1527804280, 0)}
 	a := &asset{bytes: bytes, info: info}
 	return a, nil
 }
@@ -212,7 +212,7 @@ func assetsConfigDefaultsYml() (*asset, error) {
 		return nil, err
 	}
 
-	info := bindataFileInfo{name: "assets/config/defaults.yml", size: 303, mode: os.FileMode(420), modTime: time.Unix(1527802680, 0)}
+	info := bindataFileInfo{name: "assets/config/defaults.yml", size: 303, mode: os.FileMode(420), modTime: time.Unix(1527804355, 0)}
 	a := &asset{bytes: bytes, info: info}
 	return a, nil
 }
@@ -292,7 +292,7 @@ func assetsTemplatesCmakeCmakelistsappTxtTpl() (*asset, error) {
 		return nil, err
 	}
 
-	info := bindataFileInfo{name: "assets/templates/cmake/CMakeListsApp.txt.tpl", size: 1361, mode: os.FileMode(420), modTime: time.Unix(1527638249, 0)}
+	info := bindataFileInfo{name: "assets/templates/cmake/CMakeListsApp.txt.tpl", size: 1361, mode: os.FileMode(420), modTime: time.Unix(1527804280, 0)}
 	a := &asset{bytes: bytes, info: info}
 	return a, nil
 }
@@ -312,7 +312,7 @@ func assetsTemplatesCmakeCmakelistspkgTxtTpl() (*asset, error) {
 		return nil, err
 	}
 
-	info := bindataFileInfo{name: "assets/templates/cmake/CMakeListsPkg.txt.tpl", size: 1830, mode: os.FileMode(420), modTime: time.Unix(1527638249, 0)}
+	info := bindataFileInfo{name: "assets/templates/cmake/CMakeListsPkg.txt.tpl", size: 1830, mode: os.FileMode(420), modTime: time.Unix(1527804280, 0)}
 	a := &asset{bytes: bytes, info: info}
 	return a, nil
 }
@@ -372,7 +372,7 @@ func assetsTemplatesConfigDependenciesHelperTxt() (*asset, error) {
 		return nil, err
 	}
 
-	info := bindataFileInfo{name: "assets/templates/config/dependencies-helper.txt", size: 847, mode: os.FileMode(420), modTime: time.Unix(1527778450, 0)}
+	info := bindataFileInfo{name: "assets/templates/config/dependencies-helper.txt", size: 847, mode: os.FileMode(420), modTime: time.Unix(1527804280, 0)}
 	a := &asset{bytes: bytes, info: info}
 	return a, nil
 }
@@ -412,7 +412,7 @@ func assetsTemplatesConfigProjectAppYml() (*asset, error) {
 		return nil, err
 	}
 
-	info := bindataFileInfo{name: "assets/templates/config/project-app.yml", size: 129, mode: os.FileMode(420), modTime: time.Unix(1527778315, 0)}
+	info := bindataFileInfo{name: "assets/templates/config/project-app.yml", size: 129, mode: os.FileMode(420), modTime: time.Unix(1527804280, 0)}
 	a := &asset{bytes: bytes, info: info}
 	return a, nil
 }
@@ -432,7 +432,7 @@ func assetsTemplatesConfigProjectPkgYml() (*asset, error) {
 		return nil, err
 	}
 
-	info := bindataFileInfo{name: "assets/templates/config/project-pkg.yml", size: 281, mode: os.FileMode(420), modTime: time.Unix(1527778319, 0)}
+	info := bindataFileInfo{name: "assets/templates/config/project-pkg.yml", size: 281, mode: os.FileMode(420), modTime: time.Unix(1527804280, 0)}
 	a := &asset{bytes: bytes, info: info}
 	return a, nil
 }
@@ -472,7 +472,7 @@ func assetsTemplatesGitignoreGitignoreClion() (*asset, error) {
 		return nil, err
 	}
 
-	info := bindataFileInfo{name: "assets/templates/gitignore/.gitignore-clion", size: 410, mode: os.FileMode(420), modTime: time.Unix(1527786879, 0)}
+	info := bindataFileInfo{name: "assets/templates/gitignore/.gitignore-clion", size: 410, mode: os.FileMode(420), modTime: time.Unix(1527804280, 0)}
 	a := &asset{bytes: bytes, info: info}
 	return a, nil
 }
@@ -492,7 +492,7 @@ func assetsTemplatesGitignoreGitignoreGeneral() (*asset, error) {
 		return nil, err
 	}
 
-	info := bindataFileInfo{name: "assets/templates/gitignore/.gitignore-general", size: 353, mode: os.FileMode(420), modTime: time.Unix(1527786884, 0)}
+	info := bindataFileInfo{name: "assets/templates/gitignore/.gitignore-general", size: 353, mode: os.FileMode(420), modTime: time.Unix(1527804280, 0)}
 	a := &asset{bytes: bytes, info: info}
 	return a, nil
 }
@@ -592,7 +592,7 @@ func assetsTemplatesReadmeApp_readmeMd() (*asset, error) {
 		return nil, err
 	}
 
-	info := bindataFileInfo{name: "assets/templates/readme/APP_README.md", size: 182, mode: os.FileMode(420), modTime: time.Unix(1527787878, 0)}
+	info := bindataFileInfo{name: "assets/templates/readme/APP_README.md", size: 182, mode: os.FileMode(420), modTime: time.Unix(1527804280, 0)}
 	a := &asset{bytes: bytes, info: info}
 	return a, nil
 }
@@ -612,7 +612,7 @@ func assetsTemplatesReadmePkg_readmeMd() (*asset, error) {
 		return nil, err
 	}
 
-	info := bindataFileInfo{name: "assets/templates/readme/PKG_README.md", size: 216, mode: os.FileMode(420), modTime: time.Unix(1527788303, 0)}
+	info := bindataFileInfo{name: "assets/templates/readme/PKG_README.md", size: 216, mode: os.FileMode(420), modTime: time.Unix(1527804280, 0)}
 	a := &asset{bytes: bytes, info: info}
 	return a, nil
 }

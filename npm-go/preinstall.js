@@ -2,13 +2,12 @@
 
 "use strict"
 
-const request = require('request'),
-    path = require('path'),
-    tar = require('tar'),
-    zlib = require('zlib'),
-    mkdirp = require('mkdirp'),
-    fs = require('fs'),
-    exec = require('child_process').exec;
+const request = require('request')
+const path = require('path')
+const tar = require('tar')
+const zlib = require('zlib')
+const mkdirp = require('mkdirp')
+const fs = require('fs')
 
 // Mapping from Node's `process.arch` to Golang's `$GOARCH`
 const ARCH_MAPPING = {
@@ -25,38 +24,12 @@ const PLATFORM_MAPPING = {
     "freebsd": "freebsd"
 };
 
-function getInstallationPath(callback) {
-    // `npm bin` will output the path where binary files should be installed
-    exec("npm bin", function(err, stdout, stderr) {
-
-        let dir =  null;
-        if (err || stderr || !stdout || stdout.length === 0)  {
-
-            // We couldn't infer path from `npm bin`. Let's try to get it from
-            // Environment variables set by NPM when it runs.
-            // npm_config_prefix points to NPM's installation directory where `bin` folder is available
-            // Ex: /Users/foo/.nvm/versions/node/v4.3.0
-            let env = process.env;
-            if (env && env.npm_config_prefix) {
-                dir = path.join(env.npm_config_prefix, "bin");
-            }
-        } else {
-            dir = stdout.trim();
-        }
-
-        mkdirp.sync(dir);
-
-        callback(null, dir);
-    });
-
-}
-
 function validateConfiguration(packageJson) {
     if (!packageJson.version) {
         return "'version' property must be specified";
     }
 
-    if (!packageJson.goBinary || typeof(packageJson.goBinary) !== "object") {
+    if (!packageJson.goBinary || typeof (packageJson.goBinary) !== "object") {
         return "'goBinary' property must be defined and be an object";
     }
 
@@ -114,7 +87,16 @@ function parsePackageJson() {
     url = url.replace(/{{arch}}/g, ARCH_MAPPING[process.arch]);
     url = url.replace(/{{platform}}/g, PLATFORM_MAPPING[process.platform]);
     url = url.replace(/{{version}}/g, version);
+
+    if (process.platform === "win32") {
+        url = url.replace(/{{format}}/g, "zip");
+    } else {
+        url = url.replace(/{{format}}/g, "tar.gz");
+    }
+
     url = url.replace(/{{bin_name}}/g, binName);
+    url = url.replace(/{{bin_name}}/g, binName);
+
 
     return {
         binName: binName,
@@ -124,38 +106,69 @@ function parsePackageJson() {
     }
 }
 
-/**
- * Reads the configuration from application's package.json,
- * validates properties, downloads the binary, untars, and stores at
- * ./bin in the package's root. NPM already has support to install binary files
- * specific locations when invoked with "npm install -g"
- *
- *  See: https://docs.npmjs.com/files/package.json#bin
- */
 const INVALID_INPUT = "Invalid inputs";
 function install(callback) {
     let opts = parsePackageJson();
     if (!opts) return callback(INVALID_INPUT);
 
-    mkdirp.sync(opts.binPath);
+    let req = request({ uri: opts.url });
 
-    console.log("Downloading and unziping build files")
+    if (process.platform == "win32") {
+        console.log("Downloading and unziping build files")
 
-    let ungz = zlib.createGunzip();
-    let untar = tar.Extract({path: opts.binPath});
+        mkdirp.sync(opts.binPath);
 
-    untar.on('end', function() {console.log("Wio binary successfuly downloaded and extracted")});
+        var file = fs.createWriteStream(opts.binPath + "/wio.zip");
+        req.on('error', callback.bind(null, "Error downloading from URL: " + opts.url));
+        req.on('response', function (res) {
+            if (res.statusCode !== 200) {
+                return callback("Error downloading Wio binary. HTTP Status Code: " + res.statusCode);
+            }
 
-    let req = request({uri: opts.url});
-    req.on('error', callback.bind(null, "Error downloading from URL: " + opts.url));
-    req.on('response', function(res) {
-        if (res.statusCode !== 200) return callback("Error downloading Wio binary. HTTP Status Code: " + res.statusCode);
+            req.on('data', function (chunk) {
+                file.write(chunk);
+            }).on('end', function () {
+                file.end();
+            });
+        });
 
-        req.pipe(ungz).pipe(untar);
-    });
+        req.on('end', function () {
+            console.log('downloaded wio.zip!');
+
+            const decompress = require('decompress');
+ 
+            decompress(opts.binPath + '/wio.zip', opts.binPath).then(files => {
+                console.log('unzipped wio.zip!');
+
+                if (process.platform === "win32") {
+                    fs.rename(opts.binPath + '/wio.exe', opts.binPath + '/wio', function(err) {
+                        if ( err ) console.log('ERROR: ' + err);
+                    });
+                }
+            });
+        });
+
+    } else {
+        mkdirp.sync(opts.binPath);
+
+        console.log("Downloading and extracting build files")
+
+        let ungz = zlib.createGunzip();
+        let untar = tar.Extract({ path: opts.binPath });
+
+        untar.on('end', function () {
+            console.log("Wio binary successfuly downloaded and extracted")
+        });
+
+        req.on('error', callback.bind(null, "Error downloading from URL: " + opts.url));
+        req.on('response', function (res) {
+            if (res.statusCode !== 200) return callback("Error downloading Wio binary. HTTP Status Code: " + res.statusCode);
+            req.pipe(ungz).pipe(untar);
+        });
+    }
 }
 
-var myCallback = function(data) {
+var myCallback = function (data) {
     console.log(data);
     process.exit(1)
 };
