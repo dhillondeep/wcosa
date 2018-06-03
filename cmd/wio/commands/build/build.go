@@ -44,56 +44,37 @@ func RunBuild(directoryCli string, targetCli string, cleanCli bool, port string)
     commands.RecordError(err, "")
 
     cleanStr := cleanCli
-
     targetToBuildName := targetCli
-    var name string
-    var currTargets types.TargetsTag
-    var targetToBuild *types.TargetTag
-    var pkgCompileFlags []string
-    var framework string
-    var dependencies types.DependenciesTag
 
-    configPath := directory + io.Sep + "wio.yml"
+    configPath := directory+io.Sep+"wio.yml"
+    appType, err := utils.IsAppType(configPath)
+    commands.RecordError(err, "")
 
-    // try parsing app type and if it comes empty this means our project is pkg type
-    appConfig := types.AppConfig{}
+    var projectConfig types.Config
 
-    // check if wio.yml file exits
-    if !utils.PathExists(directory + io.Sep + "wio.yml") {
-        log.Error(true, "wio.yml file not found. Not a valid wio project!")
-    }
-
-    commands.RecordError(io.NormalIO.ParseYml(configPath, &appConfig), "")
-
-    // this means we need to parse pkg type
-    if appConfig.MainTag.Name == "" {
+    if appType {
+        appConfig := types.AppConfig{}
+        commands.RecordError(io.NormalIO.ParseYml(configPath, &appConfig), "")
+        projectConfig = appConfig
+    } else {
         pkgConfig := types.PkgConfig{}
         commands.RecordError(io.NormalIO.ParseYml(configPath, &pkgConfig), "")
-
-        currTargets = pkgConfig.TargetsTag
-        name = pkgConfig.MainTag.Name
-        pkgCompileFlags = pkgConfig.MainTag.Compile_flags
-        framework = pkgConfig.MainTag.Framework[0]
-        dependencies = pkgConfig.DependenciesTag
-    } else {
-        currTargets = appConfig.TargetsTag
-        name = appConfig.MainTag.Name
-        framework = appConfig.MainTag.Framework
-        pkgCompileFlags = nil
-        dependencies = appConfig.DependenciesTag
+        projectConfig = pkgConfig
     }
 
-    // if toBuildTarget is "default" we need to build the default
+    var targetToBuild types.Target
+
+    // if target is default then we choose the default target
     if targetToBuildName == "default" {
-        targetToBuildName = currTargets.Default_target
-        targetToBuild = currTargets.Targets[targetToBuildName]
+        targetToBuildName = projectConfig.GetTargets().GetDefaultTarget()
+        targetToBuild = projectConfig.GetTargets().GetTargets()[targetToBuildName]
     } else {
-        if target, ok := currTargets.Targets[targetToBuildName]; !ok {
-            panic("bad tag")
-        } else {
-            targetToBuild = target
-        }
+        // choose the target that has been provided (from cli)
+        targetToBuild = projectConfig.GetTargets().GetTargets()[targetToBuildName]
     }
+
+    // verify the target
+
 
     // clean the build files if clean flag is true
     if cleanStr {
@@ -102,22 +83,23 @@ func RunBuild(directoryCli string, targetCli string, cleanCli bool, port string)
 
     log.Norm.Yellow(true, "Building the project")
 
-    // create the target
-    createTarget(name, directory, targetToBuild.Board, port, framework, targetToBuildName,
-        targetToBuild.Compile_flags, pkgCompileFlags, dependencies)
+    // create the target (for now take the first framework and platform)
+    createTarget(projectConfig.GetMainTag().GetName(), directory, targetToBuild.GetBoard(), port,
+        projectConfig.GetMainTag().GetFrameworks()[0], targetToBuildName,
+        targetToBuild.GetFlags(), projectConfig.GetDependencies(), appType)
 
     // build the target
     buildTarget(directory, targetToBuildName)
 
     // print the ending message
-    log.Norm.Yellow(true, "Build successful for \""+name+"\" project!")
+    log.Norm.Yellow(true, "Build successful for \""+projectConfig.GetMainTag().GetName()+"\" project!")
 
     return targetToBuildName
 }
 
 // Scans dependency tree and based on that creates CMake build files
 func createTarget(name string, directory string, board string, port string, framework string, target string,
-    targetFlags []string, pkgFlags []string, dependencies types.DependenciesTag) {
+    flags map[string][]string, dependencies types.DependenciesTag, isApp bool) {
 
     log.Norm.Cyan(false, "scanning dependency tree for changes ... ")
 
@@ -133,10 +115,11 @@ func createTarget(name string, directory string, board string, port string, fram
     log.Verb.Verbose(false, "Creating Build Tool files ... ")
 
     // create the main CMakeLists.txt file
-    if pkgFlags != nil {
-        // create cmake for package type
-        if err := cmake.CreatePkgMainCMakeLists(name, directory, board, port, framework, target, targetFlags,
-            pkgFlags, dependencyTree); err != nil {
+    if !isApp {
+        // create CMakeLists.txt for Pkg project
+
+        if err := cmake.CreatePkgMainCMakeLists(name, directory, board, port, framework, target, flags,
+            dependencyTree); err != nil {
             log.Verb.Verbose(true, "failure")
             commands.RecordError(err, "")
         } else {
@@ -144,7 +127,7 @@ func createTarget(name string, directory string, board string, port string, fram
         }
     } else {
         // create cmake for app type
-        if err := cmake.CreateAppMainCMakeLists(name, directory, board, port, framework, target, targetFlags,
+        if err := cmake.CreateAppMainCMakeLists(name, directory, board, port, framework, target, flags,
             dependencyTree); err != nil {
             log.Verb.Verbose(true, "failure")
             commands.RecordError(err, "")

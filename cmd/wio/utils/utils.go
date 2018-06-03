@@ -6,6 +6,9 @@ import (
     "fmt"
     "io/ioutil"
     "path/filepath"
+    "regexp"
+
+    wio "wio/cmd/wio/utils/io"
 )
 
 // Checks if path exists and returns true and false based on that
@@ -187,4 +190,18 @@ func CopyDir(src string, dst string) (err error) {
     }
 
     return
+}
+
+func IsAppType(wioPath string) (bool, error) {
+    // read wio.yml file to see which project type we are building
+    data, err := wio.NormalIO.ReadFile(wioPath)
+    if err != nil {
+        return false, err
+    }
+
+    // regex expression to check for app type
+    pat := regexp.MustCompile(`\sapp:\s`)
+    s := pat.FindString(string(data))
+
+    return s != "", nil
 }

@@ -161,7 +161,7 @@ func handlePublish(directory string) {
     npmConfig.Name = pkgConfig.MainTag.Name
     npmConfig.Version = pkgConfig.MainTag.Version
     npmConfig.Description = pkgConfig.MainTag.Description
-    npmConfig.Repository = pkgConfig.MainTag.Url
+    npmConfig.Repository = pkgConfig.MainTag.Repository
     npmConfig.Main = ".wio.js"
     npmConfig.Keywords = utils.AppendIfMissing(pkgConfig.MainTag.Keywords, []string{"c++", "c", "wio"})
     npmConfig.Author = pkgConfig.MainTag.Author
@@ -434,9 +434,9 @@ func handleAdd(directory string, args []string, vendor bool) {
                     commands.RecordError(err, "")
                 }
 
-                commands.RecordError(utils.PrettyPrintConfig(appConfig, directory+io.Sep+"wio.yml"), "")
+                commands.RecordError(utils.PrettyPrintConfigSpacing(appConfig, directory+io.Sep+"wio.yml"), "")
             } else {
-                commands.RecordError(utils.PrettyPrintConfig(pkgConfig, directory+io.Sep+"wio.yml"), "")
+                commands.RecordError(utils.PrettyPrintConfigSpacing(pkgConfig, directory+io.Sep+"wio.yml"), "")
             }
         }
 
@@ -493,9 +493,9 @@ func handleRemove(directory string, args []string, all bool) {
 
                 appConfig.DependenciesTag = pkgConfig.DependenciesTag
 
-                commands.RecordError(utils.PrettyPrintConfig(appConfig, directory+io.Sep+"wio.yml"), "")
+                commands.RecordError(utils.PrettyPrintConfigSpacing(appConfig, directory+io.Sep+"wio.yml"), "")
             } else {
-                commands.RecordError(utils.PrettyPrintConfig(pkgConfig, directory+io.Sep+"wio.yml"), "")
+                commands.RecordError(utils.PrettyPrintConfigSpacing(pkgConfig, directory+io.Sep+"wio.yml"), "")
             }
         }
 
@@ -543,7 +543,7 @@ func handleInfo(directory string, depName string) {
             if !val.Vendor {
                 log.Norm.Cyan(true, "version: "+val.Version)
             }
-            log.Norm.Cyan(true, "compile flags: ["+strings.Join(val.Compile_flags, ",")+"]")
+            log.Norm.Cyan(true, "compile flags: ["+strings.Join(val.CompileFlags, ",")+"]")
         }
     }
 }

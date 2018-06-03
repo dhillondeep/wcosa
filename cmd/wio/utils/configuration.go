@@ -14,7 +14,7 @@ import (
 )
 
 // Write configuration for the project with information on top and nice spacing
-func PrettyPrintConfig(projectConfig interface{}, filePath string) (error) {
+func PrettyPrintConfigHelp(projectConfig interface{}, filePath string) (error) {
     appInfoPath := "templates" + io.Sep + "config" + io.Sep + "app-helper.txt"
     pkgInfoPath := "templates" + io.Sep + "config" + io.Sep + "pkg-helper.txt"
     targetsInfoPath := "templates" + io.Sep + "config" + io.Sep + "targets-helper.txt"
@@ -72,6 +72,60 @@ func PrettyPrintConfig(projectConfig interface{}, filePath string) (error) {
             beautify = true
             first = false
             finalString += "\n" + string(dependenciesInfoData) + "\n"
+        } else if beautify && !first {
+            first = true
+        } else if !strings.Contains(currLine, "compile_flags:") && beautify {
+            simpleString := strings.Trim(currLine, " ")
+
+            if simpleString[len(simpleString)-1] == ':' {
+                finalString += "\n"
+            }
+        }
+
+        finalString += currLine + "\n"
+    }
+
+    err = io.NormalIO.WriteFile(filePath, []byte(finalString))
+
+    return err
+}
+
+// Write configuration with nice spacing
+func PrettyPrintConfigSpacing(projectConfig interface{}, filePath string) (error) {
+    var ymlData []byte
+    var err error
+
+    // get data
+    if ymlData, err = yaml.Marshal(projectConfig); err != nil {
+        return err
+    }
+
+    finalString := ""
+    currentString := strings.Split(string(ymlData), "\n")
+
+    beautify := false
+    first := false
+    create := true
+
+    for line := range currentString {
+        currLine := currentString[line]
+
+        if len(currLine) <= 1 {
+            continue
+        }
+
+        if strings.Contains(currLine, "app:") && create {
+            create = false
+        } else if strings.Contains(currLine, "pkg:") && create {
+            create = false
+        } else if strings.Contains(currLine, "targets:") {
+            finalString += "\n"
+        } else if strings.Contains(currLine, "create:") {
+            beautify = true
+        } else if strings.Contains(currLine, "dependencies:") {
+            finalString += "\n"
+            beautify = true
+            first = false
         } else if beautify && !first {
             first = true
         } else if !strings.Contains(currLine, "compile_flags:") && beautify {

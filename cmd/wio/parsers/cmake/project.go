@@ -17,7 +17,7 @@ import (
 // project type of "pkg". This CMake file links the package with the target provided so that it can tested and run
 // before getting shipped
 func CreatePkgMainCMakeLists(pkgName string, pkgPath string, board string, port string, framework string, target string,
-    targetFlags []string, pkgFlags []string, depTree map[string]*parsers.DependencyTree) (error) {
+    flags map[string][]string, depTree map[string]*parsers.DependencyTree) (error) {
 
     executablePath, err := io.NormalIO.GetRoot()
     if err != nil {
@@ -45,9 +45,9 @@ func CreatePkgMainCMakeLists(pkgName string, pkgPath string, board string, port 
     templateDataStr = strings.Replace(templateDataStr, "{{FRAMEWORK}}",
         strings.ToUpper(framework), -1)
     templateDataStr = strings.Replace(templateDataStr, "{{TARGET_COMPILE_FLAGS}}",
-        strings.Join(targetFlags, " "), -1)
+        strings.Join(flags["target_compile_flags"], " "), -1)
     templateDataStr = strings.Replace(templateDataStr, "{{PKG_COMPILE_FLAGS}}",
-        strings.Join(pkgFlags, " "), -1)
+        strings.Join(flags["pkg_compile_flags"], " "), -1)
     templateDataStr += "\n"
 
     for _, depValue := range depTree {
@@ -65,7 +65,7 @@ func CreatePkgMainCMakeLists(pkgName string, pkgPath string, board string, port 
 // This creates the main cmake file based on the target. This method is used for creating the main cmake for project
 // type of "app". In this it does not link any library but rather just populates a target that can be uploaded
 func CreateAppMainCMakeLists(appName string, appPath string, board string, port string, framework string, target string,
-    targetFlags []string, depTree map[string]*parsers.DependencyTree) (error) {
+    flags map[string][]string, depTree map[string]*parsers.DependencyTree) (error) {
 
     executablePath, err := io.NormalIO.GetRoot()
     if err != nil {
@@ -92,7 +92,7 @@ func CreateAppMainCMakeLists(appName string, appPath string, board string, port 
     templateDataStr = strings.Replace(templateDataStr, "{{FRAMEWORK}}",
         strings.ToUpper(framework), -1)
     templateDataStr = strings.Replace(templateDataStr, "{{TARGET_COMPILE_FLAGS}}",
-        strings.Join(targetFlags, " "), -1)
+        strings.Join(flags["target_compile_flags"], " "), -1)
     templateDataStr += "\n"
 
     for _, depValue := range depTree {
