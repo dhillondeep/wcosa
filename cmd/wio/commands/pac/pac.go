@@ -144,6 +144,8 @@ func handlePublish(directory string) {
         pacDir+io.Sep+"src"), "failure")
     commands.RecordError(utils.CopyDir(directory+io.Sep+"include",
         pacDir+io.Sep+"include"), "failure")
+    commands.RecordError(utils.CopyFile(directory+io.Sep+"wio.yml",
+        pacDir+io.Sep+"wio.yml"), "failure")
     commands.RecordError(utils.CopyFile(directory+io.Sep+"README.md",
         pacDir+io.Sep+"README.md"), "failure")
     commands.RecordError(utils.CopyFile(directory+io.Sep+"LICENSE",
@@ -197,7 +199,7 @@ func handlePublish(directory string) {
     log.Norm.Cyan(false, "running publish command ... ")
 
     // execute cmake command
-    npmPublishCommand := exec.Command("npm", "pack")
+    npmPublishCommand := exec.Command("npm", "publish")
     npmPublishCommand.Dir = pacDir
 
     // Stderr buffer

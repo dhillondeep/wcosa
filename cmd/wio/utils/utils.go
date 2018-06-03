@@ -200,7 +200,7 @@ func IsAppType(wioPath string) (bool, error) {
     }
 
     // regex expression to check for app type
-    pat := regexp.MustCompile(`\sapp:\s`)
+    pat := regexp.MustCompile(`^(\s+|)app:\s`)
     s := pat.FindString(string(data))
 
     return s != "", nil

@@ -40,7 +40,7 @@ sudo apt-get install npm
 ```
 Then to install wio, you have to do:
 ```bash
-npm install -g wio
+sudo npm install -g wio --unsafe-perm
 ```
 \
 Since Wio is an embedded development environment, you have to install compilers and build tools. So far Wio only supports `AVR` development and hence `AVR` toolchain is needed. In order to install that, you can do:
@@ -61,7 +61,7 @@ sudo pacman -S nodejs
 ```
 Then to install wio, you have to do:
 ```bash
-npm install -g wio
+sudo npm install -g wio --unsafe-perm
 ```
 \
 Since Wio is an embedded development environment, you have to install compilers and build tools. So far Wio only supports `AVR` development and hence `AVR` toolchain is needed. In order to install that, you can do:

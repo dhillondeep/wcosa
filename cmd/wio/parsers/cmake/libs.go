@@ -134,8 +134,11 @@ func parsePackages(packagesPath string, depTrees map[string]*parsers.DependencyT
         return depTrees, err
     } else if len(dirs) > 0 {
         for depName, depValue := range dependencies {
-            // only parse vendor packages
-            if vendor && depValue.Vendor {
+            if vendor && !depValue.Vendor {
+                // only parse vendor packages when in vendor dir
+                continue
+            } else if !vendor && depValue.Vendor {
+                // only parse remote packages when in remote dir
                 continue
             }
 
