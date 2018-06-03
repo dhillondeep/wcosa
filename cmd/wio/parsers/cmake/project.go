@@ -17,7 +17,7 @@ import (
 // project type of "pkg". This CMake file links the package with the target provided so that it can tested and run
 // before getting shipped
 func CreatePkgMainCMakeLists(pkgName string, pkgPath string, board string, port string, framework string, target string,
-    flags map[string][]string, depTree map[string]*parsers.DependencyTree) (error) {
+    flags map[string][]string, depTree map[string]*parsers.DependencyTree, headerOnly bool) (error) {
 
     executablePath, err := io.NormalIO.GetRoot()
     if err != nil {
@@ -27,10 +27,17 @@ func CreatePkgMainCMakeLists(pkgName string, pkgPath string, board string, port 
     toolChainPath := "toolchain/cmake/CosaToolchain.cmake"
 
     // read the CMakeLists.txt file template
-    templateData, err := io.AssetIO.ReadFile("templates/cmake/CMakeListsPkg.txt.tpl")
+    var templateData []byte
 
-    if err != nil {
-        return err
+    if headerOnly {
+        if templateData, err = io.AssetIO.ReadFile("templates/cmake/CMakeListsPkgHeaderOnly.txt.tpl");
+        err != nil {
+            return err
+        }
+    } else {
+        if templateData, err = io.AssetIO.ReadFile("templates/cmake/CMakeListsPkg.txt.tpl"); err != nil {
+            return err
+        }
     }
 
     templateDataStr := strings.Replace(string(templateData), "{{TOOLCHAIN_PATH}}",

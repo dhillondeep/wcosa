@@ -41,7 +41,8 @@ func parsePackage(rootPackagesPath string, currPackagePath string, depTree *pars
         }
 
         pkgName = config.MainTag.Name
-        dependencyTag.Compile_flags = config.MainTag.CompileFlags
+        dependencyTag.CompileFlags = config.MainTag.CompileFlags
+        dependencyTag.HeaderOnly = config.MainTag.HeaderOnly
         dependencies = config.DependenciesTag
     } else {
         pkgName = filepath.Base(currPackagePath)
@@ -114,8 +115,8 @@ func parsePackage(rootPackagesPath string, currPackagePath string, depTree *pars
     }
 
     if parentDependencyData != nil {
-        depTree.Config.Compile_flags = utils.AppendIfMissing(parentDependencyData.CompileFlags,
-            depTree.Config.Compile_flags)
+        depTree.Config.CompileFlags = utils.AppendIfMissing(parentDependencyData.CompileFlags,
+            depTree.Config.CompileFlags)
     }
 
     return nil
@@ -193,7 +194,7 @@ func buildCMakeString(templateString string, finalString string, depTree *parser
     currString = strings.Replace(currString, "{{DEPENDENCY_PATH}}", filepath.ToSlash(depTree.Config.Path), -1)
     currString = strings.Replace(currString, "{{DEPENDENCY_NAME}}", depTree.Config.Hash, -1)
     currString = strings.Replace(currString, "{{DEPENDENCY_COMPILE_FLAGS}}",
-        strings.Join(depTree.Config.Compile_flags, " "), -1)
+        strings.Join(depTree.Config.CompileFlags, " "), -1)
     currString += "\n"
 
     for dep := range depTree.Child {
@@ -215,11 +216,19 @@ func buildCMakeString(templateString string, finalString string, depTree *parser
 
 // Given all the dependency tree data, it will create cmake files for each dependency
 func createDependencyCMakeString(depTree *parsers.DependencyTree) (string, error) {
+    var dependenciesTemplate []byte
+    var err error
 
-    dependenciesTemplate, err := io.AssetIO.ReadFile("templates" + io.Sep + "cmake" + io.Sep +
-        "dependencies.txt")
-    if err != nil {
-        return "", err
+    if depTree.Config.HeaderOnly {
+        if dependenciesTemplate, err = io.AssetIO.ReadFile("templates" + io.Sep + "cmake" + io.Sep +
+            "dependenciesHeaderOnly.txt"); err != nil {
+            return "", err
+        }
+    } else {
+        if dependenciesTemplate, err = io.AssetIO.ReadFile("templates" + io.Sep + "cmake" + io.Sep +
+            "dependencies.txt"); err != nil {
+            return "", err
+        }
     }
 
     dependencyBuildString := buildCMakeString(string(dependenciesTemplate), "", depTree)

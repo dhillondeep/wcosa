@@ -52,7 +52,7 @@ func (appTargetTag AppTargetTag) GetFlags() map[string][]string {
 
 // type for the targets tag in the configuration file for project of app type
 type AppTargetsTag struct {
-    DefaultTarget string                   `yaml:"default"`
+    DefaultTarget string                  `yaml:"default"`
     Targets       map[string]AppTargetTag `yaml:"create"`
 }
 
@@ -92,7 +92,7 @@ func (pkgTargetTag PkgTargetTag) GetFlags() map[string][]string {
 
 // type for the targets tag in the configuration file for project of pkg type
 type PkgTargetsTag struct {
-    DefaultTarget string                   `yaml:"default"`
+    DefaultTarget string                  `yaml:"default"`
     Targets       map[string]PkgTargetTag `yaml:"create"`
 }
 
@@ -114,8 +114,8 @@ func (pkgTargetsTag PkgTargetsTag) GetTargets() (map[string]Target) {
 
 // Structure to handle individual library inside libraries
 type DependencyTag struct {
-    Version       string
-    Vendor        bool
+    Version      string
+    Vendor       bool
     CompileFlags []string `yaml:"compile_flags"`
 }
 
@@ -129,6 +129,7 @@ type MainTag interface {
     GetPlatforms() []string
     GetFrameworks() []string
     GetIde() string
+    IsHeaderOnly() bool
 }
 
 // ############################################# APP Project ###############################################
@@ -157,6 +158,10 @@ func (appTag AppTag) GetIde() string {
     return appTag.Ide
 }
 
+func (appTag AppTag) IsHeaderOnly() bool {
+    return false
+}
+
 // ############################################# PKG Project ###############################################
 
 // Structure to hold information about project type: lib
@@ -170,6 +175,7 @@ type PkgTag struct {
     Organization string
     Keywords     []string
     License      string
+    HeaderOnly   bool     `yaml:"header_only"`
     Platform     string
     Framework    []string
     Board        []string
@@ -193,6 +199,9 @@ func (pkgTag PkgTag) GetIde() string {
     return pkgTag.Ide
 }
 
+func (pkgTag PkgTag) IsHeaderOnly() bool {
+    return pkgTag.HeaderOnly
+}
 
 type Config interface {
     GetMainTag() MainTag
@@ -235,7 +244,6 @@ func (pkgConfig PkgConfig) GetTargets() Targets {
 func (pkgConfig PkgConfig) GetDependencies() DependenciesTag {
     return pkgConfig.DependenciesTag
 }
-
 
 type NpmDependencyTag map[string]string
 

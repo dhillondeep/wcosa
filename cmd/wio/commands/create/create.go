@@ -16,14 +16,13 @@ import (
     "wio/cmd/wio/utils"
     "strings"
     "wio/cmd/wio/commands"
+    "wio/cmd/wio/config"
 )
 
 const (
     APP = "app"
     PKG = "pkg"
 )
-
-
 
 type Create struct {
     Context *cli.Context
@@ -36,8 +35,6 @@ type Create struct {
 func (create Create) GetContext() (*cli.Context) {
     return create.Context
 }
-
-
 
 // Executes the create command
 func (create Create) Execute() {
@@ -58,8 +55,14 @@ func (create Create) Execute() {
     createPacket.Platform = create.Context.String("platform")
     createPacket.Ide = create.Context.String("ide")
     createPacket.Tests = create.Context.Bool("tests")
-    createPacket.CreateTemplates = create.Context.Bool("create-templates")
+    createPacket.CreateDemo = create.Context.Bool("create-demo")
     createPacket.CreateExtras = !create.Context.Bool("no-extras")
+
+    // include header-only flag for pkg
+    if createPacket.ProjType == PKG {
+        createPacket.HeaderOnly = create.Context.Bool("header-only")
+        createPacket.HeaderOnlyFlagSet = create.Context.IsSet("header-only")
+    }
 
     if create.Update {
         performWioExistsCheck(directory)
@@ -95,17 +98,6 @@ func (create Create) Execute() {
     }
 }
 
-/// This method is a helper function that prints instructions to the console before "create"
-/// or "update" command is executed. This has information about the project and it's ty[e
-func prePrint(createPacket *PacketCreate) {
-    log.Norm.Yellow(false, "Project Name: ")
-    log.Norm.Cyan(true, createPacket.Name)
-    log.Norm.Yellow(false, "Project Type: ")
-    log.Norm.Cyan(true, createPacket.ProjType)
-    log.Norm.Yellow(false, "Project Path: ")
-    log.Norm.Cyan(true, createPacket.Directory)
-}
-
 // Creates project structure and based on constrains and other configurations, move template
 // and required files
 func createAndPopulateStructure(createPacket *PacketCreate) {
@@ -135,6 +127,11 @@ func createAndPopulateStructure(createPacket *PacketCreate) {
                 log.Verb.Verbose(true, "tests constrain not approved for: " + path.Entry + " dir")
                 moveOnDir = true
                 break
+            } else if constrain == "no-header-only" && createPacket.HeaderOnly {
+                log.Verb.Verbose(true, "no-header-only constrain not approved for: " +
+                    path.Entry + " dir")
+                moveOnDir = true
+                break
             }
         }
 
@@ -161,8 +158,16 @@ func createAndPopulateStructure(createPacket *PacketCreate) {
                     log.Verb.Verbose(true, "extra constrain not approved for: " + toPath)
                     moveOnFile = true
                     break
-                } else if constrain == "template" && !createPacket.CreateTemplates {
-                    log.Verb.Verbose(true, "template constrain not approved for: " + toPath)
+                } else if constrain == "demo" && !createPacket.CreateDemo {
+                    log.Verb.Verbose(true, "demo constrain not approved for: " + toPath)
+                    moveOnFile = true
+                    break
+                } else if constrain == "no-header-only" && createPacket.HeaderOnly {
+                    log.Verb.Verbose(true, "no-header-only constrain not approved for: " + toPath)
+                    moveOnFile = true
+                    break
+                } else if constrain == "header-only" && !createPacket.HeaderOnly {
+                    log.Verb.Verbose(true, "header-only constrain not approved for: " + toPath)
                     moveOnFile = true
                     break
                 }
@@ -189,73 +194,79 @@ func createAndPopulateStructure(createPacket *PacketCreate) {
 func updateProjectSetup(createPacket *PacketCreate) {
     log.Norm.Cyan(false, "updating project files ... ")
 
-    // get default configuration values
-    defaults := types.DConfig{}
-    commands.RecordError(io.AssetIO.ParseYml("config/defaults.yml", &defaults), "failure")
+    // This is used to show src directory warning for header only packages
+    showSrcWarning := false
 
     // we have to copy README file
     var readmeStr string
 
-    var config interface{}
+    var projectConfig interface{}
 
     if createPacket.ProjType == APP {
-        projectConfig := &types.AppConfig{}
+        appConfig := &types.AppConfig{}
 
-        commands.RecordError(io.NormalIO.ParseYml(createPacket.Directory+io.Sep+"wio.yml", projectConfig),
+        commands.RecordError(io.NormalIO.ParseYml(createPacket.Directory+io.Sep+"wio.yml", appConfig),
             "failure")
 
         // update the name of the project
-        projectConfig.MainTag.Name = createPacket.Name
+        appConfig.MainTag.Name = createPacket.Name
         // update the targets to make sure they are valid and there is a default target
-        handleAppTargets(&projectConfig.TargetsTag, defaults.Board)
+        handleAppTargets(&appConfig.TargetsTag, config.ProjectDefaults.Board)
         // set the default board to be from the default target
-        createPacket.Board = projectConfig.TargetsTag.Targets[projectConfig.TargetsTag.DefaultTarget].Board
+        createPacket.Board = appConfig.TargetsTag.Targets[appConfig.TargetsTag.DefaultTarget].Board
 
         // check framework and platform
-        checkFrameworkAndPlatform(&projectConfig.MainTag.Framework,
-            &projectConfig.MainTag.Platform, &defaults)
+        checkFrameworkAndPlatform(&appConfig.MainTag.Framework, &appConfig.MainTag.Platform)
 
-        config = projectConfig
+        projectConfig = appConfig
 
         // update readme app content
-        readmeStr = getReadmeApp(createPacket.Name, projectConfig.MainTag.Platform, projectConfig.MainTag.Framework)
+        readmeStr = getReadmeApp(createPacket.Name, appConfig.MainTag.Platform, appConfig.MainTag.Framework)
     } else {
-        projectConfig := &types.PkgConfig{}
+        pkgConfig := &types.PkgConfig{}
 
-        commands.RecordError(io.NormalIO.ParseYml(createPacket.Directory+io.Sep+"wio.yml", projectConfig),
+        commands.RecordError(io.NormalIO.ParseYml(createPacket.Directory+io.Sep+"wio.yml", pkgConfig),
             "failure")
 
         // update the name of the project
-        projectConfig.MainTag.Name = createPacket.Name
+        pkgConfig.MainTag.Name = createPacket.Name
         // update the targets to make sure they are valid and there is a default target
-        handlePkgTargets(&projectConfig.TargetsTag, defaults.Board)
+        handlePkgTargets(&pkgConfig.TargetsTag, config.ProjectDefaults.Board)
         // set the default board to be from the default target
-        createPacket.Board = projectConfig.TargetsTag.Targets[projectConfig.TargetsTag.DefaultTarget].Board
+        createPacket.Board = pkgConfig.TargetsTag.Targets[pkgConfig.TargetsTag.DefaultTarget].Board
+
+        // only change value if the flag is set from cli
+        if createPacket.HeaderOnlyFlagSet {
+            pkgConfig.MainTag.HeaderOnly = createPacket.HeaderOnly
+
+            if utils.PathExists(createPacket.Directory+io.Sep+"src") {
+                showSrcWarning = true
+            }
+        }
 
         // check project version
-        if projectConfig.MainTag.Version == "" {
-            projectConfig.MainTag.Version = "0.0.1"
+        if pkgConfig.MainTag.Version == "" {
+            pkgConfig.MainTag.Version = "0.0.1"
         }
 
         // make sure boards are updated in yml file
-        if !utils.StringInSlice("ALL", projectConfig.MainTag.Board) {
-            projectConfig.MainTag.Board = []string{"ALL"}
-        } else if !utils.StringInSlice(createPacket.Board, projectConfig.MainTag.Board) {
-            projectConfig.MainTag.Board = append(projectConfig.MainTag.Board, createPacket.Board)
+        if !utils.StringInSlice("ALL", pkgConfig.MainTag.Board) {
+            pkgConfig.MainTag.Board = []string{"ALL"}
+        } else if !utils.StringInSlice(createPacket.Board, pkgConfig.MainTag.Board) {
+            pkgConfig.MainTag.Board = append(pkgConfig.MainTag.Board, createPacket.Board)
         }
 
         // check frameworks and platform
-        checkFrameworkArrayAndPlatform(&projectConfig.MainTag.Framework,
-            &projectConfig.MainTag.Platform, &defaults)
+        checkFrameworkArrayAndPlatform(&pkgConfig.MainTag.Framework, &pkgConfig.MainTag.Platform)
 
-        config = projectConfig
+        projectConfig = pkgConfig
 
         // update readme pkg content
-        readmeStr = getReadmePkg(createPacket.Name, projectConfig.MainTag.Platform,
-            projectConfig.MainTag.Framework, projectConfig.MainTag.Board)
+        readmeStr = getReadmePkg(createPacket.Name, pkgConfig.MainTag.Platform,
+            pkgConfig.MainTag.Framework, pkgConfig.MainTag.Board)
     }
 
-    commands.RecordError(utils.PrettyPrintConfigSpacing(config, createPacket.Directory+io.Sep+"wio.yml"),
+    commands.RecordError(utils.PrettyPrintConfigSpacing(projectConfig, createPacket.Directory+io.Sep+"wio.yml"),
         "failure")
 
     if utils.PathExists(createPacket.Directory + io.Sep + "README.md") {
@@ -273,29 +284,35 @@ func updateProjectSetup(createPacket *PacketCreate) {
     }
 
     log.Norm.Green(true, "success")
+
+    if showSrcWarning {
+        // src folder exists and warning is showed
+        log.Norm.Magenta(true, "src directory is not needed for header-only packages")
+        log.Norm.Magenta(true, "it will ignored by the build system")
+    }
 }
 
 // This function checks if framework and platform are not empty. It future we can in force in valid
 // frameworks and platforms using this
-func checkFrameworkAndPlatform(framework *string, platform *string, defaults *types.DConfig) {
+func checkFrameworkAndPlatform(framework *string, platform *string) {
     if *framework == "" {
-        *framework = defaults.Framework
+        *framework = config.ProjectDefaults.Framework
     }
 
     if *platform == "" {
-        *platform = defaults.Platform
+        *platform = config.ProjectDefaults.Platform
     }
 }
 
 // This function is similar to the above but in this case it checks if multiple frameworks are invalid
 // and same goes for platform
-func checkFrameworkArrayAndPlatform(framework *[]string, platform *string, defaults *types.DConfig) {
+func checkFrameworkArrayAndPlatform(framework *[]string, platform *string) {
     if len(*framework) == 0 {
-        *framework = append(*framework, defaults.Framework)
+        *framework = append(*framework, config.ProjectDefaults.Framework)
     }
 
     if *platform == "" {
-        *platform = defaults.Platform
+        *platform = config.ProjectDefaults.Platform
     }
 }
 
@@ -308,54 +325,55 @@ func initialProjectSetup(createPacket *PacketCreate) {
     // we have to copy README file
     var readmeStr string
 
-    var config interface{}
+    var projectConfig interface{}
 
     if createPacket.ProjType == APP {
-        projectConfig := &types.AppConfig{}
+        appConfig := &types.AppConfig{}
         defaultTarget := "main"
 
         // make modifications to the data
-        projectConfig.MainTag.Ide = createPacket.Ide
-        projectConfig.MainTag.Platform = createPacket.Platform
-        projectConfig.MainTag.Framework = createPacket.Framework
-        projectConfig.MainTag.Name = createPacket.Name
-        projectConfig.TargetsTag.DefaultTarget = defaultTarget
+        appConfig.MainTag.Ide = createPacket.Ide
+        appConfig.MainTag.Platform = createPacket.Platform
+        appConfig.MainTag.Framework = createPacket.Framework
+        appConfig.MainTag.Name = createPacket.Name
+        appConfig.TargetsTag.DefaultTarget = defaultTarget
         targets := make(map[string]types.AppTargetTag, 1)
-        projectConfig.TargetsTag.Targets = targets
+        appConfig.TargetsTag.Targets = targets
 
-        targetsTag := projectConfig.TargetsTag
+        targetsTag := appConfig.TargetsTag
         handleAppTargets(&targetsTag, createPacket.Board)
 
-        config = projectConfig
+        projectConfig = appConfig
 
         // update readme app content
-        readmeStr = getReadmeApp(createPacket.Name, projectConfig.MainTag.Platform, projectConfig.MainTag.Framework)
+        readmeStr = getReadmeApp(createPacket.Name, appConfig.MainTag.Platform, appConfig.MainTag.Framework)
     } else {
-        projectConfig := &types.PkgConfig{}
+        pkgConfig := &types.PkgConfig{}
         defaultTarget := "tests"
 
         // make modifications to the data
-        projectConfig.MainTag.Ide = createPacket.Ide
-        projectConfig.MainTag.Platform = createPacket.Platform
-        projectConfig.MainTag.Framework = []string{createPacket.Framework}
-        projectConfig.MainTag.Name = createPacket.Name
-        projectConfig.MainTag.Version = "0.0.1"
-        projectConfig.TargetsTag.DefaultTarget = defaultTarget
+        pkgConfig.MainTag.HeaderOnly = createPacket.HeaderOnly
+        pkgConfig.MainTag.Ide = createPacket.Ide
+        pkgConfig.MainTag.Platform = createPacket.Platform
+        pkgConfig.MainTag.Framework = []string{createPacket.Framework}
+        pkgConfig.MainTag.Name = createPacket.Name
+        pkgConfig.MainTag.Version = "0.0.1"
+        pkgConfig.TargetsTag.DefaultTarget = defaultTarget
         targets := make(map[string]types.PkgTargetTag, 0)
-        projectConfig.TargetsTag.Targets = targets
-        projectConfig.MainTag.Board = []string{createPacket.Board}
+        pkgConfig.TargetsTag.Targets = targets
+        pkgConfig.MainTag.Board = []string{createPacket.Board}
 
-        targetsTag := projectConfig.TargetsTag
+        targetsTag := pkgConfig.TargetsTag
         handlePkgTargets(&targetsTag, createPacket.Board)
 
-        config = projectConfig
+        projectConfig = pkgConfig
 
         // update readme pkg content
-        readmeStr = getReadmePkg(createPacket.Name, projectConfig.MainTag.Platform,
-            projectConfig.MainTag.Framework, projectConfig.MainTag.Board)
+        readmeStr = getReadmePkg(createPacket.Name, pkgConfig.MainTag.Platform,
+            pkgConfig.MainTag.Framework, pkgConfig.MainTag.Board)
     }
 
-    commands.RecordError(utils.PrettyPrintConfigHelp(config, createPacket.Directory+io.Sep+"wio.yml"),
+    commands.RecordError(utils.PrettyPrintConfigHelp(projectConfig, createPacket.Directory+io.Sep+"wio.yml"),
         "failure")
 
     // write readme file

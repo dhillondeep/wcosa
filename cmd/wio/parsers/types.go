@@ -12,5 +12,6 @@ type DependencyTag struct {
     Hash          string
     Path          string
     Source        string
-    Compile_flags []string
+    CompileFlags []string
+    HeaderOnly bool
 }

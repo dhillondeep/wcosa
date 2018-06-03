@@ -86,7 +86,7 @@ func RunBuild(directoryCli string, targetCli string, cleanCli bool, port string)
     // create the target (for now take the first framework and platform)
     createTarget(projectConfig.GetMainTag().GetName(), directory, targetToBuild.GetBoard(), port,
         projectConfig.GetMainTag().GetFrameworks()[0], targetToBuildName,
-        targetToBuild.GetFlags(), projectConfig.GetDependencies(), appType)
+        targetToBuild.GetFlags(), projectConfig.GetDependencies(), appType, projectConfig.GetMainTag().IsHeaderOnly())
 
     // build the target
     buildTarget(directory, targetToBuildName)
@@ -99,7 +99,7 @@ func RunBuild(directoryCli string, targetCli string, cleanCli bool, port string)
 
 // Scans dependency tree and based on that creates CMake build files
 func createTarget(name string, directory string, board string, port string, framework string, target string,
-    flags map[string][]string, dependencies types.DependenciesTag, isApp bool) {
+    flags map[string][]string, dependencies types.DependenciesTag, isApp bool, headerOnly bool) {
 
     log.Norm.Cyan(false, "scanning dependency tree for changes ... ")
 
@@ -119,7 +119,7 @@ func createTarget(name string, directory string, board string, port string, fram
         // create CMakeLists.txt for Pkg project
 
         if err := cmake.CreatePkgMainCMakeLists(name, directory, board, port, framework, target, flags,
-            dependencyTree); err != nil {
+            dependencyTree, headerOnly); err != nil {
             log.Verb.Verbose(true, "failure")
             commands.RecordError(err, "")
         } else {

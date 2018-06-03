@@ -1,5 +1,5 @@
-#include "Cosa/OutputPin.hh"
-#include "output.h"
+#include <Cosa/OutputPin.hh>
+#include <output.h>
 
 OutputPin ledPin(Board::LED);
 

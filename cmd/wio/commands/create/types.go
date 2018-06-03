@@ -28,8 +28,10 @@ type PacketCreate struct {
     Platform  string
     Ide       string
     Tests     bool
-    CreateTemplates bool
+    CreateDemo bool
     CreateExtras bool
+    HeaderOnlyFlagSet bool
+    HeaderOnly bool
 }
 
 // #################################### Type for project structure json ##################################
