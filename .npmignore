@@ -3,8 +3,6 @@ cmd/
 vendor/
 toolchain/
 bin/
-npm-go/prepack.js
-npm-go/postpack.js
 dist/
 .idea/
 .gitmodules

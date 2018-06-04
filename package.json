@@ -5,7 +5,8 @@
   "main": "index.js",
   "scripts": {
     "preinstall": "node npm-go/preinstall.js",
-    "postinstall": "node npm-go/remove-exe.js"
+    "postinstall": "node npm-go/remove-exe.js",
+    "preuninstall": "node npm-go/preuninstall.js"
   },
   "bin": "./bin/wio",
   "repository": {
