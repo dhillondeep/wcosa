@@ -58,7 +58,7 @@ nfpm:
   vendor: Wio
   # Your app's homepage.
   # Default is empty.
-  homepage: https://github.com/dhillondeep/wio
+  homepage: https://github.com/waterloop/wio
 
   # Your app's maintainer (probably you).
   # Default is empty.
@@ -153,7 +153,7 @@ scoop:
 
   # Your app's homepage.
   # Default is empty.
-  homepage: "https://github.com/dhillondeep/wio"
+  homepage: "https://github.com/waterloop/wio"
 
   # Your app's description.
   # Default is empty.

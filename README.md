@@ -170,7 +170,7 @@ Since Wio is an embedded development environment, you have to install compilers 
 All the framework files (SDK) are already included with wio and you do not have to worry about them.
 
 ## Github Releases
-Alternatively, all the versions are pushed to Github Releases and can be downloaded from [Github Releases site](https://github.com/dhillondeep/wio/releases).
+Alternatively, all the versions are pushed to Github Releases and can be downloaded from [Github Releases site](https://github.com/waterloop/wio/releases).
 
 ## Create and Update
 `Wio` enforces a strict project structure so that development is organized and easier to build. This project structure will be created by `create` and `update` commands provided. To create a wio project:
