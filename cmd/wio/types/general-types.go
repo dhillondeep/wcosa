@@ -46,7 +46,7 @@ func (appTargetTag AppTargetTag) GetBoard() string {
 
 func (appTargetTag AppTargetTag) GetFlags() map[string][]string {
     flags := make(map[string][]string)
-    flags["compile_flags"] = appTargetTag.TargetCompileFlags
+    flags["target_compile_flags"] = appTargetTag.TargetCompileFlags
     return flags
 }
 

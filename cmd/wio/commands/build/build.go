@@ -73,9 +73,6 @@ func RunBuild(directoryCli string, targetCli string, cleanCli bool, port string)
         targetToBuild = projectConfig.GetTargets().GetTargets()[targetToBuildName]
     }
 
-    // verify the target
-
-
     // clean the build files if clean flag is true
     if cleanStr {
         cleanBuildFiles(directory, targetToBuildName)
@@ -83,10 +80,18 @@ func RunBuild(directoryCli string, targetCli string, cleanCli bool, port string)
 
     log.Norm.Yellow(true, "Building the project")
 
+    flags := targetToBuild.GetFlags()
+
+    // include package compile flags
+    if !appType {
+        flags["pkg_compile_flags"] = utils.AppendIfMissing(flags["pkg_compile_flags"],
+            projectConfig.(types.PkgConfig).MainTag.CompileFlags)
+    }
+
     // create the target (for now take the first framework and platform)
     createTarget(projectConfig.GetMainTag().GetName(), directory, targetToBuild.GetBoard(), port,
         projectConfig.GetMainTag().GetFrameworks()[0], targetToBuildName,
-        targetToBuild.GetFlags(), projectConfig.GetDependencies(), appType, projectConfig.GetMainTag().IsHeaderOnly())
+        flags, projectConfig.GetDependencies(), appType, projectConfig.GetMainTag().IsHeaderOnly())
 
     // build the target
     buildTarget(directory, targetToBuildName)
