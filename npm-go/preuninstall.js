@@ -25,13 +25,13 @@ function parsePackageJson() {
         return
     }
 
-    let packageJson = JSON.parse(fs.readFileSync(packageJsonPath));
+    var packageJson = JSON.parse(fs.readFileSync(packageJsonPath));
 
     // We have validated the config. It exists in all its glory
-    let binName = packageJson.goBinary.name;
-    let binPath = packageJson.goBinary.path;
-    let url = packageJson.goBinary.url;
-    let version = packageJson.version;
+    var binName = packageJson.goBinary.name;
+    var binPath = packageJson.goBinary.path;
+    var url = packageJson.goBinary.url;
+    var version = packageJson.version;
     if (version[0] === 'v') version = version.substr(1);  // strip the 'v' if necessary v0.0.1 => 0.0.1
 
     // Binary name on Windows has .exe suffix
@@ -63,7 +63,7 @@ function parsePackageJson() {
 }
 
 function rename(callback) {
-    let opts = parsePackageJson();
+    var opts = parsePackageJson();
     if (!opts) return callback(INVALID_INPUT);
 
     if (process.platform === "win32") {

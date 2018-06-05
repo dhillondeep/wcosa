@@ -64,18 +64,18 @@ function parsePackageJson() {
         return
     }
 
-    let packageJson = JSON.parse(fs.readFileSync(packageJsonPath));
-    let error = validateConfiguration(packageJson);
+    var packageJson = JSON.parse(fs.readFileSync(packageJsonPath));
+    var error = validateConfiguration(packageJson);
     if (error && error.length > 0) {
         console.error("Invalid package.json: " + error);
         return
     }
 
     // We have validated the config. It exists in all its glory
-    let binName = packageJson.goBinary.name;
-    let binPath = packageJson.goBinary.path;
-    let url = packageJson.goBinary.url;
-    let version = packageJson.version;
+    var binName = packageJson.goBinary.name;
+    var binPath = packageJson.goBinary.path;
+    var url = packageJson.goBinary.url;
+    var version = packageJson.version;
     if (version[0] === 'v') version = version.substr(1);  // strip the 'v' if necessary v0.0.1 => 0.0.1
 
     // Binary name on Windows has .exe suffix
@@ -108,10 +108,10 @@ function parsePackageJson() {
 
 const INVALID_INPUT = "Invalid inputs";
 function install(callback) {
-    let opts = parsePackageJson();
+    var opts = parsePackageJson();
     if (!opts) return callback(INVALID_INPUT);
 
-    let req = request({ uri: opts.url });
+    var req = request({ uri: opts.url });
 
     if (process.platform == "win32") {
         console.log("Downloading and unziping build files")
@@ -153,8 +153,8 @@ function install(callback) {
 
         console.log("Downloading and extracting build files")
 
-        let ungz = zlib.createGunzip();
-        let untar = tar.Extract({ path: opts.binPath });
+        var ungz = zlib.createGunzip();
+        var untar = tar.Extract({ path: opts.binPath });
 
         untar.on('end', function () {
             console.log("Wio binary successfuly downloaded and extracted")
