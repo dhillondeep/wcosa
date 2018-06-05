@@ -37,7 +37,8 @@ type Targets interface {
 // Structure to handle individual target inside targets for project of app type
 type AppTargetTag struct {
     Board              string
-    TargetCompileFlags []string `yaml:"compile_flags"`
+    GlobalFlags        []string `yaml:"global_flags"`
+    TargetCompileFlags []string `yaml:"target_compile_flags"`
 }
 
 func (appTargetTag AppTargetTag) GetBoard() string {
@@ -114,9 +115,9 @@ func (pkgTargetsTag PkgTargetsTag) GetTargets() (map[string]Target) {
 
 // Structure to handle individual library inside libraries
 type DependencyTag struct {
-    Version      string
-    Vendor       bool
-    CompileFlags []string `yaml:"compile_flags"`
+    Version         string
+    Vendor          bool
+    DependencyFlags []string `yaml:"dependency_flags"`
 }
 
 // type for the libraries tag in the main wio.yml file
@@ -166,21 +167,23 @@ func (appTag AppTag) IsHeaderOnly() bool {
 
 // Structure to hold information about project type: lib
 type PkgTag struct {
-    Name         string
-    Description  string
-    Repository   string
-    Version      string
-    Author       string
-    Contributors []string
-    Organization string
-    Keywords     []string
-    License      string
-    HeaderOnly   bool     `yaml:"header_only"`
-    Platform     string
-    Framework    []string
-    Board        []string
-    CompileFlags []string `yaml:"compile_flags"`
-    Ide          string
+    Name                 string
+    Description          string
+    Repository           string
+    Version              string
+    Author               string
+    Contributors         []string
+    Organization         string
+    Keywords             []string
+    License              string
+    HeaderOnly           bool     `yaml:"header_only"`
+    Platform             string
+    Framework            []string
+    Board                []string
+    RequiredGlobalFlags  []string `yaml:"required_global_flags"`
+    RequiredPackageFlags []string `yaml:"required_package_flags"`
+    IncludedPackageFlags []string `yaml:"included_package_flags"`
+    Ide                  string
 }
 
 func (pkgTag PkgTag) GetName() string {

@@ -20,14 +20,11 @@ const wioYmlName = "wio.yml"
  */
 
 type DependencyPackage struct {
-    Directory string
     Name       string
+    Directory string
+    Version string
     FromVendor bool
-    Version    string
-    HeaderOnly bool
-    Boards     []string
-    Platform   string
-    Frameworks []string
+    MainTag types.PkgTag
 }
 
 func createDependencyPackage(depPath string, fromVendor bool) (*DependencyPackage, error) {
@@ -42,10 +39,7 @@ func createDependencyPackage(depPath string, fromVendor bool) (*DependencyPackag
         dependencyPackage.Name = wioObject.MainTag.Name
         dependencyPackage.FromVendor = fromVendor
         dependencyPackage.Version = wioObject.MainTag.Version
-        dependencyPackage.HeaderOnly = wioObject.MainTag.HeaderOnly
-        dependencyPackage.Boards = wioObject.MainTag.Board
-        dependencyPackage.Platform = wioObject.MainTag.Platform
-        dependencyPackage.Frameworks = wioObject.MainTag.Framework
+        dependencyPackage.MainTag = wioObject.MainTag
 
         return dependencyPackage, nil
     }
@@ -118,13 +112,13 @@ func ScanDependencyPackages(directory string) (error) {
     vendorPackagesPath := directory + io.Sep + vendorName
     dependencyPackages := map[string]*DependencyPackage{}
 
-    // scan remote folder
-    if err := recursiveRemoteScan(remotePackagesPath, dependencyPackages); err != nil {
+    // scan vendor folder
+    if err := recursiveRemoteScan(vendorPackagesPath, dependencyPackages); err != nil {
         return err
     }
 
-    // scan vendor folder
-    if err := recursiveRemoteScan(vendorPackagesPath, dependencyPackages); err != nil {
+    // scan remote folder
+    if err := recursiveRemoteScan(remotePackagesPath, dependencyPackages); err != nil {
         return err
     }
 
