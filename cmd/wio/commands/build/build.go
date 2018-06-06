@@ -11,7 +11,6 @@ import (
     "github.com/urfave/cli"
     "wio/cmd/wio/utils/io"
     "wio/cmd/wio/types"
-    "wio/cmd/wio/parsers/cmake"
     "os/exec"
     "wio/cmd/wio/commands"
     "wio/cmd/wio/utils"
@@ -20,6 +19,7 @@ import (
     "wio/cmd/wio/commands/clean"
     "bytes"
     "strings"
+    "wio/cmd/wio/parsers/cmake"
 )
 
 type Build struct {
@@ -105,6 +105,12 @@ func RunBuild(directoryCli string, targetCli string, cleanCli bool, port string)
 // Scans dependency tree and based on that creates CMake build files
 func createTarget(name string, directory string, board string, port string, framework string, target string,
     flags map[string][]string, dependencies types.DependenciesTag, isApp bool, headerOnly bool) {
+
+    //dependencies2.ScanDependencyPackages(directory, flags)
+
+    //os.Exit(2)
+
+
 
     log.Norm.Cyan(false, "scanning dependency tree for changes ... ")
 

@@ -41,7 +41,7 @@ func parsePackage(rootPackagesPath string, currPackagePath string, depTree *pars
         }
 
         pkgName = config.MainTag.Name
-        dependencyTag.CompileFlags = config.MainTag.CompileFlags
+        dependencyTag.CompileFlags = config.MainTag.IncludedFlags
         dependencyTag.HeaderOnly = config.MainTag.HeaderOnly
         dependencies = config.DependenciesTag
     } else {
@@ -115,7 +115,7 @@ func parsePackage(rootPackagesPath string, currPackagePath string, depTree *pars
     }
 
     if parentDependencyData != nil {
-        depTree.Config.CompileFlags = utils.AppendIfMissing(parentDependencyData.CompileFlags,
+        depTree.Config.CompileFlags = utils.AppendIfMissing(parentDependencyData.DependencyFlags,
             depTree.Config.CompileFlags)
     }
 

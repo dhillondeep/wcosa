@@ -7,11 +7,17 @@ import (
     "github.com/go-errors/errors"
     "wio/cmd/wio/types"
     "path/filepath"
+    "wio/cmd/wio/utils/io/log"
+    "regexp"
+    "strings"
+    "os"
 )
 
 const remoteName = "node_modules"
 const vendorName = "vendor"
 const wioYmlName = "wio.yml"
+
+var buildStatus = true
 
 /*
 1) We need to scan all the node_modules and make a map of all the targets to create
@@ -20,11 +26,19 @@ const wioYmlName = "wio.yml"
  */
 
 type DependencyPackage struct {
-    Name       string
-    Directory string
-    Version string
-    FromVendor bool
-    MainTag types.PkgTag
+    Name                   string
+    Directory              string
+    Version                string
+    FromVendor             bool
+    MainTag                types.PkgTag
+    TransitiveDependencies types.DependenciesTag
+}
+
+func matchFlag(providedFlag string, requestedFlag string) (string) {
+    pat := regexp.MustCompile(`^` + strings.ToLower(requestedFlag) + `\b`)
+    s := pat.FindString(strings.ToLower(providedFlag))
+
+    return s
 }
 
 func createDependencyPackage(depPath string, fromVendor bool) (*DependencyPackage, error) {
@@ -41,11 +55,15 @@ func createDependencyPackage(depPath string, fromVendor bool) (*DependencyPackag
         dependencyPackage.Version = wioObject.MainTag.Version
         dependencyPackage.MainTag = wioObject.MainTag
 
+        // add transitive dependencies
+        dependencyPackage.TransitiveDependencies = wioObject.DependenciesTag
+
         return dependencyPackage, nil
     }
 }
 
-func recursiveRemoteScan(currDirectory string, dependencies map[string]*DependencyPackage) (error) {
+func recursiveRemoteScan(currDirectory string, dependencies map[string]*DependencyPackage,
+    providedFlags map[string][]string) (error) {
     // if directory does not exist, do not do anything
     if !utils.PathExists(currDirectory) {
         return nil
@@ -83,21 +101,21 @@ func recursiveRemoteScan(currDirectory string, dependencies map[string]*Dependen
                 return nil
             } else {
                 if dependencyPackage.FromVendor {
-                    dependencies[dependencyPackage.Name+"-vendor"] = dependencyPackage
+                    dependencies[dependencyPackage.Name+"__vendor"] = dependencyPackage
                 } else {
-                    dependencies[dependencyPackage.Name+"-"+dependencyPackage.Version] = dependencyPackage
+                    dependencies[dependencyPackage.Name+"__"+dependencyPackage.Version] = dependencyPackage
                 }
             }
 
             if utils.PathExists(dirPath + io.Sep + remoteName) {
                 // if remote directory exists
-                if err := recursiveRemoteScan(dirPath + io.Sep + remoteName, dependencies); err != nil {
+                if err := recursiveRemoteScan(dirPath+io.Sep+remoteName, dependencies, providedFlags); err != nil {
                     return err
                 }
             } else if utils.PathExists(dirPath + io.Sep + vendorName) {
                 // if vendor directory exists
                 // if remote directory exists
-                if err := recursiveRemoteScan(dirPath + io.Sep + vendorName, dependencies); err != nil {
+                if err := recursiveRemoteScan(dirPath+io.Sep+vendorName, dependencies, providedFlags); err != nil {
                     return err
                 }
             }
@@ -107,20 +125,148 @@ func recursiveRemoteScan(currDirectory string, dependencies map[string]*Dependen
     return nil
 }
 
-func ScanDependencyPackages(directory string) (error) {
+func fillGlobalFlags(globalFlags []string, dependencyGlobalFlagsRequired []string, dependencyName string) ([]string) {
+    var filledFlags []string
+    var notFilledFlags [] string
+
+    if len(globalFlags) == 0 {
+        notFilledFlags = dependencyGlobalFlagsRequired
+    } else {
+        for _, requiredGlobalFlag := range dependencyGlobalFlagsRequired {
+            for _, giveGlobalFlag := range globalFlags {
+                s := matchFlag(giveGlobalFlag, requiredGlobalFlag)
+
+                if s != "" {
+                    filledFlags = append(filledFlags, giveGlobalFlag)
+                } else {
+                    notFilledFlags = append(notFilledFlags, requiredGlobalFlag)
+                }
+            }
+        }
+    }
+
+    // print errors when global flags are not provided
+    if len(dependencyGlobalFlagsRequired) != len(filledFlags) {
+        if buildStatus {
+            log.Norm.Red(true, "Global flags missing")
+        }
+        buildStatus = false
+
+        log.Norm.Cyan(true, "  Dependency: "+dependencyName)
+
+        if len(filledFlags) != 0 {
+            log.Norm.Write(true, "    Provided Global Flags: "+strings.Join(filledFlags, ","))
+        }
+        log.Norm.Write(true, "    Missing Global Flags: "+strings.Join(notFilledFlags, ","))
+    }
+
+    return filledFlags
+}
+
+func fillOtherFlags(providedFlags []string, dependencyPackage *DependencyPackage, fromDep string, toDep string) ([]string) {
+    var filledFlags []string
+    provideRequiredFlag := make(map[string]bool)
+
+    for _, givenFlag := range providedFlags {
+        flagUsed := false
+
+        for _, requiredFlag := range dependencyPackage.MainTag.RequiredFlags {
+            if s := matchFlag(givenFlag, requiredFlag); s != "" {
+                flagUsed = true
+                filledFlags = append(filledFlags, givenFlag)
+                provideRequiredFlag[requiredFlag] = true
+            }
+        }
+
+        if !flagUsed {
+            filledFlags = append(filledFlags, givenFlag)
+        }
+    }
+
+    if len(dependencyPackage.MainTag.RequiredFlags) < len(providedFlags) {
+        if buildStatus {
+            log.Norm.Red(true, "Required flags missing")
+        }
+        buildStatus = false
+
+        log.Norm.Cyan(true, "  From : " + fromDep + "\t" + toDep)
+
+        // case where no flag is provided
+        if len(providedFlags) == 0 {
+            log.Norm.Write(true, "    Missing Flags: "+strings.Join(dependencyPackage.MainTag.RequiredFlags, ","))
+        } else {
+            providedString := "    Provided Flags: "
+            missingString := "    Missing Flags: "
+
+            for pkgName, pkgStatus := range provideRequiredFlag {
+                if pkgStatus {
+                    providedString += pkgName + ", "
+                } else {
+                    missingString += pkgName + ", "
+                }
+            }
+        }
+    }
+
+    return filledFlags
+}
+
+func ScanDependencyPackages(directory string, providedFlags map[string][]string) (error) {
     remotePackagesPath := directory + io.Sep + ".wio" + io.Sep + remoteName
     vendorPackagesPath := directory + io.Sep + vendorName
     dependencyPackages := map[string]*DependencyPackage{}
 
     // scan vendor folder
-    if err := recursiveRemoteScan(vendorPackagesPath, dependencyPackages); err != nil {
+    if err := recursiveRemoteScan(vendorPackagesPath, dependencyPackages, providedFlags); err != nil {
         return err
     }
 
     // scan remote folder
-    if err := recursiveRemoteScan(remotePackagesPath, dependencyPackages); err != nil {
+    if err := recursiveRemoteScan(remotePackagesPath, dependencyPackages, providedFlags); err != nil {
         return err
     }
+
+    // fill in global flags and error out if global flag is missing
+    for depName, depVal := range dependencyPackages {
+        // fill in global flags
+        depVal.MainTag.GlobalFlags = fillGlobalFlags(providedFlags["global_flags"], depVal.MainTag.GlobalFlags, depName)
+    }
+
+    // if error occurs for global flags, exit
+    if !buildStatus {
+        os.Exit(2)
+    }
+
+    /*
+    // fill in required flags for all the direct dependencies
+
+
+    // fill in required flags and create cmake string
+    for depName, depVal := range dependencyPackages {
+        // fill in global flags
+        depVal.MainTag.GlobalFlags = fillGlobalFlags(providedFlags["global_flags"], depVal.MainTag.GlobalFlags, depName)
+
+
+        // go through dependencies
+        for transitiveDepName, transitiveDepValue := range depVal.TransitiveDependencies {
+            fillOtherFlags(transitiveDepValue.DependencyFlags,
+                dependencyPackages[transitiveDepName + "__" + transitiveDepValue.Version], depName, transitiveDepName)
+        }
+
+        //log.Norm.Write(true, dependencyPackageToCMakeString(depName, depVal))
+        //log.Norm.Write(true, "")
+    }
+
+    // if error occurs exit
+    if !buildStatus {
+        os.Exit(2)
+    }
+
+
+    if !buildStatus {
+        os.Exit(2)
+    }
+    */
 
     return nil
 }

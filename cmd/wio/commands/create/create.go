@@ -422,7 +422,7 @@ func handleAppTargets(targetsTag *types.AppTargetsTag, board string) {
 
     if target, ok := targetsTag.Targets[targetsTag.DefaultTarget]; ok {
         defaultTarget.Board = target.Board
-        defaultTarget.TargetCompileFlags = target.TargetCompileFlags
+        defaultTarget.TargetFlags = target.TargetFlags
         targetsTag.Targets[targetsTag.DefaultTarget] = defaultTarget
     } else {
         defaultTarget.Board = board
@@ -442,8 +442,8 @@ func handlePkgTargets(targetsTag *types.PkgTargetsTag, board string) {
 
     if target, ok := targetsTag.Targets[targetsTag.DefaultTarget]; ok {
         defaultTarget.Board = target.Board
-        defaultTarget.TargetCompileFlags = target.TargetCompileFlags
-        defaultTarget.PkgCompileFlags = target.PkgCompileFlags
+        defaultTarget.TargetFlags = target.TargetFlags
+        defaultTarget.PkgFlags = target.PkgFlags
         targetsTag.Targets[targetsTag.DefaultTarget] = defaultTarget
     } else {
         defaultTarget.Board = board

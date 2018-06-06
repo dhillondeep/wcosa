@@ -545,7 +545,7 @@ func handleInfo(directory string, depName string) {
             if !val.Vendor {
                 log.Norm.Cyan(true, "version: "+val.Version)
             }
-            log.Norm.Cyan(true, "compile flags: ["+strings.Join(val.CompileFlags, ",")+"]")
+            log.Norm.Cyan(true, "compile flags: ["+strings.Join(val.DependencyFlags, ",")+"]")
         }
     }
 }
