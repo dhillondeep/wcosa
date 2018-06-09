@@ -19,7 +19,7 @@ import (
     "wio/cmd/wio/commands/clean"
     "bytes"
     "strings"
-    "wio/cmd/wio/parsers/cmake"
+    "wio/cmd/wio/dependencies"
 )
 
 type Build struct {
@@ -46,7 +46,7 @@ func RunBuild(directoryCli string, targetCli string, cleanCli bool, port string)
     cleanStr := cleanCli
     targetToBuildName := targetCli
 
-    configPath := directory+io.Sep+"wio.yml"
+    configPath := directory + io.Sep + "wio.yml"
     appType, err := utils.IsAppType(configPath)
     commands.RecordError(err, "")
 
@@ -82,16 +82,23 @@ func RunBuild(directoryCli string, targetCli string, cleanCli bool, port string)
 
     flags := targetToBuild.GetFlags()
 
-    // include package compile flags
+    projectDependencies := projectConfig.GetDependencies()
+
+    // if we are dealing with package type, make that the dependency
     if !appType {
-        flags["pkg_compile_flags"] = utils.AppendIfMissing(flags["pkg_compile_flags"],
-            projectConfig.(types.PkgConfig).MainTag.CompileFlags)
+        pkgConfig := projectConfig.(types.PkgConfig)
+
+        projectDependencies = types.DependenciesTag{pkgConfig.MainTag.Name: &types.DependencyTag{
+            Version:         pkgConfig.MainTag.Version,
+            Vendor:          false,
+            DependencyFlags: targetToBuild.GetFlags()["pkg_flags"],
+        }}
     }
 
     // create the target (for now take the first framework and platform)
     createTarget(projectConfig.GetMainTag().GetName(), directory, targetToBuild.GetBoard(), port,
         projectConfig.GetMainTag().GetFrameworks()[0], targetToBuildName,
-        flags, projectConfig.GetDependencies(), appType, projectConfig.GetMainTag().IsHeaderOnly())
+        flags, projectDependencies, appType, projectConfig.GetMainTag().IsHeaderOnly())
 
     // build the target
     buildTarget(directory, targetToBuildName)
@@ -103,48 +110,28 @@ func RunBuild(directoryCli string, targetCli string, cleanCli bool, port string)
 }
 
 // Scans dependency tree and based on that creates CMake build files
-func createTarget(name string, directory string, board string, port string, framework string, target string,
-    flags map[string][]string, dependencies types.DependenciesTag, isApp bool, headerOnly bool) {
+func createTarget(projectName string, directory string, board string, port string, framework string, targetName string,
+    projectFlags map[string][]string, projectDependencies types.DependenciesTag, isApp bool, headerOnly bool) {
 
-    //dependencies2.ScanDependencyPackages(directory, flags)
+    log.Verb.Verbose(false, "Generating Dependency Graph ... ")
 
-    //os.Exit(2)
-
-
-
-    log.Norm.Cyan(false, "scanning dependency tree for changes ... ")
-
-    // parse dependencies and create a dependencies.cmake file
-    dependencyTree, err := cmake.ParseDepsAndCreateCMake(directory, dependencies)
-    if err != nil {
-        log.Norm.Red(true, "failure")
+    // parses all the dependency packages and create a cmake dependency file
+    if err := dependencies.CreateCMakeDependencies(projectName, directory, projectFlags, projectDependencies, isApp, headerOnly);
+        err != nil {
+        log.Verb.Verbose(true, "failure")
         commands.RecordError(err, "")
     } else {
-        log.Norm.Green(true, "success")
+        log.Verb.Verbose(true, "success")
+        commands.RecordError(err, "")
     }
 
     log.Verb.Verbose(false, "Creating Build Tool files ... ")
 
-    // create the main CMakeLists.txt file
-    if !isApp {
-        // create CMakeLists.txt for Pkg project
-
-        if err := cmake.CreatePkgMainCMakeLists(name, directory, board, port, framework, target, flags,
-            dependencyTree, headerOnly); err != nil {
-            log.Verb.Verbose(true, "failure")
-            commands.RecordError(err, "")
-        } else {
-            log.Verb.Verbose(true, "success")
-        }
+    // create main cmake file
+    if err := dependencies.CreateMainCMake(projectName, directory, board, port, framework, targetName, projectFlags); err != nil {
+        log.Verb.Verbose(true, "failure")
     } else {
-        // create cmake for app type
-        if err := cmake.CreateAppMainCMakeLists(name, directory, board, port, framework, target, flags,
-            dependencyTree); err != nil {
-            log.Verb.Verbose(true, "failure")
-            commands.RecordError(err, "")
-        } else {
-            log.Verb.Verbose(true, "success")
-        }
+        log.Verb.Verbose(true, "success")
     }
 }
 

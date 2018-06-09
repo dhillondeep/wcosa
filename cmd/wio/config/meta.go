@@ -1,17 +1,17 @@
 package config
 
 type meta struct {
-    Name string
-    Version string
+    Name                 string
+    Version              string
     EnableBashCompletion bool
-    Copyright string
-    UsageText string
+    Copyright            string
+    UsageText            string
 }
 
 var ProjectMeta = meta{
-    Name: "wio",
-    Version: "0.2.1",
+    Name:                 "wio",
+    Version:              "0.2.2",
     EnableBashCompletion: true,
-    Copyright: "Copyright (c) 2018 Waterloop",
-    UsageText: "Create, Build and Upload Embedded projects",
+    Copyright:            "Copyright (c) 2018 Waterloop",
+    UsageText:            "Create, Build and Upload Embedded projects",
 }

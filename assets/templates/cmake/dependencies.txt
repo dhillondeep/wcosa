@@ -1,7 +1,0 @@
-file(GLOB_RECURSE SRC_FILES "{{DEPENDENCY_PATH}}/src/*.cpp" "{{DEPENDENCY_PATH}}/src/*.cc" "{{DEPENDENCY_PATH}}/src/*.c")
-generate_arduino_library({{DEPENDENCY_NAME}}
-	SRCS ${SRC_FILES}
-	BOARD ${BOARD})
-target_compile_definitions({{DEPENDENCY_NAME}} PRIVATE __AVR_${FRAMEWORK}__ {{DEPENDENCY_COMPILE_FLAGS}})
-target_include_directories({{DEPENDENCY_NAME}} PUBLIC "{{DEPENDENCY_PATH}}/include")
-target_include_directories({{DEPENDENCY_NAME}} PRIVATE "{{DEPENDENCY_PATH}}/src")

@@ -1,3 +1,0 @@
-add_library({{DEPENDENCY_NAME}} INTERFACE)
-target_compile_definitions({{DEPENDENCY_NAME}} INTERFACE __AVR_${FRAMEWORK}__ {{DEPENDENCY_COMPILE_FLAGS}})
-target_include_directories({{DEPENDENCY_NAME}} INTERFACE "{{DEPENDENCY_PATH}}/include")

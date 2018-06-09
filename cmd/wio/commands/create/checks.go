@@ -22,13 +22,13 @@ func performArgumentCheck(args cli.Args, isUpdating bool) {
     if len(args) <= 0 {
         log.Norm.Yellow(true, "Directory needs to be provided for creation/update")
         log.Norm.Yellow(false, "Check: ")
-        log.Norm.Cyan(true, "wio " + command + " -h")
+        log.Norm.Cyan(true, "wio "+command+" -h")
         os.Exit(3)
     } else if len(args) == 1 && !isUpdating {
         log.Norm.Yellow(true, "Boards is also needed for creation")
 
         log.Norm.Yellow(false, "Check: ")
-        log.Norm.Cyan(true, "wio " + command + " -h")
+        log.Norm.Cyan(true, "wio "+command+" -h")
         os.Exit(3)
     }
 }
@@ -54,7 +54,7 @@ func performPreUpdateCheck(directory string, projType string) (bool, error) {
         return false, err
     }
 
-    if isApp && projType != "app"  || !isApp && projType == "app" {
+    if isApp && projType != "app" || !isApp && projType == "app" {
         // project is of wrong type we cannot update
         return false, nil
     }

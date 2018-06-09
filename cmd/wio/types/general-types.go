@@ -90,7 +90,7 @@ func (pkgTargetTag PkgTargetTag) GetFlags() map[string][]string {
     flags := make(map[string][]string)
     flags["target_flags"] = pkgTargetTag.TargetFlags
     flags["pkg_flags"] = pkgTargetTag.PkgFlags
-    flags["global_flags"] = pkgTargetTag.PkgFlags
+    flags["global_flags"] = pkgTargetTag.GlobalFlags
     return flags
 }
 

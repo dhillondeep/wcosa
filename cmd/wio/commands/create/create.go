@@ -124,65 +124,68 @@ func createAndPopulateStructure(createPacket *PacketCreate) {
         // handle directory constrains
         for _, constrain := range path.Constrains {
             if constrain == "tests" && !createPacket.Tests {
-                log.Verb.Verbose(true, "tests constrain not approved for: " + path.Entry + " dir")
+                log.Verb.Verbose(true, "tests constrain not approved for: "+path.Entry+" dir")
                 moveOnDir = true
                 break
             } else if constrain == "no-header-only" && createPacket.HeaderOnly {
-                log.Verb.Verbose(true, "no-header-only constrain not approved for: " +
-                    path.Entry + " dir")
+                log.Verb.Verbose(true, "no-header-only constrain not approved for: "+
+                    path.Entry+ " dir")
                 moveOnDir = true
                 break
             }
         }
 
-        if moveOnDir { continue}
+        if moveOnDir {
+            continue
+        }
 
-
-        directoryPath := filepath.Clean(createPacket.Directory+io.Sep+path.Entry)
+        directoryPath := filepath.Clean(createPacket.Directory + io.Sep + path.Entry)
 
         if !utils.PathExists(directoryPath) {
             commands.RecordError(os.MkdirAll(directoryPath, os.ModePerm), "failure")
         }
 
         for _, file := range path.Files {
-            toPath := filepath.Clean(directoryPath+io.Sep+file.To)
+            toPath := filepath.Clean(directoryPath + io.Sep + file.To)
             moveOnFile := false
 
             // handle file constrains
             for _, constrain := range file.Constrains {
                 if constrain == "ide=clion" && createPacket.Ide != "clion" {
-                    log.Verb.Verbose(true, "ide=clion constrain not approved for: " + toPath)
+                    log.Verb.Verbose(true, "ide=clion constrain not approved for: "+toPath)
                     moveOnFile = true
                     break
                 } else if constrain == "extra" && !createPacket.CreateExtras {
-                    log.Verb.Verbose(true, "extra constrain not approved for: " + toPath)
+                    log.Verb.Verbose(true, "extra constrain not approved for: "+toPath)
                     moveOnFile = true
                     break
                 } else if constrain == "demo" && !createPacket.CreateDemo {
-                    log.Verb.Verbose(true, "demo constrain not approved for: " + toPath)
+                    log.Verb.Verbose(true, "demo constrain not approved for: "+toPath)
                     moveOnFile = true
                     break
                 } else if constrain == "no-header-only" && createPacket.HeaderOnly {
-                    log.Verb.Verbose(true, "no-header-only constrain not approved for: " + toPath)
+                    log.Verb.Verbose(true, "no-header-only constrain not approved for: "+toPath)
                     moveOnFile = true
                     break
                 } else if constrain == "header-only" && !createPacket.HeaderOnly {
-                    log.Verb.Verbose(true, "header-only constrain not approved for: " + toPath)
+                    log.Verb.Verbose(true, "header-only constrain not approved for: "+toPath)
                     moveOnFile = true
                     break
                 }
             }
 
-            if moveOnFile { continue }
+            if moveOnFile {
+                continue
+            }
 
             // handle updates
             if !file.Update && createPacket.Update {
-                log.Verb.Verbose(true, "skipping for update: " + toPath)
+                log.Verb.Verbose(true, "skipping for update: "+toPath)
                 continue
             }
 
             commands.RecordError(io.AssetIO.CopyFile(file.From, toPath, file.Override), "failure")
-            log.Verb.Verbose(true, "copied " + file.From + " -> " + toPath)
+            log.Verb.Verbose(true, "copied "+file.From+" -> "+toPath)
         }
     }
 
@@ -239,7 +242,7 @@ func updateProjectSetup(createPacket *PacketCreate) {
         if createPacket.HeaderOnlyFlagSet {
             pkgConfig.MainTag.HeaderOnly = createPacket.HeaderOnly
 
-            if utils.PathExists(createPacket.Directory+io.Sep+"src") {
+            if utils.PathExists(createPacket.Directory + io.Sep + "src") {
                 showSrcWarning = true
             }
         }

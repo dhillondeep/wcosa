@@ -25,8 +25,6 @@ cmake_minimum_required(VERSION ${CMAKE_VERSION})
 project(${PROJECT_NAME} C CXX ASM)
 cmake_policy(SET CMP0023 OLD)
 
-include(${DEPENDENCY_FILE})
-
 file(GLOB_RECURSE SRC_FILES "${PROJECT_PATH}/src/*.cpp" "${PROJECT_PATH}/src/*.cc" "${PROJECT_PATH}/src/*.c")
 generate_arduino_firmware(${TARGET_NAME}
     SRCS ${SRC_FILES}

@@ -137,7 +137,7 @@ func handlePublish(directory string) {
 
     log.Norm.Cyan(false, "packing project files ... ")
 
-    pacDir := directory+io.Sep+".wio"+io.Sep+"pac"+io.Sep+strconv.Itoa(time.Now().Nanosecond())
+    pacDir := directory + io.Sep + ".wio" + io.Sep + "pac" + io.Sep + strconv.Itoa(time.Now().Nanosecond())
 
     // copy src and include folder to .wio/pac folder
     commands.RecordError(utils.CopyDir(directory+io.Sep+"src",
@@ -152,7 +152,6 @@ func handlePublish(directory string) {
         pacDir+io.Sep+"LICENSE"), "failure")
 
     log.Norm.Green(true, "success")
-
 
     log.Verb.Verbose(false, "creating package manager files ... ")
 
@@ -300,6 +299,7 @@ func removeNpmFiles(directory string) {
     commands.RecordError(os.RemoveAll(directory), "failure")
     log.Verb.Verbose(true, "success")
 }
+
 // gets and updates the packages to the versions specified in wio.yml file
 func handleGet(directory string, clean bool) {
     log.Norm.Yellow(true, "Getting packages from npm server")

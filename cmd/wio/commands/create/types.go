@@ -19,34 +19,34 @@ type Paths struct {
 
 /// This structure wraps all the important features needed for a create and update command
 type PacketCreate struct {
-    ProjType string
-    Update bool
-    Directory string
-    Name      string
-    Board     string
-    Framework string
-    Platform  string
-    Ide       string
-    Tests     bool
-    CreateDemo bool
-    CreateExtras bool
+    ProjType          string
+    Update            bool
+    Directory         string
+    Name              string
+    Board             string
+    Framework         string
+    Platform          string
+    Ide               string
+    Tests             bool
+    CreateDemo        bool
+    CreateExtras      bool
     HeaderOnlyFlagSet bool
-    HeaderOnly bool
+    HeaderOnly        bool
 }
 
 // #################################### Type for project structure json ##################################
 type StructureFilesData struct {
     Constrains []string
-    From string
-    To string
-    Override bool
-    Update bool
+    From       string
+    To         string
+    Override   bool
+    Update     bool
 }
 
 type StructurePathData struct {
     Constrains []string
-    Entry string
-    Files []StructureFilesData
+    Entry      string
+    Files      []StructureFilesData
 }
 
 type StructureTypeData struct {

@@ -25,8 +25,6 @@ cmake_minimum_required(VERSION ${CMAKE_VERSION})
 project(${PROJECT_NAME} C CXX ASM)
 cmake_policy(SET CMP0023 OLD)
 
-include(${DEPENDENCY_FILE})
-
 add_library(${PROJECT_NAME} INTERFACE)
 target_compile_definitions(${PROJECT_NAME} INTERFACE __AVR_${FRAMEWORK}__ {{PKG_COMPILE_FLAGS}})
 target_include_directories(${PROJECT_NAME} INTERFACE "${PROJECT_PATH}/include")
