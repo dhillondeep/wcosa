@@ -167,7 +167,7 @@ func convertPkgToDependency(remotePackagesPath string, projectName string, proje
 
 // parses dependencies and creates a dependencies.cmake file
 func CreateCMakeDependencies(projectName string, directory string, providedFlags map[string][]string,
-    projectDependencies types.DependenciesTag, isAPP bool, headerOnly bool) error {
+    projectDependencies types.DependenciesTag, isAPP bool) error {
 
     remotePackagesPath := directory + io.Sep + ".wio" + io.Sep + remoteName
     vendorPackagesPath := directory + io.Sep + vendorName
@@ -214,7 +214,7 @@ func CreateCMakeDependencies(projectName string, directory string, providedFlags
             return errors.New(dependencyName + " does not exist. Pull the dependency or check vendor folder")
         }
 
-        requiredFlags, err := createCMakeTargets(projectTarget, headerOnly, dependencyName, dependencyTargetName, dependencyTarget,
+        requiredFlags, err := createCMakeTargets(projectTarget, false, dependencyName, dependencyTargetName, dependencyTarget,
             globalFlags, projectDependency.DependencyFlags)
         if err != nil {
             return err

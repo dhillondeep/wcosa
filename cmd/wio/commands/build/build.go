@@ -116,7 +116,7 @@ func createTarget(projectName string, directory string, board string, port strin
     log.Verb.Verbose(false, "Generating Dependency Graph ... ")
 
     // parses all the dependency packages and create a cmake dependency file
-    if err := dependencies.CreateCMakeDependencies(projectName, directory, projectFlags, projectDependencies, isApp, headerOnly); err != nil {
+    if err := dependencies.CreateCMakeDependencies(projectName, directory, projectFlags, projectDependencies, isApp); err != nil {
         log.Verb.Verbose(true, "failure")
         commands.RecordError(err, "")
     } else {
