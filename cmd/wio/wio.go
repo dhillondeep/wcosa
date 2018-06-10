@@ -8,20 +8,20 @@
 package main
 
 import (
-    "wio/cmd/wio/utils/io"
     "github.com/urfave/cli"
-    "time"
     "os"
+    "path/filepath"
+    "time"
     "wio/cmd/wio/commands"
-    "wio/cmd/wio/commands/create"
-    "wio/cmd/wio/commands/pac"
-    "wio/cmd/wio/utils/io/log"
     "wio/cmd/wio/commands/build"
     "wio/cmd/wio/commands/clean"
+    "wio/cmd/wio/commands/create"
+    "wio/cmd/wio/commands/pac"
     "wio/cmd/wio/commands/run"
-    "path/filepath"
-    "wio/cmd/wio/utils"
     "wio/cmd/wio/config"
+    "wio/cmd/wio/utils"
+    "wio/cmd/wio/utils/io"
+    "wio/cmd/wio/utils/io/log"
 )
 
 func main() {
@@ -241,75 +241,75 @@ func main() {
             },
         },
         /*
-        {
-            Name:      "test",
-            Usage:     "Runs unit tests available in the project.",
-            UsageText: "wio test",
-            Flags: []cli.Flag{
-                cli.BoolFlag{Name: "clean",
-                    Usage: "Clean the project before building it",
-                },
-                cli.StringFlag{Name: "port",
-                    Usage: "Port to upload the project to, (default: automatically select)",
-                    Value: defaults.Port,
-                },
-                cli.StringFlag{Name: "target",
-                    Usage: "Builds, and uploads a specified target instead of the main/default target",
-                    Value: defaults.Utarget,
-                },
-                cli.BoolFlag{Name: "verbose",
-                    Usage: "Turns verbose mode on to show detailed errors and commands being executed",
-                },
-            },
-            Action: func(c *cli.Context) error {
-                return nil
-            },
-        },
+           {
+               Name:      "test",
+               Usage:     "Runs unit tests available in the project.",
+               UsageText: "wio test",
+               Flags: []cli.Flag{
+                   cli.BoolFlag{Name: "clean",
+                       Usage: "Clean the project before building it",
+                   },
+                   cli.StringFlag{Name: "port",
+                       Usage: "Port to upload the project to, (default: automatically select)",
+                       Value: defaults.Port,
+                   },
+                   cli.StringFlag{Name: "target",
+                       Usage: "Builds, and uploads a specified target instead of the main/default target",
+                       Value: defaults.Utarget,
+                   },
+                   cli.BoolFlag{Name: "verbose",
+                       Usage: "Turns verbose mode on to show detailed errors and commands being executed",
+                   },
+               },
+               Action: func(c *cli.Context) error {
+                   return nil
+               },
+           },
 
-        {
-            Name:      "monitor",
-            Usage:     "Runs the serial monitor.",
-            UsageText: "wio monitor [command options]",
-            Flags: []cli.Flag{
-                cli.BoolFlag{Name: "gui",
-                    Usage: "Runs the GUI version of the serial monitor tool",
-                },
-                cli.StringFlag{Name: "port",
-                    Usage: "Port to upload the project to, (default: automatically select)",
-                    Value: defaults.Port,
-                },
-                cli.BoolFlag{Name: "verbose",
-                    Usage: "Turns verbose mode on to show detailed errors and commands being executed",
-                },
-            },
-            Action: func(c *cli.Context) error {
-                return nil
-            },
-        },
-        {
-            Name:      "doctor",
-            Usage:     "Guide development tooling and system configurations.",
-            UsageText: "wio doctor",
-            Action: func(c *cli.Context) error {
-                return nil
-            },
-        },
-        {
-            Name:      "analyze",
-            Usage:     "Analyzes C/C++ code statically.",
-            UsageText: "wio analyze",
-            Action: func(c *cli.Context) error {
-                return nil
-            },
-        },
-        {
-            Name:      "doxygen",
-            Usage:     "Runs doxygen tool to create documentation for the code.",
-            UsageText: "wio doxygen",
-            Action: func(c *cli.Context) error {
-                return nil
-            },
-        },
+           {
+               Name:      "monitor",
+               Usage:     "Runs the serial monitor.",
+               UsageText: "wio monitor [command options]",
+               Flags: []cli.Flag{
+                   cli.BoolFlag{Name: "gui",
+                       Usage: "Runs the GUI version of the serial monitor tool",
+                   },
+                   cli.StringFlag{Name: "port",
+                       Usage: "Port to upload the project to, (default: automatically select)",
+                       Value: defaults.Port,
+                   },
+                   cli.BoolFlag{Name: "verbose",
+                       Usage: "Turns verbose mode on to show detailed errors and commands being executed",
+                   },
+               },
+               Action: func(c *cli.Context) error {
+                   return nil
+               },
+           },
+           {
+               Name:      "doctor",
+               Usage:     "Guide development tooling and system configurations.",
+               UsageText: "wio doctor",
+               Action: func(c *cli.Context) error {
+                   return nil
+               },
+           },
+           {
+               Name:      "analyze",
+               Usage:     "Analyzes C/C++ code statically.",
+               UsageText: "wio analyze",
+               Action: func(c *cli.Context) error {
+                   return nil
+               },
+           },
+           {
+               Name:      "doxygen",
+               Usage:     "Runs doxygen tool to create documentation for the code.",
+               UsageText: "wio doxygen",
+               Action: func(c *cli.Context) error {
+                   return nil
+               },
+           },
         */
         {
             Name:  "pac",
@@ -433,44 +433,44 @@ func main() {
                     },
                 },
                 /*
-                cli.Command{
-                    Name:      "update",
-                    Usage:     "Updates all the packages mentioned in wio.yml file and vendor folder.",
-                    UsageText: "wio pac update [command options]",
-                    Flags: []cli.Flag{
-                        cli.StringFlag{Name: "dir",
-                            Usage: "Directory for the project (default: current working directory)",
-                            Value: getCurrDir(),
-                        },
-                        cli.BoolFlag{Name: "verbose",
-                            Usage: "Turns verbose mode on to show detailed errors and commands being executed.",
-                        },
-                    },
-                    Action: func(c *cli.Context) {
-                        command = pac.Pac{Context: c, Type: pac.UPDATE}
-                    },
-                },
-                cli.Command{
-                    Name:      "collect",
-                    Usage:     "Creates vendor folder and puts all the packages in that folder.",
-                    UsageText: "wio pac collect [command options]",
-                    Flags: []cli.Flag{
-                        cli.StringFlag{Name: "dir",
-                            Usage: "Directory for the project (default: current working directory)",
-                            Value: getCurrDir(),
-                        },
-                        cli.StringFlag{Name: "pkg",
-                            Usage: "Packages to collect instead of collecting all of the packages.",
-                            Value: "none",
-                        },
-                        cli.BoolFlag{Name: "verbose",
-                            Usage: "Turns verbose mode on to show detailed errors and commands being executed.",
-                        },
-                    },
-                    Action: func(c *cli.Context) {
-                        command = pac.Pac{Context: c, Type: pac.COLLECT}
-                    },
-                },*/
+                   cli.Command{
+                       Name:      "update",
+                       Usage:     "Updates all the packages mentioned in wio.yml file and vendor folder.",
+                       UsageText: "wio pac update [command options]",
+                       Flags: []cli.Flag{
+                           cli.StringFlag{Name: "dir",
+                               Usage: "Directory for the project (default: current working directory)",
+                               Value: getCurrDir(),
+                           },
+                           cli.BoolFlag{Name: "verbose",
+                               Usage: "Turns verbose mode on to show detailed errors and commands being executed.",
+                           },
+                       },
+                       Action: func(c *cli.Context) {
+                           command = pac.Pac{Context: c, Type: pac.UPDATE}
+                       },
+                   },
+                   cli.Command{
+                       Name:      "collect",
+                       Usage:     "Creates vendor folder and puts all the packages in that folder.",
+                       UsageText: "wio pac collect [command options]",
+                       Flags: []cli.Flag{
+                           cli.StringFlag{Name: "dir",
+                               Usage: "Directory for the project (default: current working directory)",
+                               Value: getCurrDir(),
+                           },
+                           cli.StringFlag{Name: "pkg",
+                               Usage: "Packages to collect instead of collecting all of the packages.",
+                               Value: "none",
+                           },
+                           cli.BoolFlag{Name: "verbose",
+                               Usage: "Turns verbose mode on to show detailed errors and commands being executed.",
+                           },
+                       },
+                       Action: func(c *cli.Context) {
+                           command = pac.Pac{Context: c, Type: pac.COLLECT}
+                       },
+                   },*/
             },
         },
     }
@@ -511,7 +511,7 @@ func validateWioProject(directory string) {
 }
 
 // returns the current directory from where wio is being called
-func getCurrDir() (string) {
+func getCurrDir() string {
     directory, err := os.Getwd()
     commands.RecordError(err, "")
     return directory

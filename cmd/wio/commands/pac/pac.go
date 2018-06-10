@@ -7,22 +7,22 @@
 package pac
 
 import (
-    "github.com/urfave/cli"
-    "path/filepath"
-    "wio/cmd/wio/commands"
-    "wio/cmd/wio/utils/io"
-    "wio/cmd/wio/types"
-    "wio/cmd/wio/utils"
-    "os/exec"
     "bytes"
-    "os"
-    "strings"
-    "wio/cmd/wio/utils/io/log"
     "errors"
+    "github.com/urfave/cli"
     "net/http"
+    "os"
+    "os/exec"
+    "path/filepath"
     "regexp"
     "strconv"
+    "strings"
     "time"
+    "wio/cmd/wio/commands"
+    "wio/cmd/wio/types"
+    "wio/cmd/wio/utils"
+    "wio/cmd/wio/utils/io"
+    "wio/cmd/wio/utils/io/log"
 )
 
 const (
@@ -43,7 +43,7 @@ type Pac struct {
 }
 
 // Get context for the command
-func (pac Pac) GetContext() (*cli.Context) {
+func (pac Pac) GetContext() *cli.Context {
     return pac.Context
 }
 
@@ -271,7 +271,7 @@ func dependencyCheck(directory string, dependencyName string, dependencyVersion 
     // version does not exists
     if cmdOutOutput.String() == "" {
         commands.RecordError(errors.New("dependency: \"" + dependencyName + "@" + dependencyVersion+
-            "\" version does not exist"), "failure", )
+            "\" version does not exist"), "failure")
     } else {
         log.Verb.Verbose(true, "success")
 
@@ -287,7 +287,7 @@ func dependencyCheck(directory string, dependencyName string, dependencyVersion 
             log.Verb.Verbose(true, "success")
         } else {
             commands.RecordError(errors.New("dependency: \"" + dependencyName + "@" + dependencyVersion+
-                "\" is not a wio package"), "failure", )
+                "\" is not a wio package"), "failure")
         }
     }
 }

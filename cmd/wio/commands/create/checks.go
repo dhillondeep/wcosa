@@ -1,14 +1,14 @@
 package create
 
 import (
+    "bufio"
     "github.com/urfave/cli"
     "os"
-    "wio/cmd/wio/utils/io/log"
+    "strings"
+    "wio/cmd/wio/commands"
     "wio/cmd/wio/utils"
     "wio/cmd/wio/utils/io"
-    "wio/cmd/wio/commands"
-    "bufio"
-    "strings"
+    "wio/cmd/wio/utils/io/log"
 )
 
 // This check is used to see if the cli arguments are required length

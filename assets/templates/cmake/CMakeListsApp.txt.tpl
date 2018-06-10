@@ -20,12 +20,13 @@ endif()
 set(TARGET_NAME {{TARGET_NAME}})
 set(BOARD {{BOARD}})
 set(FRAMEWORK {{FRAMEWORK}})
+set(ENTRY {{ENTRY}})
 
 cmake_minimum_required(VERSION ${CMAKE_VERSION})
 project(${PROJECT_NAME} C CXX ASM)
 cmake_policy(SET CMP0023 OLD)
 
-file(GLOB_RECURSE SRC_FILES "${PROJECT_PATH}/src/*.cpp" "${PROJECT_PATH}/src/*.cc" "${PROJECT_PATH}/src/*.c")
+file(GLOB_RECURSE SRC_FILES "${PROJECT_PATH}/${ENTRY}/*.cpp" "${PROJECT_PATH}/${ENTRY}/*.cc" "${PROJECT_PATH}/${ENTRY}/*.c")
 generate_arduino_firmware(${TARGET_NAME}
     SRCS ${SRC_FILES}
     BOARD ${BOARD}

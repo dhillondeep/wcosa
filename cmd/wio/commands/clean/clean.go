@@ -8,11 +8,11 @@ package clean
 
 import (
     "github.com/urfave/cli"
+    "os"
     "path/filepath"
     "wio/cmd/wio/commands"
-    "os"
-    "wio/cmd/wio/utils/io"
     "wio/cmd/wio/utils"
+    "wio/cmd/wio/utils/io"
     "wio/cmd/wio/utils/io/log"
 )
 
@@ -22,7 +22,7 @@ type Clean struct {
 }
 
 // get context for the command
-func (clean Clean) GetContext() (*cli.Context) {
+func (clean Clean) GetContext() *cli.Context {
     return clean.Context
 }
 

@@ -7,19 +7,19 @@
 package build
 
 import (
-    "os"
-    "github.com/urfave/cli"
-    "wio/cmd/wio/utils/io"
-    "wio/cmd/wio/types"
-    "os/exec"
-    "wio/cmd/wio/commands"
-    "wio/cmd/wio/utils"
-    "wio/cmd/wio/utils/io/log"
-    "path/filepath"
-    "wio/cmd/wio/commands/clean"
     "bytes"
+    "github.com/urfave/cli"
+    "os"
+    "os/exec"
+    "path/filepath"
     "strings"
+    "wio/cmd/wio/commands"
+    "wio/cmd/wio/commands/clean"
     "wio/cmd/wio/dependencies"
+    "wio/cmd/wio/types"
+    "wio/cmd/wio/utils"
+    "wio/cmd/wio/utils/io"
+    "wio/cmd/wio/utils/io/log"
 )
 
 type Build struct {
@@ -28,7 +28,7 @@ type Build struct {
 }
 
 // get context for the command
-func (build Build) GetContext() (*cli.Context) {
+func (build Build) GetContext() *cli.Context {
     return build.Context
 }
 
@@ -116,8 +116,7 @@ func createTarget(projectName string, directory string, board string, port strin
     log.Verb.Verbose(false, "Generating Dependency Graph ... ")
 
     // parses all the dependency packages and create a cmake dependency file
-    if err := dependencies.CreateCMakeDependencies(projectName, directory, projectFlags, projectDependencies, isApp, headerOnly);
-        err != nil {
+    if err := dependencies.CreateCMakeDependencies(projectName, directory, projectFlags, projectDependencies, isApp, headerOnly); err != nil {
         log.Verb.Verbose(true, "failure")
         commands.RecordError(err, "")
     } else {
@@ -128,7 +127,7 @@ func createTarget(projectName string, directory string, board string, port strin
     log.Verb.Verbose(false, "Creating Build Tool files ... ")
 
     // create main cmake file
-    if err := dependencies.CreateMainCMake(projectName, directory, board, port, framework, targetName, projectFlags); err != nil {
+    if err := dependencies.CreateMainCMake(projectName, directory, board, port, framework, targetName, projectFlags, isApp); err != nil {
         log.Verb.Verbose(true, "failure")
     } else {
         log.Verb.Verbose(true, "success")

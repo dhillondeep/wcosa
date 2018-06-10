@@ -36,15 +36,9 @@ type Targets interface {
 
 // Structure to handle individual target inside targets for project of app type
 type AppTargetTag struct {
-<<<<<<< HEAD
     Board       string
     GlobalFlags []string `yaml:"global_flags"`
     TargetFlags []string `yaml:"target_flags"`
-=======
-    Board              string
-    GlobalFlags        []string `yaml:"global_flags"`
-    TargetCompileFlags []string `yaml:"target_compile_flags"`
->>>>>>> more changes
 }
 
 func (appTargetTag AppTargetTag) GetBoard() string {
@@ -64,11 +58,11 @@ type AppTargetsTag struct {
     Targets       map[string]AppTargetTag `yaml:"create"`
 }
 
-func (appTargetsTag AppTargetsTag) GetDefaultTarget() (string) {
+func (appTargetsTag AppTargetsTag) GetDefaultTarget() string {
     return appTargetsTag.DefaultTarget
 }
 
-func (appTargetsTag AppTargetsTag) GetTargets() (map[string]Target) {
+func (appTargetsTag AppTargetsTag) GetTargets() map[string]Target {
     targets := make(map[string]Target)
 
     for key, val := range appTargetsTag.Targets {
@@ -106,11 +100,11 @@ type PkgTargetsTag struct {
     Targets       map[string]PkgTargetTag `yaml:"create"`
 }
 
-func (pkgTargetsTag PkgTargetsTag) GetDefaultTarget() (string) {
+func (pkgTargetsTag PkgTargetsTag) GetDefaultTarget() string {
     return pkgTargetsTag.DefaultTarget
 }
 
-func (pkgTargetsTag PkgTargetsTag) GetTargets() (map[string]Target) {
+func (pkgTargetsTag PkgTargetsTag) GetTargets() map[string]Target {
     targets := make(map[string]Target)
 
     for key, val := range pkgTargetsTag.Targets {
@@ -176,7 +170,6 @@ func (appTag AppTag) IsHeaderOnly() bool {
 
 // Structure to hold information about project type: lib
 type PkgTag struct {
-<<<<<<< HEAD
     Name                   string
     Description            string
     Repository             string
@@ -196,25 +189,6 @@ type PkgTag struct {
     RequiredFlags          []string `yaml:"required_flags"`
     IncludedFlags          []string `yaml:"included_flags"`
     Ide                    string
-=======
-    Name                 string
-    Description          string
-    Repository           string
-    Version              string
-    Author               string
-    Contributors         []string
-    Organization         string
-    Keywords             []string
-    License              string
-    HeaderOnly           bool     `yaml:"header_only"`
-    Platform             string
-    Framework            []string
-    Board                []string
-    RequiredGlobalFlags  []string `yaml:"required_global_flags"`
-    RequiredPackageFlags []string `yaml:"required_package_flags"`
-    IncludedPackageFlags []string `yaml:"included_package_flags"`
-    Ide                  string
->>>>>>> more changes
 }
 
 func (pkgTag PkgTag) GetName() string {

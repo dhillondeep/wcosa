@@ -1,18 +1,18 @@
 package dependencies
 
 import (
-    "sort"
-    "strings"
-    "wio/cmd/wio/utils/io/log"
-    "wio/cmd/wio/utils"
-    "strconv"
-    "os"
     "errors"
+    "os"
+    "sort"
+    "strconv"
+    "strings"
     "wio/cmd/wio/types"
+    "wio/cmd/wio/utils"
+    "wio/cmd/wio/utils/io/log"
 )
 
 // recursively goes through dependencies and creates CMake target and CMake Link
-func recursivelyGoThroughTransDependencies(parentName string, parentHeaderOnly bool, dependencyPackages map[string]*DependencyScanPackage, dependencies types.DependenciesTag, globalFlags []string, requiredFlags []string) (error) {
+func recursivelyGoThroughTransDependencies(parentName string, parentHeaderOnly bool, dependencyPackages map[string]*DependencyScanPackage, dependencies types.DependenciesTag, globalFlags []string, requiredFlags []string) error {
     for transDependencyName, transDependencyPackage := range dependencies {
         var err error
 

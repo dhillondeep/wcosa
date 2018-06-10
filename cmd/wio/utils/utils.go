@@ -1,10 +1,10 @@
 package utils
 
 import (
-    "os"
-    "io"
     "fmt"
+    "io"
     "io/ioutil"
+    "os"
     "path/filepath"
     "regexp"
 
@@ -12,7 +12,7 @@ import (
 )
 
 // Checks if path exists and returns true and false based on that
-func PathExists(path string) (bool) {
+func PathExists(path string) bool {
     if _, err := os.Stat(path); err != nil {
         return false
     }

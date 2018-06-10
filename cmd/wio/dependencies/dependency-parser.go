@@ -1,22 +1,23 @@
 package dependencies
 
 import (
-    "wio/cmd/wio/utils/io"
-    "io/ioutil"
-    "wio/cmd/wio/utils"
     "github.com/go-errors/errors"
-    "wio/cmd/wio/types"
-    "path/filepath"
-    "wio/cmd/wio/utils/io/log"
-    "strings"
+    "io/ioutil"
     "os"
+    "path/filepath"
+    "strings"
+    "wio/cmd/wio/types"
+    "wio/cmd/wio/utils"
+    "wio/cmd/wio/utils/io"
+    "wio/cmd/wio/utils/io/log"
 )
 
 const (
-    remoteName = "node_modules"
-    vendorName = "vendor"
-    wioYmlName = "wio.yml"
-    targetName = "${TARGET_NAME}"
+    pkgRemoteName = "pkg_module"
+    remoteName    = "node_modules"
+    vendorName    = "vendor"
+    wioYmlName    = "wio.yml"
+    targetName    = "${TARGET_NAME}"
 )
 
 var packageVersions = map[string]string{}    /* Keeps track of versions for the packages */
@@ -73,7 +74,7 @@ func createDependencyScanPackage(depPath string, fromVendor bool) (*DependencySc
 
 // Go through all the dependency packages and get information about them
 func recursiveDependencyScan(currDirectory string, dependencies map[string]*DependencyScanPackage,
-    providedFlags map[string][]string) (error) {
+    providedFlags map[string][]string) error {
     // if directory does not exist, do not do anything
     if !utils.PathExists(currDirectory) {
         return nil
@@ -133,7 +134,7 @@ func recursiveDependencyScan(currDirectory string, dependencies map[string]*Depe
 
 // When we are building for pkg type, we will copy the files into the remote directory
 // This will be picked up while scanning and hence the rest of build process stays the same
-func convertPkgToDependency(remotePackagesPath string, projectName string, projectDirectory string) (error) {
+func convertPkgToDependency(remotePackagesPath string, projectName string, projectDirectory string) error {
     if !utils.PathExists(remotePackagesPath) {
         if err := os.MkdirAll(remotePackagesPath, os.ModePerm); err != nil {
             return err
@@ -166,14 +167,20 @@ func convertPkgToDependency(remotePackagesPath string, projectName string, proje
 
 // parses dependencies and creates a dependencies.cmake file
 func CreateCMakeDependencies(projectName string, directory string, providedFlags map[string][]string,
-    projectDependencies types.DependenciesTag, isAPP bool, headerOnly bool) (error) {
+    projectDependencies types.DependenciesTag, isAPP bool, headerOnly bool) error {
 
     remotePackagesPath := directory + io.Sep + ".wio" + io.Sep + remoteName
     vendorPackagesPath := directory + io.Sep + vendorName
     dependencyPackages := map[string]*DependencyScanPackage{}
 
     if !isAPP {
-        if err := convertPkgToDependency(remotePackagesPath, projectName, directory); err != nil {
+        packageDependencyPath := directory + io.Sep + ".wio" + io.Sep + pkgRemoteName
+        if err := convertPkgToDependency(packageDependencyPath, projectName, directory); err != nil {
+            return err
+        }
+
+        // scan package folder
+        if err := recursiveDependencyScan(packageDependencyPath, dependencyPackages, providedFlags); err != nil {
             return err
         }
     }
@@ -222,9 +229,9 @@ func CreateCMakeDependencies(projectName string, directory string, providedFlags
 }
 
 // Creates main cmake file that will build the project
-func CreateMainCMake(projectName string, directory string, board string, port string, framework string, targetName string, projectFlags map[string][]string) (error) {
+func CreateMainCMake(projectName string, directory string, board string, port string, framework string, targetName string, projectFlags map[string][]string, isAPP bool) error {
     // create cmake for App type
-    if err := generateAvrMainCMakeLists(projectName, directory, board, port, framework, targetName, projectFlags); err != nil {
+    if err := generateAvrMainCMakeLists(projectName, directory, board, port, framework, targetName, projectFlags, isAPP); err != nil {
         log.Verb.Verbose(true, "failure")
         return err
     }

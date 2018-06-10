@@ -8,15 +8,15 @@ package create
 
 import (
     "github.com/urfave/cli"
-    "path/filepath"
-    "wio/cmd/wio/utils/io/log"
     "os"
-    "wio/cmd/wio/utils/io"
-    "wio/cmd/wio/types"
-    "wio/cmd/wio/utils"
+    "path/filepath"
     "strings"
     "wio/cmd/wio/commands"
     "wio/cmd/wio/config"
+    "wio/cmd/wio/types"
+    "wio/cmd/wio/utils"
+    "wio/cmd/wio/utils/io"
+    "wio/cmd/wio/utils/io/log"
 )
 
 const (
@@ -32,7 +32,7 @@ type Create struct {
 }
 
 // get context for the command
-func (create Create) GetContext() (*cli.Context) {
+func (create Create) GetContext() *cli.Context {
     return create.Context
 }
 
@@ -387,7 +387,7 @@ func initialProjectSetup(createPacket *PacketCreate) {
 }
 
 // Fill README template and return a string. This is for APP project type
-func getReadmeApp(name string, platform string, framework string) (string) {
+func getReadmeApp(name string, platform string, framework string) string {
     readmeContent, err := io.AssetIO.ReadFile("templates/readme/APP_README.md")
     commands.RecordError(err, "failure")
 
@@ -399,7 +399,7 @@ func getReadmeApp(name string, platform string, framework string) (string) {
 }
 
 // Fill README template and return a string. This is for PKG project type
-func getReadmePkg(name string, platform string, framework []string, board []string) (string) {
+func getReadmePkg(name string, platform string, framework []string, board []string) string {
     readmeContent, err := io.AssetIO.ReadFile("templates/readme/PKG_README.md")
     commands.RecordError(err, "failure")
 

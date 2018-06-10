@@ -1,14 +1,14 @@
 package commands
 
 import (
-    "wio/cmd/wio/utils/io/log"
-    "github.com/urfave/cli"
     "fmt"
+    "github.com/urfave/cli"
     "os"
+    "wio/cmd/wio/utils/io/log"
 )
 
 type Command interface {
-    GetContext() (*cli.Context)
+    GetContext() *cli.Context
     Execute()
 }
 

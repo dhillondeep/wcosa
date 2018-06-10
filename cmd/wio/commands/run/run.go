@@ -7,16 +7,16 @@
 package run
 
 import (
-    "github.com/urfave/cli"
-    "wio/cmd/wio/commands/build"
-    "path/filepath"
-    "wio/cmd/wio/commands"
-    "wio/cmd/wio/utils/io/log"
-    "os/exec"
     "bytes"
+    "github.com/urfave/cli"
     "os"
+    "os/exec"
+    "path/filepath"
     "strings"
+    "wio/cmd/wio/commands"
+    "wio/cmd/wio/commands/build"
     "wio/cmd/wio/utils/io"
+    "wio/cmd/wio/utils/io/log"
 )
 
 type Run struct {
@@ -25,7 +25,7 @@ type Run struct {
 }
 
 // get context for the command
-func (run Run) GetContext() (*cli.Context) {
+func (run Run) GetContext() *cli.Context {
     return run.Context
 }
 

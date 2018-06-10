@@ -1,11 +1,11 @@
 package dependencies
 
 import (
-    "strings"
-    "wio/cmd/wio/utils/io/log"
     "errors"
-    "wio/cmd/wio/utils"
     "regexp"
+    "strings"
+    "wio/cmd/wio/utils"
+    "wio/cmd/wio/utils/io/log"
 )
 
 // Verifies the placeholder syntax
@@ -17,7 +17,7 @@ func placeholderSyntaxValid(flag string) bool {
 }
 
 // matches a flag by the requested flag
-func matchFlag(providedFlag string, requestedFlag string) (string) {
+func matchFlag(providedFlag string, requestedFlag string) string {
     pat := regexp.MustCompile(`^` + requestedFlag + `\b`)
     s := pat.FindString(providedFlag)
 
@@ -57,7 +57,7 @@ func fillPlaceholderFlags(providedFlags []string, desiredFlags []string, depende
 // this fills global flags if they are requested
 func fillGlobalFlags(globalFlags []string, dependencyGlobalFlagsRequired []string, dependencyName string) ([]string, error) {
     var filledFlags []string
-    var notFilledFlags [] string
+    var notFilledFlags []string
 
     if len(globalFlags) == 0 {
         notFilledFlags = dependencyGlobalFlagsRequired

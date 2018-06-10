@@ -1,8 +1,8 @@
 package dependencies
 
 import (
-    "strings"
     "path/filepath"
+    "strings"
     "wio/cmd/wio/utils/io"
 )
 
@@ -21,7 +21,7 @@ target_include_directories({{DEPENDENCY_NAME}} PRIVATE "{{DEPENDENCY_PATH}}/src"
 const linkString = `target_link_libraries({{LINKER_NAME}} {{VISIBILITY}} {{DEPENDENCY_NAME}})`
 
 // creates
-func generateAvrDependencyCMakeString(targets map[string]*CMakeTarget, links []CMakeTargetLink) ([]string) {
+func generateAvrDependencyCMakeString(targets map[string]*CMakeTarget, links []CMakeTargetLink) []string {
     cmakeStrings := make([]string, 0)
 
     for _, target := range targets {
@@ -59,11 +59,16 @@ func generateAvrDependencyCMakeString(targets map[string]*CMakeTarget, links []C
 
 // Creates the main CMakeLists.txt file for AVR app type project
 func generateAvrMainCMakeLists(appName string, appPath string, board string, port string, framework string, target string,
-    flags map[string][]string) (error) {
+    flags map[string][]string, isAPP bool) error {
 
     executablePath, err := io.NormalIO.GetRoot()
     if err != nil {
         return err
+    }
+
+    entry := "src"
+    if !isAPP {
+        entry = "tests"
     }
 
     toolChainPath := "toolchain/cmake/CosaToolchain.cmake"
@@ -83,8 +88,8 @@ func generateAvrMainCMakeLists(appName string, appPath string, board string, por
     templateDataStr = strings.Replace(templateDataStr, "{{TARGET_NAME}}", target, -1)
     templateDataStr = strings.Replace(templateDataStr, "{{BOARD}}", board, -1)
     templateDataStr = strings.Replace(templateDataStr, "{{PORT}}", port, -1)
-    templateDataStr = strings.Replace(templateDataStr, "{{FRAMEWORK}}",
-        strings.ToUpper(framework), -1)
+    templateDataStr = strings.Replace(templateDataStr, "{{FRAMEWORK}}", strings.ToUpper(framework), -1)
+    templateDataStr = strings.Replace(templateDataStr, "{{ENTRY}}", entry, 1)
     templateDataStr = strings.Replace(templateDataStr, "{{TARGET_COMPILE_FLAGS}}",
         strings.Join(flags["target_compile_flags"], " "), -1)
     templateDataStr += "\n\ninclude(${DEPENDENCY_FILE})\n"

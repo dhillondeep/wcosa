@@ -7,15 +7,15 @@
 package io
 
 import (
-    "os"
+    "encoding/json"
+    "errors"
+    "gopkg.in/yaml.v2"
     "io"
     "io/ioutil"
-    "gopkg.in/yaml.v2"
-    "errors"
-    "encoding/json"
+    "os"
+    "path"
     "path/filepath"
     "runtime"
-    "path"
 )
 
 const (
@@ -72,7 +72,7 @@ func (assetHandler AssetHandler) GetRoot() (string, error) {
 
 // Copies file from src to destination and if destination file exists, it overrides the file
 // content based on if override is specified. Copies file from OS filesystem
-func (normalHandler NormalHandler) CopyFile(source string, destination string, override bool) (error) {
+func (normalHandler NormalHandler) CopyFile(source string, destination string, override bool) error {
     if _, err := os.Stat(destination); err == nil && !override {
         return nil
     }
@@ -105,7 +105,7 @@ func (normalHandler NormalHandler) CopyFile(source string, destination string, o
 
 // Copies file from src to destination and if destination file exists, it overrides the file
 // content based on if override is specified. Copies file from binary assets
-func (assetHandler AssetHandler) CopyFile(source string, destination string, override bool) (error) {
+func (assetHandler AssetHandler) CopyFile(source string, destination string, override bool) error {
     if _, err := os.Stat(destination); err == nil && !override {
         return nil
     }
@@ -136,7 +136,7 @@ func (assetHandler AssetHandler) CopyFile(source string, destination string, ove
 }
 
 // Copies multiple files from source to destination. Source files are from filesystem
-func (normalHandler NormalHandler) CopyMultipleFiles(sources []string, destinations []string, overrides []bool) (error) {
+func (normalHandler NormalHandler) CopyMultipleFiles(sources []string, destinations []string, overrides []bool) error {
     if len(sources) != len(destinations) || len(destinations) != len(overrides) {
         return errors.New("length of sources, destinations and overrides is not equal")
     }
@@ -151,7 +151,7 @@ func (normalHandler NormalHandler) CopyMultipleFiles(sources []string, destinati
 }
 
 // Copies multiple files from source to destination. Source files are from binary assets
-func (assetHandler AssetHandler) CopyMultipleFiles(sources []string, destinations []string, overrides []bool) (error) {
+func (assetHandler AssetHandler) CopyMultipleFiles(sources []string, destinations []string, overrides []bool) error {
     if len(sources) != len(destinations) || len(destinations) != len(overrides) {
         return errors.New("length of sources, destinations and overrides is not equal")
     }
@@ -182,12 +182,12 @@ func (assetHandler AssetHandler) ReadFile(fileName string) ([]byte, error) {
 }
 
 // Writes text to a file on normal filesystem
-func (normalHandler NormalHandler) WriteFile(fileName string, data []byte) (error) {
+func (normalHandler NormalHandler) WriteFile(fileName string, data []byte) error {
     return ioutil.WriteFile(fileName, data, os.ModePerm)
 }
 
 // Writes text to binary assets (invalid to do)
-func (assetHandler AssetHandler) WriteFile(fileName string, data []byte) (error) {
+func (assetHandler AssetHandler) WriteFile(fileName string, data []byte) error {
     return errors.New("assets are readonly and cannot be modified")
 }
 
@@ -214,7 +214,7 @@ func (assetHandler AssetHandler) ParseJson(fileName string, out interface{}) (er
 }
 
 // Parses YML from the file on filesystem
-func (normalHandler NormalHandler) ParseYml(fileName string, out interface{}) (error) {
+func (normalHandler NormalHandler) ParseYml(fileName string, out interface{}) error {
     text, err := normalHandler.ReadFile(fileName)
     if err != nil {
         return err
@@ -224,7 +224,7 @@ func (normalHandler NormalHandler) ParseYml(fileName string, out interface{}) (e
 }
 
 // Parses YML from the data in assets
-func (assetHandler AssetHandler) ParseYml(fileName string, out interface{}) (error) {
+func (assetHandler AssetHandler) ParseYml(fileName string, out interface{}) error {
     text, err := assetHandler.ReadFile(fileName)
     if err != nil {
         return err
@@ -234,7 +234,7 @@ func (assetHandler AssetHandler) ParseYml(fileName string, out interface{}) (err
 }
 
 // Writes JSON data to a file on filesystem
-func (normalHandler NormalHandler) WriteJson(fileName string, in interface{}) (error) {
+func (normalHandler NormalHandler) WriteJson(fileName string, in interface{}) error {
     data, err := json.MarshalIndent(in, "", "  ")
     if err != nil {
         return err
@@ -244,12 +244,12 @@ func (normalHandler NormalHandler) WriteJson(fileName string, in interface{}) (e
 }
 
 // Writes JSON data to a binary asset (not valid)
-func (assetHandler AssetHandler) WriteJson(fileName string, in interface{}) (error) {
+func (assetHandler AssetHandler) WriteJson(fileName string, in interface{}) error {
     return assetHandler.WriteFile(fileName, nil)
 }
 
 // Writes YML data to a file on filesystem
-func (normalHandler NormalHandler) WriteYml(fileName string, in interface{}) (error) {
+func (normalHandler NormalHandler) WriteYml(fileName string, in interface{}) error {
     data, err := yaml.Marshal(in)
     if err != nil {
         return err
@@ -259,12 +259,12 @@ func (normalHandler NormalHandler) WriteYml(fileName string, in interface{}) (er
 }
 
 // Writes YML data to a binary asset (not valid)
-func (assetHandler AssetHandler) WriteYml(fileName string, in interface{}) (error) {
+func (assetHandler AssetHandler) WriteYml(fileName string, in interface{}) error {
     return assetHandler.WriteFile(fileName, nil)
 }
 
 // Returns operating system from three types (windows, darwin, and linux)
-func GetOS() (string) {
+func GetOS() string {
     goos := runtime.GOOS
 
     if goos == "windows" {

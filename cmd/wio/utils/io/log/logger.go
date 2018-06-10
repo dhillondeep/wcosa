@@ -31,7 +31,7 @@ func SetStatus(status bool) {
     Norm.status = status
 }
 
-func write(colorFn func(string, ...interface{}) (string), newLine bool, text string, a ... interface{}) {
+func write(colorFn func(string, ...interface{}) string, newLine bool, text string, a ...interface{}) {
     str := ""
 
     if strings.Count(text, "%") == len(a) {

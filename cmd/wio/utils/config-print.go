@@ -8,13 +8,13 @@
 package utils
 
 import (
-    "strings"
     "gopkg.in/yaml.v2"
+    "strings"
     "wio/cmd/wio/utils/io"
 )
 
 // Write configuration for the project with information on top and nice spacing
-func PrettyPrintConfigHelp(projectConfig interface{}, filePath string) (error) {
+func PrettyPrintConfigHelp(projectConfig interface{}, filePath string) error {
     appInfoPath := "templates" + io.Sep + "config" + io.Sep + "app-helper.txt"
     pkgInfoPath := "templates" + io.Sep + "config" + io.Sep + "pkg-helper.txt"
     targetsInfoPath := "templates" + io.Sep + "config" + io.Sep + "targets-helper.txt"
@@ -91,7 +91,7 @@ func PrettyPrintConfigHelp(projectConfig interface{}, filePath string) (error) {
 }
 
 // Write configuration with nice spacing
-func PrettyPrintConfigSpacing(projectConfig interface{}, filePath string) (error) {
+func PrettyPrintConfigSpacing(projectConfig interface{}, filePath string) error {
     var ymlData []byte
     var err error
 
