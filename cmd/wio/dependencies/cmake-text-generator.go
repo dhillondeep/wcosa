@@ -74,7 +74,7 @@ func generateAvrMainCMakeLists(appName string, appPath string, board string, por
     toolChainPath := "toolchain/cmake/CosaToolchain.cmake"
 
     // read the CMakeLists.txt file template
-    templateData, err := io.AssetIO.ReadFile("templates/cmake/CMakeListsApp.txt.tpl")
+    templateData, err := io.AssetIO.ReadFile("templates/cmake/CMakeListsAVR.txt.tpl")
     if err != nil {
         return err
     }
