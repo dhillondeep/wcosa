@@ -185,7 +185,7 @@ func assetsTemplatesCmakeCmakelistsavrTxtTpl() (*asset, error) {
 		return nil, err
 	}
 
-	info := bindataFileInfo{name: "assets/templates/cmake/CMakeListsAVR.txt.tpl", size: 1369, mode: os.FileMode(420), modTime: time.Unix(1528652932, 0)}
+	info := bindataFileInfo{name: "assets/templates/cmake/CMakeListsAVR.txt.tpl", size: 1369, mode: os.FileMode(420), modTime: time.Unix(1528723045, 0)}
 	a := &asset{bytes: bytes, info: info}
 	return a, nil
 }

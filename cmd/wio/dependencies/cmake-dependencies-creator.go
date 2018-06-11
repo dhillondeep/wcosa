@@ -37,7 +37,7 @@ func recursivelyGoThroughTransDependencies(parentName string, parentHeaderOnly b
         }
 
         requiredFlags, err := createCMakeTargets(parentName, parentHeaderOnly, dependencyName, dependencyTargetName, dependencyTarget,
-            globalFlags, transDependencyPackage.DependencyFlags)
+            globalFlags, transDependencyPackage.DependencyFlags, transDependencyPackage.LinkVisibility)
         if err != nil {
             os.Exit(2)
         }
@@ -52,7 +52,7 @@ func recursivelyGoThroughTransDependencies(parentName string, parentHeaderOnly b
 
 // Recursively calls recursivelyGoThroughTransDependencies function and creates CMake targets
 func createCMakeTargets(parentTargetName string, parentTargetHeaderOnly bool, dependencyName string, dependencyTargetName string,
-    dependencyTarget *DependencyScanPackage, globalFlags []string, otherFlags []string) ([]string, error) {
+    dependencyTarget *DependencyScanPackage, globalFlags []string, otherFlags []string, linkVisibility string) ([]string, error) {
     var allFlags []string
     var dependencyTargetRequiredFlags []string
     var optionalFlags []string
@@ -97,8 +97,13 @@ func createCMakeTargets(parentTargetName string, parentTargetHeaderOnly bool, de
     sort.Strings(allFlags)
     hash := dependencyTargetName + strings.Join(allFlags, "")
 
+    linkVisibility = strings.ToUpper(linkVisibility)
+
+
+
     if val, exists := cmakeTargets[hash]; exists {
-        cmakeTargetsLink = append(cmakeTargetsLink, CMakeTargetLink{From: parentTargetName, To: val.TargetName, HeaderOnly: parentTargetHeaderOnly})
+        linkVisibility = linkVisibilityVerify(parentTargetName, val.TargetName, linkVisibility, parentTargetHeaderOnly)
+        cmakeTargetsLink = append(cmakeTargetsLink, CMakeTargetLink{From: parentTargetName, To: val.TargetName, LinkVisibility: linkVisibility})
     } else {
         dependencyNameToUse := dependencyTargetName
         counter := 2
@@ -115,11 +120,42 @@ func createCMakeTargets(parentTargetName string, parentTargetHeaderOnly bool, de
         // add include flags
         allFlags = utils.AppendIfMissing(allFlags, dependencyTarget.MainTag.IncludedFlags)
 
+        // verify linker visibility
+        linkVisibility = linkVisibilityVerify(parentTargetName, dependencyNameToUse, linkVisibility, parentTargetHeaderOnly)
+
         cmakeTargets[hash] = &CMakeTarget{TargetName: dependencyNameToUse,
             Path: dependencyTarget.Directory, Flags: allFlags, HeaderOnly: dependencyTarget.MainTag.HeaderOnly}
-        cmakeTargetsLink = append(cmakeTargetsLink, CMakeTargetLink{From: parentTargetName, To: dependencyNameToUse, HeaderOnly: parentTargetHeaderOnly})
+        cmakeTargetsLink = append(cmakeTargetsLink, CMakeTargetLink{From: parentTargetName, To: dependencyNameToUse, LinkVisibility: linkVisibility})
         cmakeTargetNames[dependencyNameToUse] = true
     }
 
     return dependencyTargetRequiredFlags, nil
+}
+
+// This checks and verifies link visibility to make sure it is valid
+func linkVisibilityVerify(from string, to string, givenVisibility string, headerOnly bool) (string) {
+    givenVisibility = strings.ToUpper(givenVisibility)
+
+    if givenVisibility != "PRIVATE" && givenVisibility != "PUBLIC" && givenVisibility != "INTERFACE" {
+        log.Norm.Yellow(true, "Warning: link visibility is invalid")
+        log.Norm.Write(true, "    From: " + from + "\tTo: " + to)
+
+        if headerOnly {
+            log.Norm.Write(true, "    Header only => link visibility or INTERFACE will be used")
+            givenVisibility = "INTERFACE"
+        } else {
+            log.Norm.Write(true, "    Link visibility of PRIVATE will be used")
+            givenVisibility = "PRIVATE"
+        }
+    } else {
+        if headerOnly && givenVisibility != "INTERFACE" {
+            log.Norm.Yellow(true, "Warning: link visibility is invalid ")
+            log.Norm.Write(true, "    From: " + from + "\tTo: " + to)
+
+            log.Norm.Yellow(true, "    target is header only and link visibility can only be INTERFACE")
+            givenVisibility = "INTERFACE"
+        }
+    }
+
+    return givenVisibility
 }

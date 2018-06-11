@@ -37,7 +37,7 @@ type CMakeTarget struct {
 type CMakeTargetLink struct {
     From       string
     To         string
-    HeaderOnly bool
+    LinkVisibility string
 }
 
 // Stores information about every package that is scanned
@@ -215,7 +215,7 @@ func CreateCMakeDependencies(projectName string, directory string, providedFlags
         }
 
         requiredFlags, err := createCMakeTargets(projectTarget, false, dependencyName, dependencyTargetName, dependencyTarget,
-            globalFlags, projectDependency.DependencyFlags)
+            globalFlags, projectDependency.DependencyFlags, projectDependency.LinkVisibility)
         if err != nil {
             return err
         }

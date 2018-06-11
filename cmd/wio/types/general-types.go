@@ -120,6 +120,7 @@ func (pkgTargetsTag PkgTargetsTag) GetTargets() map[string]Target {
 type DependencyTag struct {
     Version         string
     Vendor          bool
+    LinkVisibility  string   `yaml:"link_visibility"`
     DependencyFlags []string `yaml:"dependency_flags"`
 }
 

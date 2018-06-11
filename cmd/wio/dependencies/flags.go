@@ -10,7 +10,7 @@ import (
 
 // Verifies the placeholder syntax
 func placeholderSyntaxValid(flag string) bool {
-    pat := regexp.MustCompile(`\$\([-a-zA-Z0-9=]+\)`)
+    pat := regexp.MustCompile(`\$\([a-zA-Z0-9=_-]+\)`)
     s := pat.FindString(flag)
 
     return s != ""
@@ -33,6 +33,8 @@ func fillPlaceholderFlags(providedFlags []string, desiredFlags []string, depende
             continue
         }
 
+        oldLength := len(newFlags)
+
         for _, providedFlag := range providedFlags {
             newFlag := strings.Replace(desiredFlag, "$", "", 1)
             newFlag = strings.Replace(newFlag, "(", "", 1)
@@ -42,12 +44,15 @@ func fillPlaceholderFlags(providedFlags []string, desiredFlags []string, depende
 
             if s != "" {
                 newFlags = append(newFlags, providedFlag)
-            } else {
-                log.Norm.Red(true, "Invalid placeholder reference")
-                log.Norm.Cyan(true, "  Dependency: "+dependencyName+"\t Placeholder: "+desiredFlag)
-
-                return nil, errors.New("invalid placeholder reference in " + dependencyName + " package")
+                break
             }
+        }
+
+        if len(newFlags) == oldLength {
+            log.Norm.Red(true, "Invalid placeholder reference")
+            log.Norm.Cyan(true, "  Dependency: "+dependencyName+"\t Placeholder: "+desiredFlag)
+
+            return nil, errors.New("invalid placeholder reference in " + dependencyName + " package")
         }
     }
 

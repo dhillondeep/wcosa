@@ -91,6 +91,7 @@ func RunBuild(directoryCli string, targetCli string, cleanCli bool, port string)
         projectDependencies = types.DependenciesTag{pkgConfig.MainTag.Name: &types.DependencyTag{
             Version:         pkgConfig.MainTag.Version,
             Vendor:          false,
+            LinkVisibility:  "private",
             DependencyFlags: targetToBuild.GetFlags()["pkg_flags"],
         }}
     }

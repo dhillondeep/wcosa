@@ -43,11 +43,7 @@ func generateAvrDependencyCMakeString(targets map[string]*CMakeTarget, links []C
         finalString = strings.Replace(finalString, "{{LINKER_NAME}}", link.From, -1)
         finalString = strings.Replace(finalString, "{{DEPENDENCY_NAME}}", link.To, -1)
 
-        if link.HeaderOnly {
-            finalString = strings.Replace(finalString, "{{VISIBILITY}}", "INTERFACE", -1)
-        } else {
-            finalString = strings.Replace(finalString, "{{VISIBILITY}}", "PRIVATE", -1)
-        }
+        finalString = strings.Replace(finalString, "{{VISIBILITY}}", link.LinkVisibility, -1)
 
         cmakeStrings = append(cmakeStrings, finalString)
     }
