@@ -84,7 +84,7 @@ func generateAvrMainCMakeLists(appName string, appPath string, board string, por
     templateDataStr = strings.Replace(templateDataStr, "{{TARGET_NAME}}", target, -1)
     templateDataStr = strings.Replace(templateDataStr, "{{BOARD}}", board, -1)
     templateDataStr = strings.Replace(templateDataStr, "{{PORT}}", port, -1)
-    templateDataStr = strings.Replace(templateDataStr, "{{FRAMEWORK}}", strings.ToUpper(framework), -1)
+    templateDataStr = strings.Replace(templateDataStr, "{{FRAMEWORK}}", strings.Title(framework), -1)
     templateDataStr = strings.Replace(templateDataStr, "{{ENTRY}}", entry, 1)
     templateDataStr = strings.Replace(templateDataStr, "{{TARGET_COMPILE_FLAGS}}",
         strings.Join(flags["target_compile_flags"], " "), -1)

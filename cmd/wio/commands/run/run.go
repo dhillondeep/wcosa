@@ -73,7 +73,7 @@ func (run Run) Execute() {
         } else {
             log.Norm.Green(true, "success")
         }
-
+        
         // print the ending message
         log.Norm.Yellow(true, "Upload successful for target: \""+targetName+"\"")
     }
