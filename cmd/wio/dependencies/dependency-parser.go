@@ -9,7 +9,7 @@ import (
     "wio/cmd/wio/types"
     "wio/cmd/wio/utils"
     "wio/cmd/wio/utils/io"
-    "wio/cmd/wio/utils/io/log"
+    "wio/cmd/wio/log"
 )
 
 const (

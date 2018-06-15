@@ -1,16 +1,13 @@
-# "dependencies" tag allows user to include other packages into their project. There is a package manager built into
-# wio and you can make use of that by specifying packages in this tag. Dependencies will be a list of packages and
-# you can specify different options for each of them. Following are some key points about this"
-# - version is where you specify the version of the dependency (required only for remote packages)
-# - vendor is a flag that specifies if the dependency is in vendor package or not (by default it is false)
-# - compile_flags are where you specify the compile flags for the dependency
-# Example:
+# "dependencies" tag allows user to include other wio packages into their project. Dependencies can be placed
+# in vendor folder if these are local packages. Examples:
 # dependencies:
 #   # this is a remote dependency 
 #   myLib:
-#       version: 0.0.1
-#       compile_flags: ["HELLO", "NOO"]
+#       version: ^0.0.1
+#       dependency_flags: []
+#       dependency_definitions: ["HELLO", "NOO"]
 #   # this is a vendor dependency
 #   myLib2:
 #       vendor: true
-#       compile_flags: ["Vendor"]
+#       dependency_flags: ["-fcompile"]
+#       dependency_definitions: ["Vendor"]

@@ -8,7 +8,7 @@ import (
     "strings"
     "wio/cmd/wio/types"
     "wio/cmd/wio/utils"
-    "wio/cmd/wio/utils/io/log"
+    "wio/cmd/wio/log"
 )
 
 // recursively goes through dependencies and creates CMake target and CMake Link

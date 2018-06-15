@@ -223,6 +223,7 @@ func (normalHandler NormalHandler) ParseYml(fileName string, out interface{}) er
     return yaml.Unmarshal(text, out)
 }
 
+
 // Parses YML from the data in assets
 func (assetHandler AssetHandler) ParseYml(fileName string, out interface{}) error {
     text, err := assetHandler.ReadFile(fileName)

@@ -5,7 +5,7 @@ import (
     "regexp"
     "strings"
     "wio/cmd/wio/utils"
-    "wio/cmd/wio/utils/io/log"
+    "wio/cmd/wio/log"
 )
 
 // Verifies the placeholder syntax

@@ -10,13 +10,19 @@ import (
     "github.com/urfave/cli"
     "os"
     "path/filepath"
-    "strings"
-    "wio/cmd/wio/commands"
+    "wio/cmd/wio/errors"
+    goerr "errors"
+    "wio/cmd/wio/log"
+    "github.com/fatih/color"
     "wio/cmd/wio/config"
-    "wio/cmd/wio/types"
-    "wio/cmd/wio/utils"
     "wio/cmd/wio/utils/io"
-    "wio/cmd/wio/utils/io/log"
+    "wio/cmd/wio/utils"
+    "wio/cmd/wio/types"
+    "strings"
+)
+
+const (
+    AVR = "avr"
 )
 
 const (
@@ -27,6 +33,7 @@ const (
 type Create struct {
     Context *cli.Context
     Type    string
+    Platform string
     Update  bool
     error   error
 }
@@ -38,10 +45,443 @@ func (create Create) GetContext() *cli.Context {
 
 // Executes the create command
 func (create Create) Execute() {
-    performArgumentCheck(create.Context.Args(), create.Update)
+    performArgumentCheck(create.Context, create.Update, create.Platform)
 
-    // fetch directory based on the argument
-    directory, err := filepath.Abs(create.Context.Args()[0])
+    var directory string
+    var err error
+
+    // fetch directory based on the argument and print logs
+    if !create.Update {
+        directory, err = filepath.Abs(create.Context.Args()[0])
+    } else {
+        if len(create.Context.Args()) > 0 {
+            directory, err = filepath.Abs(create.Context.Args()[0])
+        } else {
+            directory, err = os.Getwd()
+
+            log.WriteErrorlnExit(err)
+
+            err = errors.ProgrammingArgumentAssumption{
+                CommandName:  "update",
+                ArgumentName: "directory",
+                Err:          goerr.New("directory is not provided so current directory is used: " + directory),
+            }
+            log.WriteErrorln(err, true)
+        }
+    }
+
+    if create.Update {
+        // this checks if wio.yml file exists for it to update
+        performWioExistsCheck(directory)
+
+        // this checks if project is valid state to be updated
+        performPreUpdateCheck(directory, &create)
+    } else {
+        // this checks if directory is empty before create can be triggered
+        performPreCreateCheck(directory)
+    }
+
+    // handle update
+    if create.Update {
+        create.handleUpdate(directory)
+    } else {
+        // handle AVR creation
+        if create.Platform == AVR {
+            create.handleAVRCreation(directory)
+        } else {
+            err := errors.PlatformNotSupportedError{
+                Platform: create.Platform,
+            }
+
+            log.WriteErrorlnExit(err)
+        }
+
+    }
+
+}
+
+func (create Create) handleUpdate(directory string) {
+    board := "uno"
+
+    // evaluate project structure and wio.yml file
+    log.Write(log.INFO, color.New(color.FgCyan), "evaluating project structure and wio.yml file ... ")
+    queue := log.GetQueue()
+
+    if err := create.evaluateAVRProjectFiles(queue); err != nil {
+        log.Writeln(log.NONE, color.New(color.FgGreen), "failure")
+        log.PrintQueue(queue, log.TWO_SPACES)
+        log.WriteErrorlnExit(err)
+    } else {
+        log.Writeln(log.NONE, color.New(color.FgGreen), "success")
+        log.PrintQueue(queue, log.TWO_SPACES)
+    }
+
+    // show message on what happened
+    log.Write(log.INFO, color.New(color.FgCyan), "updating files ... ")
+    queue = log.GetQueue()
+
+    if err := create.updateAVRProjectFiles(queue); err != nil {
+        log.Writeln(log.NONE, color.New(color.FgGreen), "failure")
+        log.PrintQueue(queue, log.TWO_SPACES)
+        log.WriteErrorlnExit(err)
+    } else {
+        log.Writeln(log.NONE, color.New(color.FgGreen), "success")
+        log.PrintQueue(queue, log.TWO_SPACES)
+    }
+
+    // print update summary
+    log.Writeln(log.NONE, nil, "")
+    log.Writeln(log.INFO, color.New(color.FgYellow).Add(color.Underline), "Project update summary")
+    log.Write(log.INFO, color.New(color.FgCyan), "path             ")
+    log.Writeln(log.NONE, color.New(color.Reset), directory)
+    log.Write(log.INFO, color.New(color.FgCyan), "project type     ")
+    log.Writeln(log.NONE, color.New(color.Reset), create.Type)
+    log.Write(log.INFO, color.New(color.FgCyan), "platform         ")
+    log.Writeln(log.NONE, color.New(color.Reset), create.Platform)
+    log.Write(log.INFO, color.New(color.FgCyan), "board            ")
+    log.Writeln(log.NONE, color.New(color.Reset), board)
+}
+
+func (create Create) handleAVRCreation(directory string) {
+    board := config.ProjectDefaults.AVRBoard
+
+    if len(create.Context.Args()) > 1 {
+        board = create.Context.Args()[1]
+    }
+
+    // create project structure
+    log.Write(log.INFO, color.New(color.FgCyan), "creating project structure ... ")
+    queue := log.GetQueue()
+
+    if err := create.createAVRProjectStructure(queue, directory); err != nil {
+        log.Writeln(log.NONE, color.New(color.FgGreen), "failure")
+        log.PrintQueue(queue, log.TWO_SPACES)
+        log.WriteErrorlnExit(err)
+    } else {
+        log.Writeln(log.NONE, color.New(color.FgGreen), "success")
+        log.PrintQueue(queue, log.TWO_SPACES)
+    }
+
+    // fill config file
+    log.Write(log.INFO, color.New(color.FgCyan), "configuring project files ... ")
+    queue = log.GetQueue()
+
+    if err := create.fillAVRProjectConfig(queue, directory, board); err != nil {
+        log.Writeln(log.NONE, color.New(color.FgGreen), "failure")
+        log.PrintQueue(queue, log.TWO_SPACES)
+        log.WriteErrorlnExit(err)
+    } else {
+        log.Writeln(log.NONE, color.New(color.FgGreen), "success")
+        log.PrintQueue(queue, log.TWO_SPACES)
+    }
+
+    // print structure summary
+    log.Writeln(log.NONE, nil, "")
+    log.Writeln(log.INFO, color.New(color.FgYellow).Add(color.Underline), "Project structure summary")
+    if (create.Type == PKG && !create.Context.Bool("header-only")) || create.Type == APP {
+        log.Write(log.INFO, color.New(color.FgCyan), "src              ")
+        log.Writeln(log.NONE, color.New(color.Reset), "source/non client files go here")
+    }
+
+    if create.Type == PKG {
+        log.Write(log.INFO, color.New(color.FgCyan), "tests            ")
+        log.Writeln(log.NONE, color.New(color.Reset), "source files to test the package go here")
+    }
+
+    if create.Type == PKG {
+        log.Write(log.INFO, color.New(color.FgCyan), "include          ")
+        log.Writeln(log.NONE, color.New(color.Reset), "client headers for the package go here")
+    }
+
+    // print project summary
+    log.Writeln(log.NONE, nil, "")
+    log.Writeln(log.INFO, color.New(color.FgYellow).Add(color.Underline), "Project creation summary")
+    log.Write(log.INFO, color.New(color.FgCyan), "path             ")
+    log.Writeln(log.NONE, color.New(color.Reset), directory)
+    log.Write(log.INFO, color.New(color.FgCyan), "project type     ")
+    log.Writeln(log.NONE, color.New(color.Reset), create.Type)
+    log.Write(log.INFO, color.New(color.FgCyan), "platform         ")
+    log.Writeln(log.NONE, color.New(color.Reset), create.Platform)
+    log.Write(log.INFO, color.New(color.FgCyan), "board            ")
+    log.Writeln(log.NONE, color.New(color.Reset), board)
+}
+
+
+func (create Create) createAVRProjectStructure(queue *log.Queue, directory string) (error) {
+    log.QueueWrite(queue, log.VERB, color.New(color.Reset), "reading paths.json file ... ")
+
+    structureData := &StructureConfigData{}
+
+    // read configurationsFile
+    if err := io.AssetIO.ParseJson("configurations/structure-avr.json", structureData); err != nil {
+        log.QueueWriteln(queue, log.VERB_NONE, color.New(color.FgRed), "failure")
+        return err
+    } else {
+        log.QueueWriteln(queue, log.VERB_NONE, color.New(color.FgGreen), "success")
+    }
+
+    var structureTypeData StructureTypeData
+
+    if create.Type == APP {
+        structureTypeData = structureData.App
+    } else {
+        structureTypeData = structureData.Pkg
+    }
+
+    // constrains for AVR project
+    dirConstrainsMap := map[string]bool{}
+    dirConstrainsMap["tests"] = false
+    dirConstrainsMap["no-header-only"] = !create.Context.Bool("header-only")
+
+    fileConstrainsMap := map[string]bool{}
+    fileConstrainsMap["ide=clion"] = false
+    fileConstrainsMap["extra"] = !create.Context.Bool("no-extras")
+    fileConstrainsMap["example"] = create.Context.Bool("create-example")
+    fileConstrainsMap["no-header-only"] = !create.Context.Bool("header-only")
+
+    log.QueueWrite(queue, log.VERB, color.New(color.Reset), "copying asset files ...")
+    subQueue := log.GetQueue()
+
+    if err := copyProjectAssets(subQueue, directory, create.Update, structureTypeData, dirConstrainsMap, fileConstrainsMap); err != nil {
+        log.QueueWriteln(queue, log.VERB_NONE, color.New(color.FgRed), "failure")
+        log.CopyQueue(subQueue, queue, log.FOUR_SPACES)
+        return err
+    } else {
+        log.QueueWriteln(queue, log.VERB_NONE, color.New(color.FgGreen), "success")
+        log.CopyQueue(subQueue, queue, log.FOUR_SPACES)
+    }
+
+    log.QueueWrite(queue, log.VERB, color.New(color.Reset), "filling README file ... ")
+    if data, err := io.NormalIO.ReadFile(directory + io.Sep + "README.md"); err != nil {
+        log.QueueWriteln(queue, log.VERB_NONE, color.New(color.FgRed), "failure")
+        return errors.ReadFileError{
+            FileName: directory + io.Sep + "wio.yml",
+            Err: err,
+        }
+    } else {
+        newReadmeString := strings.Replace(string(data), "{{PLATFORM}}", create.Platform, 1)
+        newReadmeString = strings.Replace(newReadmeString, "{{PROJECT_NAME}}", filepath.Base(directory), 1)
+        newReadmeString = strings.Replace(newReadmeString, "{{PROJECT_VERSION}}", "0.0.1", 1)
+
+        if err := io.NormalIO.WriteFile(directory + io.Sep + "README.md", []byte(newReadmeString)); err != nil {
+            log.QueueWriteln(queue, log.VERB_NONE, color.New(color.FgRed), "failure")
+            return  errors.WriteFileError{
+                FileName: directory + io.Sep + "README.md",
+                Err: err,
+            }
+        }
+    }
+
+    log.QueueWriteln(queue, log.VERB_NONE, color.New(color.FgGreen), "success")
+
+    return nil
+}
+
+func fillMainTagConfiguration(configurations *types.Configurations, board string, platform string, framework string) {
+    // supported board, framework and platform and wio version
+    configurations.SupportedBoards = append(configurations.SupportedBoards, board)
+    configurations.SupportedPlatforms = append(configurations.SupportedPlatforms, AVR)
+    configurations.SupportedFrameworks = append(configurations.SupportedFrameworks, framework)
+    configurations.WioVersion = config.ProjectMeta.Version
+}
+
+func (create Create) fillAVRProjectConfig(queue *log.Queue, directory string, board string) (error) {
+    framework := strings.ToLower(create.Context.String("framework"))
+
+    var projectConfig types.Config
+
+    // handle app
+    if create.Type == APP {
+        log.QueueWrite(queue, log.VERB, nil, "creating config file for application ... ")
+
+        appConfig := &types.AppConfig{}
+
+        appConfig.MainTag.Name = filepath.Base(directory)
+        appConfig.MainTag.Ide = config.ProjectDefaults.Ide
+
+        // supported board, framework and platform and wio version
+        fillMainTagConfiguration(&appConfig.MainTag.Config, board, AVR, framework)
+
+        appConfig.MainTag.CompileOptions.Platform = AVR
+
+        // create app target
+        appConfig.TargetsTag.Targets = map[string]types.AppAVRTarget{
+           config.ProjectDefaults.AppTargetName: {
+                Framework: framework,
+                Board:     board,
+                Flags: types.AppTargetFlags{
+                    GlobalFlags: []string{},
+                    TargetFlags: []string{},
+                },
+            },
+        }
+
+        projectConfig = appConfig
+    } else {
+        log.QueueWrite(queue, log.VERB, nil, "creating config file for package ... ")
+
+        pkgConfig := &types.PkgConfig{}
+
+
+        pkgConfig.MainTag.Ide = config.ProjectDefaults.Ide
+
+        // package meta information
+        pkgConfig.MainTag.Meta.Name = filepath.Base(directory)
+        pkgConfig.MainTag.Meta.Version = "0.0.1"
+        pkgConfig.MainTag.Meta.License = "MIT"
+        pkgConfig.MainTag.Meta.Keywords = []string{AVR, "c", "c++", "wio", framework}
+        pkgConfig.MainTag.Meta.Description = "A wio " + AVR + " " + create.Type + " using " + framework + " framework"
+
+        pkgConfig.MainTag.CompileOptions.HeaderOnly = create.Context.Bool("header-only")
+        pkgConfig.MainTag.CompileOptions.Platform = AVR
+
+        // supported board, framework and platform and wio version
+        fillMainTagConfiguration(&pkgConfig.MainTag.Config, board, AVR, framework)
+
+        // flags
+        pkgConfig.MainTag.Flags.GlobalFlags = []string{}
+        pkgConfig.MainTag.Flags.RequiredFlags = []string{}
+        pkgConfig.MainTag.Flags.AllowOnlyGlobalFlags = false
+        pkgConfig.MainTag.Flags.AllowOnlyRequiredFlags = false
+
+        // definitions
+        pkgConfig.MainTag.Definitions.GlobalDefinitions = []string{}
+        pkgConfig.MainTag.Definitions.RequiredDefinitions = []string{}
+        pkgConfig.MainTag.Definitions.AllowOnlyGlobalDefinitions = false
+        pkgConfig.MainTag.Definitions.AllowOnlyRequiredDefinitions = false
+
+        // create pkg target
+        pkgConfig.TargetsTag.Targets = map[string]types.PkgAVRTarget{
+            config.ProjectDefaults.AppTargetName: {
+                Framework: framework,
+                Board:     board,
+                Flags: types.PkgTargetFlags{
+                    GlobalFlags: []string{},
+                    TargetFlags: []string{},
+                    PkgFlags:    []string{},
+                },
+            },
+        }
+
+        projectConfig = pkgConfig
+    }
+
+
+    log.QueueWriteln(queue, log.VERB_NONE, color.New(color.FgGreen), "success")
+    log.QueueWrite(queue, log.VERB, nil, "pretty printing wio.yml file ... ")
+
+
+   if  err := utils.PrettyPrintConfig(projectConfig, directory+io.Sep+"wio.yml"); err != nil {
+       log.QueueWriteln(queue, log.VERB_NONE, color.New(color.FgRed), "failure")
+       return err
+   } else {
+       log.QueueWriteln(queue, log.VERB_NONE, color.New(color.FgGreen), "success")
+   }
+
+    return  nil
+}
+
+func (create Create) evaluateAVRProjectFiles(queue *log.Queue) (error) {
+    return nil
+}
+
+
+func (create Create) updateAVRProjectFiles(queue *log.Queue) (error) {
+    return nil
+}
+
+
+// This uses a structure.json file and creates a project structure based on that. It takes in consideration
+// all the constrains and copies files. This should be used for creating project for any type of app/pkg
+func copyProjectAssets(queue *log.Queue, directory string, update bool, structureTypeData StructureTypeData,
+    dirConstrainsMap map[string]bool, fileConstrainsMap map[string]bool) (error) {
+    for _, path := range structureTypeData.Paths {
+        moveOnDir := false
+
+        log.QueueWriteln(queue, log.VERB, nil, "copying assets to directory: " + directory + path.Entry)
+
+        // handle directory constrains
+        for _, constrain := range path.Constrains {
+            if !dirConstrainsMap[constrain] {
+                err := errors.ProjectStructureConstrainError{
+                    Constrain: constrain,
+                    Path: directory + io.Sep + path.Entry,
+                    Err: goerr.New("constrained not specified and hence skipping this directory"),
+                }
+
+                log.QueueWriteln(queue, log.VERB, nil, err.Error())
+                moveOnDir = true
+                break
+            }
+        }
+
+        if moveOnDir {
+            continue
+        }
+
+        directoryPath := filepath.Clean(directory + io.Sep + path.Entry)
+
+        if !utils.PathExists(directoryPath) {
+            if err := os.MkdirAll(directoryPath, os.ModePerm); err != nil {
+                return err
+            } else {
+                log.QueueWriteln(queue, log.VERB, nil,
+                    "created directory: %s", directoryPath)
+            }
+        }
+
+        for _, file := range path.Files {
+            log.QueueWriteln(queue, log.VERB, nil, "copying asset files for directory: %s", directoryPath)
+
+
+            toPath := filepath.Clean(directoryPath + io.Sep + file.To)
+            moveOnFile := false
+
+            // handle file constrains
+            for _, constrain := range file.Constrains {
+                if !fileConstrainsMap[constrain] {
+                    err := errors.ProjectStructureConstrainError{
+                        Constrain: constrain,
+                        Path: file.From,
+                        Err: goerr.New("constrained not specified and hence skipping this file"),
+                    }
+
+                    log.QueueWriteln(queue, log.VERB, nil, err.Error())
+                    moveOnFile = true
+                    break
+                }
+            }
+
+            if moveOnFile {
+                continue
+            }
+
+            // handle updates
+            if !file.Update && update {
+                log.QueueWriteln(queue, log.VERB, nil, "project is not updating, hence skipping update for path: "+ toPath)
+                continue
+            }
+
+            // copy assets
+            if err := io.AssetIO.CopyFile(file.From, toPath, file.Override); err != nil{
+                return err
+            } else {
+                log.QueueWriteln(queue, log.VERB, nil,
+                    `copied asset file "%s" TO: %s: `, filepath.Base(file.From), directory + io.Sep + file.To)
+            }
+        }
+    }
+
+    return nil
+}
+
+
+/*
+
+
+
+
+
     commands.RecordError(err, "")
 
     createPacket := &PacketCreate{}
@@ -453,30 +893,4 @@ func handlePkgTargets(targetsTag *types.PkgTargetsTag, board string) {
         targetsTag.Targets[targetsTag.DefaultTarget] = defaultTarget
     }
 }
-
-/// This method prints next steps for any type of create/update command. This will help user
-/// decide what they can do next
-func postPrint(createPacket *PacketCreate, update bool) {
-    if !update {
-        log.Norm.Yellow(true, "Project Creation finished!! Summary: ")
-    } else {
-        log.Norm.Yellow(true, "Project Update finished!! Summary: ")
-    }
-
-    log.Norm.Cyan(false, "project name: ")
-    log.Norm.Cyan(true, createPacket.Name)
-    log.Norm.Cyan(false, "project type: ")
-    log.Norm.Cyan(true, createPacket.ProjType)
-    log.Norm.Cyan(false, "project path: ")
-    log.Norm.Cyan(true, createPacket.Directory)
-
-    log.Norm.Yellow(true, "Check following commands:")
-
-    log.Norm.Cyan(true, "`wio build -h`")
-    log.Norm.Cyan(true, "`wio run -h`")
-    log.Norm.Cyan(true, "`wio pac -h`")
-
-    if createPacket.Tests {
-        log.Norm.Cyan(true, "`wio test -h`")
-    }
-}
+*/

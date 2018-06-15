@@ -1,96 +1,105 @@
 package create
 
 import (
-    "bufio"
     "github.com/urfave/cli"
-    "os"
-    "strings"
-    "wio/cmd/wio/commands"
     "wio/cmd/wio/utils"
     "wio/cmd/wio/utils/io"
-    "wio/cmd/wio/utils/io/log"
+    "wio/cmd/wio/errors"
+    goerr "errors"
+    "wio/cmd/wio/config"
+    "wio/cmd/wio/log"
+    "strings"
 )
 
 // This check is used to see if the cli arguments are required length
-func performArgumentCheck(args cli.Args, isUpdating bool) {
-    command := "create"
-    if isUpdating {
-        command = "update"
-    }
-
+func performArgumentCheck(context *cli.Context, isUpdating bool, platform string) {
     // check to make sure we are given two arguments (one for directory and one for board)
-    if len(args) <= 0 {
-        log.Norm.Yellow(true, "Directory needs to be provided for creation/update")
-        log.Norm.Yellow(false, "Check: ")
-        log.Norm.Cyan(true, "wio "+command+" -h")
-        os.Exit(3)
-    } else if len(args) == 1 && !isUpdating {
-        log.Norm.Yellow(true, "Boards is also needed for creation")
+    if len(context.Args()) <= 0 && !isUpdating {
+        err := errors.ProgramArgumentsError{
+            CommandName: "create",
+            ArgumentName: "directory",
+            Err: goerr.New("directory needs to be provided for project creation"),
+        }
 
-        log.Norm.Yellow(false, "Check: ")
-        log.Norm.Cyan(true, "wio "+command+" -h")
-        os.Exit(3)
+        log.WriteErrorlnExit(err)
+    } else if !isUpdating && platform == AVR && len(context.Args()) <= 1 {
+        // check if board is provided and if it is not give a warning
+        err := errors.ProgrammingArgumentAssumption{
+            CommandName: "create",
+            ArgumentName: "board",
+            Err: goerr.New("board is not provided so a default board is used: " + config.ProjectDefaults.AVRBoard),
+        }
+
+        log.WriteErrorln(err, true)
     }
 }
 
 // This check is used to see if wio.yml file exists and the directory is valid
 func performWioExistsCheck(directory string) {
     if !utils.PathExists(directory) {
-        log.Norm.Yellow(true, directory+" : no such path exists")
-        os.Exit(3)
-    }
+        err := errors.PathDoesNotExist{
+            Path: directory,
+        }
 
-    if !utils.PathExists(directory + io.Sep + "wio.yml") {
-        log.Norm.Yellow(true, "Not a valid wio project: wio.yml file missing")
-        os.Exit(3)
+        log.WriteErrorlnExit(err)
+    } else if !utils.PathExists(directory + io.Sep + "wio.yml") {
+        err := errors.ConfigMissing{}
+
+        log.WriteErrorlnExit(err)
     }
 }
 
-func performPreUpdateCheck(directory string, projType string) (bool, error) {
+func performPreUpdateCheck(directory string, create *Create) {
     wioPath := directory + io.Sep + "wio.yml"
 
     isApp, err := utils.IsAppType(wioPath)
     if err != nil {
-        return false, err
+        configError := errors.ConfigParsingError{
+            Err: goerr.New("project type could not be parsed"),
+        }
+
+        log.WriteErrorlnExit(configError)
     }
 
-    if isApp && projType != "app" || !isApp && projType == "app" {
-        // project is of wrong type we cannot update
-        return false, nil
+    if isApp {
+        create.Type = APP
+    } else {
+        create.Type = PKG
     }
 
-    return true, nil
+    // check the platform
+    projectConfig, err := utils.ReadWioConfig(wioPath)
+    if err != nil {
+        log.WriteErrorlnExit(err)
+    } else {
+        create.Platform = projectConfig.GetMainTag().GetCompileOptions().GetPlatform()
+
+        if strings.ToLower(create.Platform) != AVR {
+            err := errors.PlatformNotSupportedError{
+                Platform: create.Platform,
+                Err: goerr.New("update the platform tag before updating the project"),
+            }
+
+            log.WriteErrorlnExit(err)
+        }
+    }
 }
 
 /// This method is a crucial peace of check to make sure people do not lose their work. It makes
 /// sure that if people are creating the project when there are files in the folder, they mean it
 /// and not doing it by mistake. It will warn them to update instead if they want
-func performPreCreateCheck(directory string) (bool, error) {
-    if !utils.PathExists(directory) {
-        return true, nil
-    }
+func performPreCreateCheck(directory string) {
+    if utils.PathExists(directory) {
+        if status, err := utils.IsEmpty(directory); err != nil {
+            log.WriteErrorlnExit(err)
+        } else if !status {
+            err := errors.OverridePossibilityError{
+                Path: directory,
+                Err: goerr.New("files will be replaced with new project files.\n" + errors.Spaces +
+                    "Type (y) to indicate creation or anything else otherwise: "),
+            }
 
-    if status, err := utils.IsEmpty(directory); err != nil {
-        return false, err
-    } else if status {
-        return true, nil
-    } else {
-        message := `The directory is not empty!!
-This action will erase everything and will create a new project.
-An alternative is to do: wio update <app type> DIRECTORY
-Please type y/yes to indicate creation and anything else to indicate abortion: `
-        log.Norm.Cyan(false, message)
-        reader := bufio.NewReader(os.Stdin)
-        text, err := reader.ReadString('\n')
-        commands.RecordError(err, "")
-
-        text = strings.TrimSuffix(strings.ToLower(text), "\n")
-
-        if text == "y" || text == "yes" {
-            log.Norm.Write(true, "")
-            return true, nil
-        } else {
-            return false, nil
+            log.WriteErrorAndPrompt(err, log.INFO, "y", true)
         }
     }
 }

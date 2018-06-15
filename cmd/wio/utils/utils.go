@@ -9,6 +9,10 @@ import (
     "regexp"
 
     wio "wio/cmd/wio/utils/io"
+    "wio/cmd/wio/types"
+    "wio/cmd/wio/errors"
+    goerr "errors"
+    "wio/cmd/wio/log"
 )
 
 // Checks if path exists and returns true and false based on that
@@ -220,3 +224,63 @@ func Difference(a, b []string) []string {
     }
     return ab
 }
+
+func ReadWioConfig(path string) (types.Config, error) {
+    defer func() {
+        if r := recover(); r!= nil {
+            configError := errors.ConfigParsingError{
+                Err: goerr.New("fatal error occurred while parsing wio.yml file"),
+            }
+
+            log.WriteErrorlnExit(configError)
+        }
+    }()
+
+
+    isApp, err := IsAppType(path)
+    if err != nil {
+        return nil, err
+    }
+
+    if !isApp {
+        pkgConfig := &types.PkgConfig{}
+
+        // try to read pkg config file
+        if err := wio.NormalIO.ParseYml(path, pkgConfig); err != nil {
+            configError := errors.ConfigParsingError{
+                Err: goerr.New("wio.yml file could not be parsed for project of type: project"),
+            }
+
+            return nil, configError
+        }
+
+        return pkgConfig, nil
+    } else {
+        appConfig := &types.AppConfig{}
+
+        // try to read pkg config file
+        if err := wio.NormalIO.ParseYml(path, appConfig); err != nil {
+            configError := errors.ConfigParsingError{
+                Err: goerr.New("wio.yml file could not be parsed for project of type: application"),
+            }
+
+            return nil, configError
+        }
+
+        return appConfig, nil
+    }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+

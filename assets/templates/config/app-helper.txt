@@ -1,6 +1,4 @@
-# "app" tag contains core information about the project. This will produce executable and will be uploaded
-# to an embedded device. Following are some key points about customizing your application:
-# - Frameworks are SDKs for embedded devices. They contain set of libraries to use when coding.
-#   Wio supports core "cosa" sdk (an open source OOP AVR development platform) and eventually "arduino" sdk.
-# - Platform is the type of chip that this application will be uploaded. This platform provides
-#   libraries to access chip hardware and compilers to compile them. Wio supports "AVR" platform.
+# define global app configurations. This is an application and can be built, run and uploaded. Some terminology:
+# - Framework: SDK for the application (cosa, arduino, c, c++, etc)
+# - Platform: platform to build application for
+# - Dependencies: wio packages

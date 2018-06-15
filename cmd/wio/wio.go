@@ -13,27 +13,26 @@ import (
     "path/filepath"
     "time"
     "wio/cmd/wio/commands"
-    "wio/cmd/wio/commands/build"
-    "wio/cmd/wio/commands/clean"
-    "wio/cmd/wio/commands/create"
-    "wio/cmd/wio/commands/pac"
-    "wio/cmd/wio/commands/run"
     "wio/cmd/wio/config"
     "wio/cmd/wio/utils"
     "wio/cmd/wio/utils/io"
-    "wio/cmd/wio/utils/io/log"
+    "wio/cmd/wio/log"
+    "wio/cmd/wio/commands/create"
+    "wio/cmd/wio/errors"
 )
 
 func main() {
+    log.Init()
+
     // read help templates
     appHelpText, err := io.AssetIO.ReadFile("cli-helper/app-help.txt")
-    commands.RecordError(err, "")
+    log.WriteErrorlnExit(err)
 
     commandHelpText, err := io.AssetIO.ReadFile("cli-helper/command-help.txt")
-    commands.RecordError(err, "")
+    log.WriteErrorlnExit(err)
 
     subCommandHelpText, err := io.AssetIO.ReadFile("cli-helper/subcommand-help.txt")
-    commands.RecordError(err, "")
+    log.WriteErrorlnExit(err)
 
     // override help templates
     cli.AppHelpTemplate = string(appHelpText)
@@ -59,55 +58,60 @@ func main() {
                 cli.Command{
                     Name:      "pkg",
                     Usage:     "Creates a wio package, intended to be used by other people",
-                    UsageText: "wio create pkg <DIRECTORY> <BOARD> [command options]",
-                    Flags: []cli.Flag{
-                        cli.BoolFlag{Name: "header-only",
-                            Usage: "This flag can be used to specify that the package is header only"},
-                        cli.StringFlag{Name: "framework",
-                            Usage: "Framework being used for this project. Framework contains the core libraries",
-                            Value: config.ProjectDefaults.Framework},
-                        cli.StringFlag{Name: "platform",
-                            Usage: "Platform being used for this project. Platform is the type of chip supported (AVR/ ARM)",
-                            Value: config.ProjectDefaults.Platform},
-                        cli.StringFlag{Name: "ide",
-                            Usage: "Creates the project for a specified IDE (CLion, Eclipse, VS Code)",
-                            Value: config.ProjectDefaults.Ide},
-                        cli.BoolFlag{Name: "create-demo",
-                            Usage: "This will create a demo project that user can build and upload"},
-                        cli.BoolFlag{Name: "no-extras",
-                            Usage: "This will restrict wio from creating .gitignore, README.md, etc files"},
-                        cli.BoolFlag{Name: "verbose",
-                            Usage: "Turns verbose mode on to show detailed errors and commands being executed"},
-                    },
-                    Action: func(c *cli.Context) {
-                        command = create.Create{Context: c, Type: create.PKG, Update: false}
+                    UsageText: "wio create pkg [command options]",
+                    Subcommands: cli.Commands{
+                        cli.Command{
+                            Name: "avr",
+                            Usage: "Creates an AVR package.",
+                            UsageText: "wio create pkg avr <DIRECTORY> [BOARD] [command options]",
+                            Flags: []cli.Flag{
+                                cli.BoolFlag{Name: "header-only",
+                                    Usage: "This flag can be used to specify that the package is header only"},
+                                cli.StringFlag{Name: "framework",
+                                    Usage: "Framework being used for this project. Framework is Cosa/Arduino SDK",
+                                    Value: config.ProjectDefaults.Framework},
+                                cli.BoolFlag{Name: "create-example",
+                                    Usage: "This will create an example project that user can build and upload"},
+                                cli.BoolFlag{Name: "no-extras",
+                                    Usage: "This will restrict wio from creating .gitignore, README.md, etc files"},
+                                cli.BoolFlag{Name: "verbose",
+                                    Usage: "Turns verbose mode on to show detailed errors and commands being executed"},
+                                cli.BoolFlag{Name: "disable-warnings",
+                                    Usage: "Disables all the warning shown by wio"},
+                            },
+                            Action: func(c *cli.Context) {
+                                command = create.Create{Context: c, Type: create.PKG, Platform: create.AVR, Update: false}
+                            },
+                        },
+
                     },
                 },
                 cli.Command{
                     Name:      "app",
                     Usage:     "Creates a wio application, intended to be compiled and uploaded to a device",
-                    UsageText: "wio create app <DIRECTORY> <BOARD> [command options]",
-                    Flags: []cli.Flag{
-                        cli.StringFlag{Name: "framework",
-                            Usage: "Framework being used for this project. Framework contains the core libraries",
-                            Value: config.ProjectDefaults.Framework},
-                        cli.StringFlag{Name: "platform",
-                            Usage: "Platform being used for this project. Platform is the type of chip supported (AVR/ ARM)",
-                            Value: config.ProjectDefaults.Platform},
-                        cli.BoolFlag{Name: "tests",
-                            Usage: "Creates a test folder to support unit testing"},
-                        cli.StringFlag{Name: "ide",
-                            Usage: "Creates the project for a specified IDE (CLion, Eclipse, VS Code)",
-                            Value: config.ProjectDefaults.Ide},
-                        cli.BoolFlag{Name: "create-demo",
-                            Usage: "This will create a demo project that user can build and upload"},
-                        cli.BoolFlag{Name: "no-extras",
-                            Usage: "This will restrict wio from creating .gitignore, README.md, etc files"},
-                        cli.BoolFlag{Name: "verbose",
-                            Usage: "Turns verbose mode on to show detailed errors and commands being executed"},
-                    },
-                    Action: func(c *cli.Context) {
-                        command = create.Create{Context: c, Type: create.APP, Update: false}
+                    UsageText: "wio create app [command options]",
+                    Subcommands: cli.Commands{
+                        cli.Command{
+                            Name:      "avr",
+                            Usage:     "Creates an AVR application.",
+                            UsageText: "wio create app avr <DIRECTORY> [BOARD] [command options]",
+                            Flags: []cli.Flag{
+                                cli.StringFlag{Name: "framework",
+                                    Usage: "Framework being used for this project. Framework contains the core libraries",
+                                    Value: config.ProjectDefaults.Framework},
+                                cli.BoolFlag{Name: "create-example",
+                                    Usage: "This will create an example project that user can build and upload"},
+                                cli.BoolFlag{Name: "no-extras",
+                                    Usage: "This will restrict wio from creating .gitignore, README.md, etc files"},
+                                cli.BoolFlag{Name: "verbose",
+                                    Usage: "Turns verbose mode on to show detailed errors and commands being executed"},
+                                cli.BoolFlag{Name: "disable-warnings",
+                                    Usage: "Disables all the warning shown by wio"},
+                            },
+                            Action: func(c *cli.Context) {
+                                command = create.Create{Context: c, Type: create.APP, Platform: create.AVR, Update: false}
+                            },
+                        },
                     },
                 },
             },
@@ -115,55 +119,17 @@ func main() {
         {
             Name:  "update",
             Usage: "Updates the current project and fixes any issues.",
-            Subcommands: cli.Commands{
-                cli.Command{
-                    Name:      "pkg",
-                    Usage:     "Updates a wio package, intended to be used by other people",
-                    UsageText: "wio update pkg <DIRECTORY> [command options]",
-                    Flags: []cli.Flag{
-                        cli.BoolFlag{Name: "header-only",
-                            Usage: "This flag can be used to specify that the package is header only"},
-                        cli.StringFlag{Name: "board",
-                            Usage: "Board being used for this project. This will use this board for the update",
-                            Value: config.ProjectDefaults.Board},
-                        cli.StringFlag{Name: "ide",
-                            Usage: "Creates the project for a specified IDE (CLion, Eclipse, VS Code)",
-                            Value: config.ProjectDefaults.Ide},
-                        cli.BoolFlag{Name: "verbose",
-                            Usage: "Turns verbose mode on to show detailed errors and commands being executed"},
-                    },
-                    Action: func(c *cli.Context) {
-                        command = create.Create{Context: c, Type: create.PKG, Update: true}
-                    },
-                },
-                cli.Command{
-                    Name:      "app",
-                    Usage:     "Updates a wio application, intended to be compiled and uploaded to a device",
-                    UsageText: "wio update app <DIRECTORY> [command options]",
-                    Flags: []cli.Flag{
-                        cli.StringFlag{Name: "board",
-                            Usage: "Board being used for this project. This will use this board for the update",
-                            Value: config.ProjectDefaults.Board},
-                        cli.StringFlag{Name: "framework",
-                            Usage: "Framework being used for this project. Framework contains the core libraries",
-                            Value: config.ProjectDefaults.Framework},
-                        cli.StringFlag{Name: "platform",
-                            Usage: "Platform being used for this project. Platform is the type of chip supported (AVR/ ARM)",
-                            Value: config.ProjectDefaults.Platform},
-                        cli.BoolFlag{Name: "tests",
-                            Usage: "Creates a test folder to support unit testing"},
-                        cli.StringFlag{Name: "ide",
-                            Usage: "Creates the project for a specified IDE (CLion, Eclipse, VS Code)",
-                            Value: config.ProjectDefaults.Ide},
-                        cli.BoolFlag{Name: "verbose",
-                            Usage: "Turns verbose mode on to show detailed errors and commands being executed"},
-                    },
-                    Action: func(c *cli.Context) {
-                        command = create.Create{Context: c, Type: create.APP, Update: true}
-                    },
-                },
+            Flags: []cli.Flag {
+                cli.BoolFlag{Name: "verbose",
+                    Usage: "Turns verbose mode on to show detailed errors and commands being executed"},
+                cli.BoolFlag{Name: "disable-warnings",
+                    Usage: "Disables all the warning shown by wio"},
+            },
+            Action: func(c *cli.Context) {
+                command = create.Create{Context: c, Update: true}
             },
         },
+        /*
         {
             Name:      "build",
             Usage:     "Builds the wio project.",
@@ -240,6 +206,47 @@ func main() {
                 command = run.Run{Context: c}
             },
         },
+        {
+            Name:      "monitor",
+            Usage:     "Runs the serial monitor.",
+            UsageText: "wio monitor [command options]",
+            Subcommands: cli.Commands{
+                cli.Command{
+                    Name:      "open",
+                    Usage:     "Opens a Serial monitor.",
+                    UsageText: "wio monitor open [command options]",
+                    Flags: []cli.Flag{
+                        cli.IntFlag{Name: "baud",
+                            Usage: "Baud rate for the Serial port.",
+                            Value: config.ProjectDefaults.Baud},
+                        cli.StringFlag{Name: "port",
+                            Usage: "Serial Port to open.",
+                            Value: config.ProjectDefaults.Board},
+                        cli.BoolFlag{Name: "gui",
+                            Usage: "Runs the GUI version of the serial monitor tool",
+                        },
+                    },
+                    Action: func(c *cli.Context) {
+                        command = monitor.Monitor{Context: c, Type: monitor.OPEN}
+                    },
+                },
+                cli.Command{
+                    Name:      "ports",
+                    Usage:     "Lists all the open ports and provides information about them.",
+                    UsageText: "wio monitor ports [command options]",
+                    Flags: []cli.Flag{
+                        cli.BoolFlag{Name: "basic",
+                            Usage: "Shows only the name of the ports."},
+                        cli.BoolFlag{Name: "show-all",
+                            Usage: "Shows all the ports, closed or open."},
+                    },
+                    Action: func(c *cli.Context) {
+                        command = monitor.Monitor{Context: c, Type: monitor.PORTS}
+                    },
+                },
+            },
+        },
+        */
         /*
            {
                Name:      "test",
@@ -256,27 +263,6 @@ func main() {
                    cli.StringFlag{Name: "target",
                        Usage: "Builds, and uploads a specified target instead of the main/default target",
                        Value: defaults.Utarget,
-                   },
-                   cli.BoolFlag{Name: "verbose",
-                       Usage: "Turns verbose mode on to show detailed errors and commands being executed",
-                   },
-               },
-               Action: func(c *cli.Context) error {
-                   return nil
-               },
-           },
-
-           {
-               Name:      "monitor",
-               Usage:     "Runs the serial monitor.",
-               UsageText: "wio monitor [command options]",
-               Flags: []cli.Flag{
-                   cli.BoolFlag{Name: "gui",
-                       Usage: "Runs the GUI version of the serial monitor tool",
-                   },
-                   cli.StringFlag{Name: "port",
-                       Usage: "Port to upload the project to, (default: automatically select)",
-                       Value: defaults.Port,
                    },
                    cli.BoolFlag{Name: "verbose",
                        Usage: "Turns verbose mode on to show detailed errors and commands being executed",
@@ -311,6 +297,7 @@ func main() {
                },
            },
         */
+        /*
         {
             Name:  "pac",
             Usage: "Package manager for Wio projects.",
@@ -471,8 +458,9 @@ func main() {
                            command = pac.Pac{Context: c, Type: pac.COLLECT}
                        },
                    },*/
-            },
+            /*},
         },
+        */
     }
 
     app.Action = func(c *cli.Context) error {
@@ -481,7 +469,7 @@ func main() {
     }
 
     if err = app.Run(os.Args); err != nil {
-        panic(err)
+        log.WriteErrorlnExit(err)
     }
 
     // execute the command
@@ -491,28 +479,36 @@ func main() {
             log.SetVerbose()
         }
 
+        if command.GetContext().Bool("disable-warnings") {
+            log.DisableWarnings()
+        }
+
         command.Execute()
     }
 }
 
 func validateWioProject(directory string) {
     directory, err := filepath.Abs(directory)
-    commands.RecordError(err, "")
+    log.WriteErrorlnExit(err)
 
     if !utils.PathExists(directory) {
-        log.Norm.Yellow(true, directory+" : no such path exists")
-        os.Exit(3)
+        err := errors.PathDoesNotExist{
+            Path: directory,
+        }
+
+        log.WriteErrorlnExit(err)
     }
 
     if !utils.PathExists(directory + io.Sep + "wio.yml") {
-        log.Norm.Yellow(true, "Not a valid wio project: wio.yml file missing")
-        os.Exit(3)
+        err := errors.ConfigMissing{}
+
+        log.WriteErrorlnExit(err)
     }
 }
 
 // returns the current directory from where wio is being called
 func getCurrDir() string {
     directory, err := os.Getwd()
-    commands.RecordError(err, "")
+    log.WriteErrorlnExit(err)
     return directory
 }

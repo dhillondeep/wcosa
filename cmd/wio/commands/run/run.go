@@ -16,7 +16,7 @@ import (
     "wio/cmd/wio/commands"
     "wio/cmd/wio/commands/build"
     "wio/cmd/wio/utils/io"
-    "wio/cmd/wio/utils/io/log"
+    "wio/cmd/wio/log"
 )
 
 type Run struct {
@@ -73,7 +73,7 @@ func (run Run) Execute() {
         } else {
             log.Norm.Green(true, "success")
         }
-        
+
         // print the ending message
         log.Norm.Yellow(true, "Upload successful for target: \""+targetName+"\"")
     }

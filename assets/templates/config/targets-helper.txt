@@ -1,3 +1,3 @@
 # "targets" tag allows for testing and development for various settings and configurations. You can create
-# multiple targets where you can define different types of boards and compile flags. By default one target
-# is created, which is defined based on settings chosen by you in the creating process.
+# multiple targets where you can define different types of boards, frameworks and flags. By default one target
+# is created, which is defined based on settings provided in the creation process.

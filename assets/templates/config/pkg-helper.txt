@@ -1,10 +1,5 @@
-# "pkg" tag contains core information about the project. This will produce a package that can be used in other
-# wio projects. Wio provides native support for packages created this way and they are included flawlessly.
-# Following are some key points about customizing your package:
-# - Frameworks are SDKs for embedded devices. They contain set of libraries to use when coding.
-#   Wio supports core "arduino" and "cosa" (an open source OOP AVR development platform).
-# - Platform is the type of chip that this application will be uploaded. This platform provides
-#   libraries to access chip hardware and compilers to compile them. Wio supports "AVR" platform.
-# - You can specify multiple authors, frameworks and boards. This information will be used to check if this
-#   library is compatible with the project it is being used in.
-# - If you want your package to be compiled with certain flags when used, provide those flags in compile_flags tag.
+# define global pkg configurations. This is a package and is created to be used by other wio projects. Even though
+# package cannot be built, it can be tested by using "tests" directory. Some terminology:
+# - Framework: SDK for the application (cosa, arduino, c, c++, etc)
+# - Platform: platform to build application for
+# - Dependencies: wio packages

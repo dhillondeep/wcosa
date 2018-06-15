@@ -40,7 +40,7 @@
         "entry": "/src",
         "files": [
           {
-            "constrains": ["demo"],
+            "constrains": ["example"],
             "from": "templates/sample-program/app/main.cpp",
             "to": "main.cpp",
             "override": false,
@@ -97,7 +97,7 @@
         "entry": "/src",
         "files": [
           {
-            "constrains": ["demo"],
+            "constrains": ["example"],
             "from": "templates/sample-program/pkg/output.cpp",
             "to": "output.cpp",
             "override": false,
@@ -110,14 +110,14 @@
         "entry": "/include",
         "files": [
           {
-            "constrains": ["demo", "no-header-only"],
+            "constrains": ["example", "no-header-only"],
             "from": "templates/sample-program/pkg/output.h",
             "to": "output.h",
             "override": false,
             "update": false
           },
           {
-            "constrains": ["demo", "header-only"],
+            "constrains": ["example", "header-only"],
             "from": "templates/sample-program/pkg-header-only/printer.h",
             "to": "printer.h",
             "override": false,
@@ -130,14 +130,14 @@
         "entry": "/tests",
         "files": [
           {
-            "constrains": ["demo", "no-header-only"],
+            "constrains": ["example", "no-header-only"],
             "from": "templates/sample-program/pkg/main.cpp",
             "to": "main.cpp",
             "override": false,
             "update": false
           },
           {
-            "constrains": ["demo", "header-only"],
+            "constrains": ["example", "header-only"],
             "from": "templates/sample-program/pkg-header-only/main.cpp",
             "to": "main.cpp",
             "override": false,

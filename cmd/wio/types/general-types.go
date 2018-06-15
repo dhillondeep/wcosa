@@ -22,8 +22,10 @@ type CliArgs struct {
 
 // Abstraction of a Target
 type Target interface {
+    GetFramework() string
     GetBoard() string
-    GetFlags() map[string][]string
+    GetFlags() TargetFlags
+    GetDefinitions() TargetDefinitions
 }
 
 // Abstraction of targets that have been created
@@ -32,37 +34,90 @@ type Targets interface {
     GetTargets() map[string]Target
 }
 
-// ############################################# APP Targets ###############################################
+// Abstraction of targets flags
+type TargetFlags interface {
+    GetGlobalFlags() []string
+    GetTargetFlags() []string
+    GetPkgFlags() []string
+}
 
-// Structure to handle individual target inside targets for project of app type
-type AppTargetTag struct {
-    Board       string
+// Abstraction of targets definitions
+type TargetDefinitions interface {
+    GetGlobalDefinitions() []string
+    GetTargetDefinitions() []string
+    GetPkgDefinitions() []string
+}
+
+// ############################################# APP Targets ###############################################
+type AppTargetFlags struct {
     GlobalFlags []string `yaml:"global_flags"`
     TargetFlags []string `yaml:"target_flags"`
 }
 
-func (appTargetTag AppTargetTag) GetBoard() string {
+func (appTargetFlags AppTargetFlags) GetGlobalFlags() ([]string) {
+    return appTargetFlags.GlobalFlags
+}
+
+func (appTargetFlags AppTargetFlags) GetTargetFlags() ([]string) {
+    return appTargetFlags.TargetFlags
+}
+
+func (appTargetFlags AppTargetFlags) GetPkgFlags() ([]string) {
+    return nil
+}
+
+type AppTargetDefinitions struct {
+    GlobalFlags []string `yaml:"global_definitions"`
+    TargetFlags []string `yaml:"target_definitions"`
+}
+
+func (appTargetDefinitions AppTargetDefinitions) GetGlobalDefinitions() ([]string) {
+    return appTargetDefinitions.GlobalFlags
+}
+
+func (appTargetDefinitions AppTargetDefinitions) GetTargetDefinitions() ([]string) {
+    return appTargetDefinitions.TargetFlags
+}
+
+func (appTargetDefinitions AppTargetDefinitions) GetPkgDefinitions() ([]string) {
+    return nil
+}
+
+// Structure to handle individual target inside targets for project of app AVR type
+type AppAVRTarget struct {
+    Framework   string
+    Board       string
+    Flags       AppTargetFlags
+    Definitions AppTargetDefinitions
+}
+
+func (appTargetTag AppAVRTarget) GetBoard() string {
     return appTargetTag.Board
 }
 
-func (appTargetTag AppTargetTag) GetFlags() map[string][]string {
-    flags := make(map[string][]string)
-    flags["target_flags"] = appTargetTag.TargetFlags
-    flags["global_flags"] = appTargetTag.GlobalFlags
-    return flags
+func (appTargetTag AppAVRTarget) GetFramework() string {
+    return appTargetTag.Framework
 }
 
-// type for the targets tag in the configuration file for project of app type
-type AppTargetsTag struct {
-    DefaultTarget string                  `yaml:"default"`
-    Targets       map[string]AppTargetTag `yaml:"create"`
+func (appTargetTag AppAVRTarget) GetFlags() TargetFlags {
+    return appTargetTag.Flags
 }
 
-func (appTargetsTag AppTargetsTag) GetDefaultTarget() string {
+func (appTargetTag AppAVRTarget) GetDefinitions() TargetDefinitions {
+    return appTargetTag.Definitions
+}
+
+// type for the targets tag in the configuration file for project of app AVR type
+type AppAVRTargets struct {
+    DefaultTarget string            `yaml:"default"`
+    Targets       map[string]AppAVRTarget `yaml:"create"`
+}
+
+func (appTargetsTag AppAVRTargets) GetDefaultTarget() string {
     return appTargetsTag.DefaultTarget
 }
 
-func (appTargetsTag AppTargetsTag) GetTargets() map[string]Target {
+func (appTargetsTag AppAVRTargets) GetTargets() map[string]Target {
     targets := make(map[string]Target)
 
     for key, val := range appTargetsTag.Targets {
@@ -74,40 +129,80 @@ func (appTargetsTag AppTargetsTag) GetTargets() map[string]Target {
 
 // ######################################### PKG Targets #######################################################
 
-// Structure to handle individual target inside targets for project of pkg type
-type PkgTargetTag struct {
-    Board       string
-    TargetFlags []string `yaml:"target_flags"`
+type PkgTargetFlags struct {
     GlobalFlags []string `yaml:"global_flags"`
+    TargetFlags []string `yaml:"target_flags"`
     PkgFlags    []string `yaml:"pkg_flags"`
 }
 
-func (pkgTargetTag PkgTargetTag) GetBoard() string {
-    return pkgTargetTag.Board
+func (pkgTargetFlags PkgTargetFlags) GetGlobalFlags() ([]string) {
+    return pkgTargetFlags.GlobalFlags
 }
 
-func (pkgTargetTag PkgTargetTag) GetFlags() map[string][]string {
-    flags := make(map[string][]string)
-    flags["target_flags"] = pkgTargetTag.TargetFlags
-    flags["pkg_flags"] = pkgTargetTag.PkgFlags
-    flags["global_flags"] = pkgTargetTag.GlobalFlags
-    return flags
+func (pkgTargetFlags PkgTargetFlags) GetTargetFlags() ([]string) {
+    return pkgTargetFlags.TargetFlags
+}
+
+func (pkgTargetFlags PkgTargetFlags) GetPkgFlags() ([]string) {
+    return pkgTargetFlags.PkgFlags
+}
+
+type PkgTargetDefinitions struct {
+    GlobalDefinitions []string `yaml:"global_definitions"`
+    TargetDefinitions []string `yaml:"target_definitions"`
+    PkgDefinitions    []string `yaml:"pkg_definitions"`
+}
+
+func (pkgTargetDefinitions PkgTargetDefinitions) GetGlobalDefinitions() ([]string) {
+    return pkgTargetDefinitions.GlobalDefinitions
+}
+
+func (pkgTargetDefinitions PkgTargetDefinitions) GetTargetDefinitions() ([]string) {
+    return pkgTargetDefinitions.TargetDefinitions
+}
+
+func (pkgTargetDefinitions PkgTargetDefinitions) GetPkgDefinitions() ([]string) {
+    return pkgTargetDefinitions.PkgDefinitions
+}
+
+// Structure to handle individual target inside targets for project of pkg type
+type PkgAVRTarget struct {
+    Framework string
+    Board       string
+    Flags       PkgTargetFlags
+    Definitions PkgTargetDefinitions
+}
+
+func (pkgAVRTarget PkgAVRTarget) GetBoard() string {
+    return pkgAVRTarget.Board
+}
+
+func (pkgAVRTarget PkgAVRTarget) GetFlags() TargetFlags {
+    return pkgAVRTarget.Flags
+}
+
+func (pkgAVRTarget PkgAVRTarget) GetFramework() string{
+    return pkgAVRTarget.Framework
+}
+
+func (pkgAVRTarget PkgAVRTarget) GetDefinitions() TargetDefinitions {
+    return pkgAVRTarget.Definitions
 }
 
 // type for the targets tag in the configuration file for project of pkg type
-type PkgTargetsTag struct {
+type PkgAVRTargets struct {
     DefaultTarget string                  `yaml:"default"`
-    Targets       map[string]PkgTargetTag `yaml:"create"`
+    Targets       map[string]PkgAVRTarget `yaml:"create"`
 }
 
-func (pkgTargetsTag PkgTargetsTag) GetDefaultTarget() string {
-    return pkgTargetsTag.DefaultTarget
+func (pkgAVRTargets PkgAVRTargets) GetDefaultTarget() string {
+    return pkgAVRTargets.DefaultTarget
 }
 
-func (pkgTargetsTag PkgTargetsTag) GetTargets() map[string]Target {
+func (pkgAVRTargets PkgAVRTargets) GetTargets() map[string]Target {
     targets := make(map[string]Target)
 
-    for key, val := range pkgTargetsTag.Targets {
+    for key, val := range pkgAVRTargets.Targets {
         targets[key] = val
     }
 
@@ -122,6 +217,7 @@ type DependencyTag struct {
     Vendor          bool
     LinkVisibility  string   `yaml:"link_visibility"`
     DependencyFlags []string `yaml:"dependency_flags"`
+    DependencyDefinitions []string `yaml:"dependency_definitions"`
 }
 
 // type for the libraries tag in the main wio.yml file
@@ -131,85 +227,131 @@ type DependenciesTag map[string]*DependencyTag
 
 type MainTag interface {
     GetName() string
-    GetPlatforms() []string
-    GetFrameworks() []string
+    GetConfigurations() Configurations
+    GetCompileOptions() CompileOptions
     GetIde() string
+}
+
+type CompileOptions interface {
     IsHeaderOnly() bool
+    GetPlatform() string
+}
+
+type Configurations struct {
+    WioVersion            string   `yaml:"minimum_wio_version"`
+    SupportedPlatforms    []string `yaml:"supported_platforms"`
+    UnSupportedPlatforms  []string `yaml:"unsupported_platforms"`
+    SupportedFrameworks   []string `yaml:"supported_frameworks"`
+    UnSupportedFrameworks []string `yaml:"unsupported_frameworks"`
+    SupportedBoards       []string `yaml:"supported_boards"`
+    UnSupportedBoards     []string `yaml:"unsupported_boards"`
 }
 
 // ############################################# APP Project ###############################################
 
 // Structure to hold information about project type: app
 type AppTag struct {
-    Name      string
-    Platform  string
-    Framework string
-    Ide       string
+    Name           string
+    Ide            string
+    Config         Configurations
+    CompileOptions AppCompileOptions `yaml:"compile_options"`
+}
+
+type AppCompileOptions struct {
+    Platform string
+}
+
+func (appCompileOptions AppCompileOptions) IsHeaderOnly() bool {
+    return false
+}
+
+func (appCompileOptions AppCompileOptions) GetPlatform() string {
+    return appCompileOptions.Platform
 }
 
 func (appTag AppTag) GetName() string {
     return appTag.Name
 }
 
-func (appTag AppTag) GetPlatforms() []string {
-    return []string{appTag.Platform}
+func (appTag AppTag) GetConfigurations() Configurations {
+    return appTag.Config
 }
 
-func (appTag AppTag) GetFrameworks() []string {
-    return []string{appTag.Framework}
+func (appTag AppTag) GetCompileOptions() CompileOptions {
+    return appTag.CompileOptions
 }
 
 func (appTag AppTag) GetIde() string {
     return appTag.Ide
 }
 
-func (appTag AppTag) IsHeaderOnly() bool {
-    return false
-}
-
 // ############################################# PKG Project ###############################################
 
-// Structure to hold information about project type: lib
-type PkgTag struct {
-    Name                   string
-    Description            string
-    Repository             string
-    Version                string
-    Author                 string
-    Contributors           []string
-    Organization           string
-    Keywords               []string
-    License                string
-    HeaderOnly             bool     `yaml:"header_only"`
-    Platform               string
-    Framework              []string
-    Board                  []string
+type PackageMeta struct {
+    Name         string
+    Description  string
+    Repository   string
+    Version      string
+    Author       string
+    Contributors []string
+    Organization string
+    Keywords     []string
+    License      string
+}
+
+type PkgCompileOptions struct {
+    HeaderOnly bool `yaml:"header_only"`
+    Platform string
+}
+
+func (pkgCompileOptions PkgCompileOptions) IsHeaderOnly() bool {
+    return pkgCompileOptions.HeaderOnly
+}
+
+func (pkgCompileOptions PkgCompileOptions) GetPlatform() string {
+    return pkgCompileOptions.Platform
+}
+
+type Flags struct {
     AllowOnlyGlobalFlags   bool     `yaml:"allow_only_global_flags"`
     AllowOnlyRequiredFlags bool     `yaml:"allow_only_required_flags"`
     GlobalFlags            []string `yaml:"global_flags"`
     RequiredFlags          []string `yaml:"required_flags"`
     IncludedFlags          []string `yaml:"included_flags"`
-    Ide                    string
+}
+
+type Definitions struct {
+    AllowOnlyGlobalDefinitions   bool     `yaml:"allow_only_global_definitions"`
+    AllowOnlyRequiredDefinitions bool     `yaml:"allow_only_required_definitions"`
+    GlobalDefinitions            []string `yaml:"global_definitions"`
+    RequiredDefinitions          []string `yaml:"required_definitions"`
+    IncludedDefinitions          []string `yaml:"included_definitions"`
+}
+
+// Structure to hold information about project type: lib
+type PkgTag struct {
+    Ide            string
+    Meta           PackageMeta
+    Config         Configurations
+    CompileOptions PkgCompileOptions `yaml:"compile_options"`
+    Flags          Flags
+    Definitions    Definitions
 }
 
 func (pkgTag PkgTag) GetName() string {
-    return pkgTag.Name
+    return pkgTag.Meta.Name
 }
 
-func (pkgTag PkgTag) GetPlatforms() []string {
-    return []string{pkgTag.Platform}
-}
-
-func (pkgTag PkgTag) GetFrameworks() []string {
-    return pkgTag.Framework
+func (pkgTag PkgTag) GetConfigurations() Configurations {
+    return pkgTag.Config
 }
 
 func (pkgTag PkgTag) GetIde() string {
     return pkgTag.Ide
 }
 
-func (pkgTag PkgTag) IsHeaderOnly() bool {
-    return pkgTag.HeaderOnly
+func (pkgTag PkgTag) GetCompileOptions() CompileOptions {
+    return pkgTag.CompileOptions
 }
 
 type Config interface {
@@ -220,7 +362,7 @@ type Config interface {
 
 type AppConfig struct {
     MainTag         AppTag          `yaml:"app"`
-    TargetsTag      AppTargetsTag   `yaml:"targets"`
+    TargetsTag      AppAVRTargets   `yaml:"targets"`
     DependenciesTag DependenciesTag `yaml:"dependencies"`
 }
 
@@ -238,7 +380,7 @@ func (appConfig AppConfig) GetDependencies() DependenciesTag {
 
 type PkgConfig struct {
     MainTag         PkgTag          `yaml:"pkg"`
-    TargetsTag      PkgTargetsTag   `yaml:"targets"`
+    TargetsTag      PkgAVRTargets   `yaml:"targets"`
     DependenciesTag DependenciesTag `yaml:"dependencies"`
 }
 
