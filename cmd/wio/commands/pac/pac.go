@@ -107,7 +107,7 @@ func createPrivatePackageJson(directory string, name string, dependencies types.
     // add dependencies to package.json
     for dependencyName, dependencyValue := range dependencies {
         if !dependencyValue.Vendor {
-            npmConfig.Dependencies[dependencyName] = "^" + dependencyValue.Version
+            npmConfig.Dependencies[dependencyName] = dependencyValue.Version
         }
     }
 
