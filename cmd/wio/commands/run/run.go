@@ -58,15 +58,27 @@ func (run Run) Execute() {
         })
     }
 
+    // show information
+    log.Write(log.INFO, color.New(color.FgYellow), "Platform:             ")
+    log.Writeln(log.NONE, nil, projectConfig.GetMainTag().GetCompileOptions().GetPlatform())
+    log.Write(log.INFO, color.New(color.FgYellow), "Framework:            ")
+    log.Writeln(log.NONE, nil, target.GetFramework())
+    log.Write(log.INFO, color.New(color.FgYellow), "Target Name:          ")
+    log.Writeln(log.NONE, nil, targetName)
+    log.Write(log.INFO, color.New(color.FgYellow), "Target Source:        ")
+    log.Writeln(log.NONE, nil, directory + io.Sep + target.GetSrc())
+
     portToUse := ""
     performUpload := false
 
     // check if we can perform upload and if we can, choose port
     if projectConfig.GetMainTag().GetCompileOptions().GetPlatform() == create.AVR {
+        log.Write(log.INFO, color.New(color.FgYellow), "Board:                ")
+        log.Writeln(log.NONE, nil, target.GetBoard())
+
         // select port if upload is triggered as well
         if run.Context.Bool("upload") {
             performUpload = true
-            log.Writeln(log.INFO, color.New(color.FgYellow).Add(color.Underline), "upload port")
             if !run.Context.IsSet("port") {
                 if ports, err := GetPorts(); err != nil {
                     log.WriteErrorlnExit(err)
@@ -76,18 +88,22 @@ func (run Run) Execute() {
                     if port == nil {
                         log.WriteErrorlnExit(errors.AutomaticPortNotDetectedError{})
                     } else {
-                        log.Write(log.INFO, color.New(color.FgCyan), "auto detected port: ")
-                        log.Writeln(log.NONE, color.New(color.FgGreen), port.Port+"\n")
+                        log.Write(log.INFO, color.New(color.FgYellow), "Port (Auto):          ")
+                        log.Writeln(log.NONE, nil, port.Port+"\n")
                         portToUse = port.Port
                     }
                 }
             } else {
                 portToUse = run.Context.String("port")
-                log.Write(log.INFO, color.New(color.FgCyan), "manual port used: ")
-                log.Writeln(log.NONE, color.New(color.FgGreen), portToUse+"\n")
+
+                log.Write(log.INFO, color.New(color.FgYellow), "Port (Manual):        ")
+                log.Writeln(log.NONE, nil, portToUse+"\n")
             }
+        } else {
+            log.Writeln(log.NONE, nil, "")
         }
     } else {
+        log.Writeln(log.NONE, nil, "\n")
         log.WriteErrorln(errors.ActionNotSupportedByPlatform{
             Platform:    projectConfig.GetMainTag().GetCompileOptions().GetPlatform(),
             CommandName: "upload",
