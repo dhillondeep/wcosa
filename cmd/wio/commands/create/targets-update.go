@@ -10,7 +10,6 @@ import (
     "strings"
     "wio/cmd/wio/config"
     "wio/cmd/wio/types"
-    "wio/cmd/wio/utils/io"
 )
 
 // Updates AVR App Targets to make sure there is atleast one valid target
@@ -21,7 +20,7 @@ func updateAVRAppTargets(targets *types.AppAVRTargets, directory string) {
         if _, exists := targets.Targets[targets.DefaultTarget]; !exists {
             // create a default target
             targets.Targets[targets.DefaultTarget] = types.AppAVRTarget{
-                Src:       directory + io.Sep + "src",
+                Src:       "src",
                 Framework: config.ProjectDefaults.Framework,
                 Board:     config.ProjectDefaults.AVRBoard,
                 Flags: types.AppTargetFlags{
@@ -37,7 +36,7 @@ func updateAVRAppTargets(targets *types.AppAVRTargets, directory string) {
             // create a default target
             targets.Targets = map[string]types.AppAVRTarget{
                 config.ProjectDefaults.AppTargetName: {
-                    Src:       directory + io.Sep + "src",
+                    Src:       "src",
                     Framework: config.ProjectDefaults.Framework,
                     Board:     config.ProjectDefaults.AVRBoard,
                     Flags: types.AppTargetFlags{
@@ -63,7 +62,7 @@ func updateAVRPkgTargets(targets *types.PkgAVRTargets, directory string) {
         if _, exists := targets.Targets[targets.DefaultTarget]; !exists {
             // create a default target
             targets.Targets[targets.DefaultTarget] = types.PkgAVRTarget{
-                Src:       directory + io.Sep + "src",
+                Src:       "tests",
                 Framework: config.ProjectDefaults.Framework,
                 Board:     config.ProjectDefaults.AVRBoard,
                 Flags: types.PkgTargetFlags{
@@ -80,7 +79,7 @@ func updateAVRPkgTargets(targets *types.PkgAVRTargets, directory string) {
             // create a default target
             targets.Targets = map[string]types.PkgAVRTarget{
                 config.ProjectDefaults.AppTargetName: {
-                    Src:       directory + io.Sep + "src",
+                    Src:       "tests",
                     Framework: config.ProjectDefaults.Framework,
                     Board:     config.ProjectDefaults.AVRBoard,
                     Flags: types.PkgTargetFlags{

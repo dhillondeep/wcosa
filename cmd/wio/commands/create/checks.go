@@ -16,6 +16,7 @@ import (
     "wio/cmd/wio/log"
     "wio/cmd/wio/utils"
     "wio/cmd/wio/utils/io"
+    "wio/cmd/wio/types"
 )
 
 // This check is used to see if the cli arguments are provided and then based on that decide defaults
@@ -89,9 +90,9 @@ func performPreUpdateCheck(directory string, create *Create) {
     }
 
     if isApp {
-        create.Type = APP
+        create.Type = types.APP
     } else {
-        create.Type = PKG
+        create.Type = types.PKG
     }
 
     // check the platform

@@ -18,6 +18,7 @@ import (
 )
 
 const (
+	NO_SPACES   = ""
 	TWO_SPACES   = "  "
 	FOUR_SPACES  = "  "
 	SIX_SPACES   = "  "
@@ -26,6 +27,7 @@ const (
 
 const (
 	VERB_NONE = "VERB_NONE"
+	INFO_NONE = "INFO_NONE"
 	NONE      = "NONE"
 	INFO      = "INFO"
 	VERB      = "VERB"
@@ -126,10 +128,21 @@ func Writeln(logType string, providedColor *color.Color, message string, a ...in
 	}
 
 	Write(logType, providedColor, message, a...)
-	fmt.Println("")
+
+	if (logType == VERB || logType == VERB_NONE) && !IsVerbose() {
+	    return
+    } else if logType == INFO_NONE && IsVerbose() {
+        return
+    }
+
+    fmt.Println("")
 }
 
 func Write(logType string, providedColor *color.Color, message string, a ...interface{}) {
+    if logType == INFO_NONE && IsVerbose() {
+        return
+    }
+
 	if providedColor == nil {
 		providedColor = color.New(color.Reset)
 	}
@@ -159,17 +172,24 @@ func Write(logType string, providedColor *color.Color, message string, a ...inte
 		messageColor = providedColor
 	}
 
+	var str string
+	if len(a) <= 0 {
+		str = fmt.Sprint(message)
+	} else {
+		str = fmt.Sprintf(message, a...)
+	}
+
 	if logType == NONE || logType == VERB_NONE {
-		messageColor.Fprintf(logTypeStream[logType], "%s", fmt.Sprintf(message, a...))
+		messageColor.Fprintf(logTypeStream[logType], "%s", str)
 		return
 	}
 
 	if logType != INFO || IsVerbose() {
 		color.New(color.FgHiWhite).Fprintf(logTypeStream[logType], "%s ", "wio")
 		logTypeColors[logType].Fprintf(logTypeStream[logType], "%s", strings.ToUpper(logType))
-		messageColor.Fprintf(logTypeStream[logType], " %s", fmt.Sprintf(message, a...))
+		messageColor.Fprintf(logTypeStream[logType], " %s", str)
 	} else if logType == INFO && !IsVerbose() {
-		messageColor.Fprintf(logTypeStream[logType], "%s", fmt.Sprintf(message, a...))
+		messageColor.Fprintf(logTypeStream[logType], "%s", str)
 	}
 }
 

@@ -31,4 +31,5 @@ generate_arduino_firmware(${TARGET_NAME}
     SRCS ${SRC_FILES}
     BOARD ${BOARD}
     PORT {{PORT}})
-target_compile_definitions(${TARGET_NAME} PRIVATE __AVR_${FRAMEWORK}__ {{TARGET_COMPILE_FLAGS}})
+target_compile_definitions(${TARGET_NAME} PRIVATE __AVR_${FRAMEWORK}__ {{TARGET_COMPILE_DEFINITIONS}})
+target_compile_options(${TARGET_NAME} PRIVATE {{TARGET_COMPILE_FLAGS}})

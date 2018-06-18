@@ -2,79 +2,378 @@
 // Use of this source code is governed by a MIT
 // license that can be found in the LICENSE file.
 
-// Part of commands package, which contains all the commands provided by the tool.
-// Builds, Tests, and Uploads the project to a device
+// Part of run package, which contains all the commands to run the project
+// Builds, Uploads, and Executes the project
 package run
 
 import (
-	"bytes"
-	"github.com/urfave/cli"
-	"os"
-	"os/exec"
-	"path/filepath"
-	"strings"
-	"wio/cmd/wio/commands"
-	"wio/cmd/wio/commands/build"
-	"wio/cmd/wio/log"
-	"wio/cmd/wio/utils/io"
+    "bufio"
+    goerr "errors"
+    "github.com/fatih/color"
+    "github.com/urfave/cli"
+    "os"
+    "os/exec"
+    "strings"
+    "wio/cmd/wio/commands/create"
+    "wio/cmd/wio/config"
+    "wio/cmd/wio/errors"
+    "wio/cmd/wio/log"
+    "wio/cmd/wio/types"
+    "wio/cmd/wio/utils"
+    "wio/cmd/wio/utils/io"
 )
 
 type Run struct {
-	Context *cli.Context
-	error
+    Context *cli.Context
+    error
 }
 
 // get context for the command
 func (run Run) GetContext() *cli.Context {
-	return run.Context
+    return run.Context
 }
 
 // Runs the build, upload command (acts as one in all command)
 func (run Run) Execute() {
-	directory, err := filepath.Abs(run.Context.String("dir"))
-	commands.RecordError(err, "")
+    // perform argument check
+    directory := performArgumentCheck(run.Context.Args())
 
-	port := run.Context.String("port")
-	var targetName string
+    projectConfig, err := utils.ReadWioConfig(directory + io.Sep + "wio.yml")
+    if err != nil {
+        log.WriteErrorlnExit(err)
+    }
 
-	if run.Context.IsSet("port") {
-		log.Norm.Cyan(true, "Including port: \""+port+"\" in the build process\n")
+    targetName := run.Context.String("target")
+    if targetName == config.ProjectDefaults.DefaultTarget {
+        targetName = projectConfig.GetTargets().GetDefaultTarget()
+    }
 
-		// run the build so that port can be included in the build process
-		targetName = build.RunBuild(directory, run.Context.String("target"), false, port)
-	} else {
-		// run the build normally
-		targetName = build.RunBuild(directory, run.Context.String("target"), false, "")
-	}
+    var target types.Target
 
-	// execute the upload command if port is valid
-	if run.Context.IsSet("port") {
-		targetsDirectory := directory + io.Sep + ".wio" + io.Sep + "build" + io.Sep + "targets"
-		targetPath := targetsDirectory + io.Sep + targetName
+    if val, exists := projectConfig.GetTargets().GetTargets()[targetName]; exists {
+        target = val
+    } else {
+        log.WriteErrorlnExit(errors.TargetDoesNotExistError{
+            TargetName: targetName,
+        })
+    }
 
-		// execute make command
-		makeCommand := exec.Command("make", "upload")
-		makeCommand.Dir = targetPath
+    portToUse := ""
+    performUpload := false
 
-		// Stderr buffer
-		cmdErrOutput := &bytes.Buffer{}
-		makeCommand.Stderr = cmdErrOutput
+    // check if we can perform upload and if we can, choose port
+    if projectConfig.GetMainTag().GetCompileOptions().GetPlatform() == create.AVR {
+        // select port if upload is triggered as well
+        if run.Context.Bool("upload") {
+            performUpload = true
+            log.Writeln(log.INFO, color.New(color.FgYellow).Add(color.Underline), "upload port")
+            if !run.Context.IsSet("port") {
+                if ports, err := GetPorts(); err != nil {
+                    log.WriteErrorlnExit(err)
+                } else {
+                    port := GetArduinoPort(ports)
 
-		if log.Verb.IsVerbose() {
-			makeCommand.Stdout = os.Stdout
-		}
+                    if port == nil {
+                        log.WriteErrorlnExit(errors.AutomaticPortNotDetectedError{})
+                    } else {
+                        log.Write(log.INFO, color.New(color.FgCyan), "auto detected port: ")
+                        log.Writeln(log.NONE, color.New(color.FgGreen), port.Port+"\n")
+                        portToUse = port.Port
+                    }
+                }
+            } else {
+                portToUse = run.Context.String("port")
+                log.Write(log.INFO, color.New(color.FgCyan), "manual port used: ")
+                log.Writeln(log.NONE, color.New(color.FgGreen), portToUse+"\n")
+            }
+        }
+    } else {
+        log.WriteErrorln(errors.ActionNotSupportedByPlatform{
+            Platform:    projectConfig.GetMainTag().GetCompileOptions().GetPlatform(),
+            CommandName: "upload",
+            Err:         goerr.New("skipping upload"),
+        }, true)
+    }
 
-		log.Norm.Cyan(false, "\nuploading the target ... ")
-		log.Verb.Write(true, "")
+    log.Writeln(log.INFO, color.New(color.FgYellow).Add(color.Underline), "building target")
+    log.Write(log.INFO, color.New(color.FgCyan), "creating project CMakeLists file ... ")
 
-		err = makeCommand.Run()
-		if err != nil {
-			commands.RecordError(err, "failure", strings.Trim(cmdErrOutput.String(), "\n"))
-		} else {
-			log.Norm.Green(true, "success")
-		}
+    queue := log.GetQueue()
 
-		// print the ending message
-		log.Norm.Yellow(true, "Upload successful for target: \""+targetName+"\"")
-	}
+    // create CMakeLists.txt file
+    if projectConfig.GetMainTag().GetCompileOptions().GetPlatform() == create.AVR {
+        if err := generateAvrMainCMakeLists(projectConfig.GetMainTag().GetName(), directory,
+            target.GetBoard(), portToUse, target.GetFramework(),
+            targetName, target.GetSrc(), target.GetFlags(), target.GetDefinitions()); err != nil {
+            log.Writeln(log.NONE, color.New(color.FgRed), "failure")
+            log.PrintQueue(queue, log.TWO_SPACES)
+            log.WriteErrorlnExit(err)
+        } else {
+            log.Writeln(log.NONE, color.New(color.FgGreen), "success")
+            log.PrintQueue(queue, log.TWO_SPACES)
+        }
+    } else {
+        err = errors.PlatformNotSupportedError{
+            Platform: projectConfig.GetMainTag().GetCompileOptions().GetPlatform(),
+        }
+
+        log.WriteErrorlnExit(err)
+    }
+
+    log.Write(log.INFO, color.New(color.FgCyan), "scanning dependencies and creating build files ... ")
+
+    // scan dependencies and create dependencies.cmake file
+    if err := createCMakeDependencyTargets(queue, projectConfig.GetMainTag().GetName(), directory,
+        projectConfig.GetType(), target.GetFlags(), target.GetDefinitions(),
+        projectConfig.GetDependencies(), projectConfig.GetMainTag().GetCompileOptions().GetPlatform()); err != nil {
+        log.Writeln(log.NONE, color.New(color.FgRed), "failure")
+        log.PrintQueue(queue, log.TWO_SPACES)
+        log.WriteErrorlnExit(err)
+    } else {
+        log.Writeln(log.NONE, color.New(color.FgGreen), "success")
+        log.PrintQueue(queue, log.TWO_SPACES)
+    }
+
+    targetDirectory := directory + io.Sep + ".wio" + io.Sep + "build" + io.Sep + "targets" + io.Sep + targetName
+
+    // clean build files for the target
+    if run.Context.Bool("clean") {
+        log.Write(log.INFO, color.New(color.FgCyan), "cleaning build files for target %s ... ", targetName)
+
+        err := os.RemoveAll(targetDirectory)
+        if err != nil {
+            log.Writeln(log.NONE, color.New(color.FgRed), "failure")
+            log.WriteErrorlnExit(errors.DeleteDirectoryError{
+                DirName: targetDirectory,
+                Err:     err,
+            })
+        } else {
+            log.Writeln(log.NONE, color.New(color.FgGreen), "success")
+        }
+    }
+
+    // create a directory for the target
+    if err := os.MkdirAll(targetDirectory, os.ModePerm); err != nil {
+        log.WriteErrorlnExit(err)
+    }
+
+    log.Write(log.INFO, color.New(color.FgCyan), "generating building files for \"%s\" ... ", targetName)
+    log.Writeln(log.VERB_NONE, nil, "")
+
+    // build targets cmake
+    if err := buildTargetCmake(targetDirectory); err != nil {
+        log.Writeln(log.INFO_NONE, color.New(color.FgRed), "failure")
+        log.WriteErrorlnExit(err)
+    } else {
+        log.Writeln(log.INFO_NONE, color.New(color.FgGreen), "success")
+    }
+
+    // build targets make
+    if err := buildTargetMake(targetDirectory); err != nil {
+        log.WriteErrorlnExit(err)
+    }
+
+    // upload if instructed or supported
+    if performUpload {
+        log.Writeln(log.NONE, nil, "")
+        log.Writeln(log.INFO, color.New(color.FgYellow).Add(color.Underline), "uploading target")
+
+        if err := uploadTarget(targetDirectory); err != nil {
+            log.WriteErrorlnExit(err)
+        }
+    }
+}
+
+// This executes cmake command to generate build files
+func buildTargetCmake(buildDirectory string) error {
+    cmakeCommand := exec.Command("cmake", "../../", "-G", "Unix Makefiles")
+    cmakeCommand.Dir = buildDirectory
+
+    cmakeStderrReader, err := cmakeCommand.StderrPipe()
+    if err != nil {
+        return err
+    }
+    cmakeStdoutReader, err := cmakeCommand.StdoutPipe()
+    if err != nil {
+        return err
+    }
+
+    cmakeStdoutScanner := bufio.NewScanner(cmakeStdoutReader)
+    go func() {
+        for cmakeStdoutScanner.Scan() {
+            log.Writeln(log.VERB, nil, cmakeStdoutScanner.Text())
+        }
+    }()
+
+    // we use deprecated feature so ignore the warning
+    cmakeWarning := `CMake Deprecation Warning at CMakeLists.txt:27 (cmake_policy):
+  The OLD behavior for policy CMP0023 will be removed from a future version
+  of CMake.
+
+  The cmake-policies(7) manual explains that the OLD behaviors of all
+  policies are deprecated and that a policy should be set to OLD only under
+  specific short-term circumstances.  Projects should be ported to the NEW
+  behavior and not rely on setting a policy to OLD.
+
+`
+    cmakeStderrScanner := bufio.NewScanner(cmakeStderrReader)
+    go func() {
+        for cmakeStderrScanner.Scan() {
+            line := cmakeStderrScanner.Text()
+
+            if strings.Contains(cmakeWarning, line) {
+                continue
+            } else {
+                log.Writeln(log.ERR, color.New(color.FgRed), line)
+            }
+        }
+    }()
+
+    err = cmakeCommand.Start()
+    if err != nil {
+        return errors.CommandStartError{
+            CommandName: "cmake",
+        }
+    }
+
+    err = cmakeCommand.Wait()
+    if err != nil {
+        return errors.CommandWaitError{
+            CommandName: "cmake",
+        }
+    }
+
+    return nil
+}
+
+// This executes make command to build the project
+func buildTargetMake(buildDirectory string) error {
+    makeCommand := exec.Command("make")
+    makeCommand.Dir = buildDirectory
+
+    if !log.IsVerbose() {
+        // this version is used if verbose mode is not on
+
+        makeCommand.Stdout = os.Stdout
+        makeCommand.Stderr = os.Stderr
+
+        if err := makeCommand.Run(); err != nil {
+            return errors.CommandWaitError{
+                CommandName: "make",
+            }
+        }
+
+        return nil
+    }
+
+    // this version is used if verbose mode is on
+
+    makeStderrReader, err := makeCommand.StderrPipe()
+    if err != nil {
+        return err
+    }
+    makeStdoutReader, err := makeCommand.StdoutPipe()
+    if err != nil {
+        return err
+    }
+
+    makeStdoutScanner := bufio.NewScanner(makeStdoutReader)
+    go func() {
+        for makeStdoutScanner.Scan() {
+            // add some colors for logging
+            if strings.Contains(makeStdoutScanner.Text(), "Scanning dependencies") {
+                log.Writeln(log.INFO, color.New(color.FgGreen), makeStdoutScanner.Text())
+            } else if strings.Contains(makeStdoutScanner.Text(), "Built target") {
+                log.Writeln(log.INFO, color.New(color.FgGreen), makeStdoutScanner.Text())
+            } else {
+                log.Writeln(log.INFO, color.New(color.Reset), makeStdoutScanner.Text())
+            }
+        }
+    }()
+
+    makeStderrScanner := bufio.NewScanner(makeStderrReader)
+    go func() {
+        for makeStderrScanner.Scan() {
+            log.Writeln(log.ERR, color.New(color.FgRed), makeStderrScanner.Text())
+        }
+    }()
+
+    err = makeCommand.Start()
+    if err != nil {
+        return errors.CommandStartError{
+            CommandName: "make",
+        }
+    }
+
+    err = makeCommand.Wait()
+    if err != nil {
+        return errors.CommandWaitError{
+            CommandName: "make",
+        }
+    }
+
+    return nil
+}
+
+// This executes make upload command to upload the target
+func uploadTarget(targetDirectory string) error {
+    // execute make upload command
+    makeCommand := exec.Command("make", "upload")
+    makeCommand.Dir = targetDirectory
+
+    if !log.IsVerbose() {
+        // this version is used if verbose mode is not on
+
+        makeCommand.Stdout = os.Stdout
+        makeCommand.Stderr = os.Stderr
+
+        if err := makeCommand.Run(); err != nil {
+            return errors.CommandWaitError{
+                CommandName: "avrdude",
+            }
+        }
+
+        return nil
+    } else {
+        // this version is used if verbose mode is on
+
+        makeStderrReader, err := makeCommand.StderrPipe()
+        if err != nil {
+            return err
+        }
+        makeStdoutReader, err := makeCommand.StdoutPipe()
+        if err != nil {
+            return err
+        }
+
+        makeStdoutScanner := bufio.NewScanner(makeStdoutReader)
+        go func() {
+            for makeStdoutScanner.Scan() {
+                log.Writeln(log.INFO, color.New(color.Reset), makeStdoutScanner.Text())
+            }
+        }()
+
+        makeStderrScanner := bufio.NewScanner(makeStderrReader)
+        go func() {
+            for makeStderrScanner.Scan() {
+                log.Writeln(log.ERR, color.New(color.FgRed), makeStderrScanner.Text())
+            }
+        }()
+
+        err = makeCommand.Start()
+        if err != nil {
+            return errors.CommandStartError{
+                CommandName: "make",
+            }
+        }
+
+        err = makeCommand.Wait()
+        if err != nil {
+            return errors.CommandWaitError{
+                CommandName: "make",
+            }
+        }
+
+        return nil
+    }
 }

@@ -25,11 +25,6 @@ const (
     AVR = "avr"
 )
 
-const (
-    APP = "app"
-    PKG = "pkg"
-)
-
 type Create struct {
     Context  *cli.Context
     Type     string
@@ -122,17 +117,17 @@ func (create Create) handleAVRCreation(directory string, board string) {
     // print structure summary
     log.Writeln(log.NONE, nil, "")
     log.Writeln(log.INFO, color.New(color.FgYellow).Add(color.Underline), "Project structure summary")
-    if (create.Type == PKG && !create.Context.Bool("header-only")) || create.Type == APP {
+    if (create.Type == types.PKG && !create.Context.Bool("header-only")) || create.Type == types.APP {
         log.Write(log.INFO, color.New(color.FgCyan), "src              ")
         log.Writeln(log.NONE, color.New(color.Reset), "source/non client files go here")
     }
 
-    if create.Type == PKG {
+    if create.Type == types.PKG {
         log.Write(log.INFO, color.New(color.FgCyan), "tests            ")
         log.Writeln(log.NONE, color.New(color.Reset), "source files to test the package go here")
     }
 
-    if create.Type == PKG {
+    if create.Type == types.PKG {
         log.Write(log.INFO, color.New(color.FgCyan), "include          ")
         log.Writeln(log.NONE, color.New(color.Reset), "client headers for the package go here")
     }
@@ -166,7 +161,7 @@ func (create Create) createAVRProjectStructure(queue *log.Queue, directory strin
 
     var structureTypeData StructureTypeData
 
-    if create.Type == APP {
+    if create.Type == types.APP {
         structureTypeData = structureData.App
     } else {
         structureTypeData = structureData.Pkg
@@ -228,7 +223,7 @@ func (create Create) fillAVRProjectConfig(queue *log.Queue, directory string, bo
     var projectConfig types.Config
 
     // handle app
-    if create.Type == APP {
+    if create.Type == types.APP {
         if !onlyConfig {
             log.QueueWrite(queue, log.VERB, nil, "creating config file for application ... ")
         } else {
@@ -249,7 +244,7 @@ func (create Create) fillAVRProjectConfig(queue *log.Queue, directory string, bo
         appConfig.TargetsTag.DefaultTarget = config.ProjectDefaults.AppTargetName
         appConfig.TargetsTag.Targets = map[string]types.AppAVRTarget{
             config.ProjectDefaults.AppTargetName: {
-                Src:       directory + io.Sep + "src",
+                Src:       "src",
                 Framework: framework,
                 Board:     board,
                 Flags: types.AppTargetFlags{
@@ -290,11 +285,23 @@ func (create Create) fillAVRProjectConfig(queue *log.Queue, directory string, bo
         pkgConfig.MainTag.Flags.AllowOnlyGlobalFlags = false
         pkgConfig.MainTag.Flags.AllowOnlyRequiredFlags = false
 
+        if pkgConfig.MainTag.CompileOptions.HeaderOnly {
+            pkgConfig.MainTag.Flags.Visibility = "INTERFACE"
+        } else {
+            pkgConfig.MainTag.Flags.Visibility = "PRIVATE"
+        }
+
         // definitions
         pkgConfig.MainTag.Definitions.GlobalDefinitions = []string{}
         pkgConfig.MainTag.Definitions.RequiredDefinitions = []string{}
         pkgConfig.MainTag.Definitions.AllowOnlyGlobalDefinitions = false
         pkgConfig.MainTag.Definitions.AllowOnlyRequiredDefinitions = false
+
+        if pkgConfig.MainTag.CompileOptions.HeaderOnly {
+            pkgConfig.MainTag.Definitions.Visibility = "INTERFACE"
+        } else {
+            pkgConfig.MainTag.Definitions.Visibility = "PRIVATE"
+        }
 
         // create pkg target
         pkgConfig.TargetsTag.DefaultTarget = config.ProjectDefaults.PkgTargetName
@@ -436,6 +443,24 @@ func (create Create) updateConfig(queue *log.Queue, projectConfig types.Config, 
             pkgConfig.MainTag.Config.SupportedPlatforms)
         pkgConfig.MainTag.Meta.Keywords = utils.AppendIfMissing(pkgConfig.MainTag.Meta.Keywords,
             pkgConfig.MainTag.Config.SupportedBoards)
+
+        // flags
+        if strings.Trim(pkgConfig.MainTag.Flags.Visibility, " ") == "" {
+            if pkgConfig.MainTag.CompileOptions.HeaderOnly {
+                pkgConfig.MainTag.Flags.Visibility = "INTERFACE"
+            } else {
+                pkgConfig.MainTag.Flags.Visibility = "PRIVATE"
+            }
+        }
+
+        // definitions
+        if strings.Trim(pkgConfig.MainTag.Definitions.Visibility, " ") == "" {
+            if pkgConfig.MainTag.CompileOptions.HeaderOnly {
+                pkgConfig.MainTag.Definitions.Visibility = "INTERFACE"
+            } else {
+                pkgConfig.MainTag.Definitions.Visibility = "PRIVATE"
+            }
+        }
 
         // version
         if strings.Trim(pkgConfig.MainTag.Meta.Version, " ") == "" {
