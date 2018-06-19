@@ -15,15 +15,15 @@ import (
     "os/exec"
     "strings"
     "wio/cmd/wio/commands/create"
+    "wio/cmd/wio/commands/run/cmake"
+    "wio/cmd/wio/commands/run/dependencies"
     "wio/cmd/wio/config"
     "wio/cmd/wio/errors"
     "wio/cmd/wio/log"
+    "wio/cmd/wio/toolchain"
     "wio/cmd/wio/types"
     "wio/cmd/wio/utils"
     "wio/cmd/wio/utils/io"
-    "wio/cmd/wio/commands/run/dependencies"
-    "wio/cmd/wio/commands/run/cmake"
-    "wio/cmd/wio/toolchain"
 )
 
 type Run struct {
@@ -86,7 +86,7 @@ func (run Run) Execute() {
             performUpload = true
             if !run.Context.IsSet("port") {
                 if ports, err := toolchain.GetPorts(); err != nil {
-                    log.WriteErrorlnExit(err)
+                    log.WriteErrorlnExit(errors.AutomaticPortNotDetectedError{})
                 } else {
                     port := toolchain.GetArduinoPort(ports)
 
@@ -153,7 +153,7 @@ func (run Run) Execute() {
     if err := dependencies.CreateCMakeDependencyTargets(queue, projectConfig.GetMainTag().GetName(), directory,
         projectConfig.GetType(), target.GetFlags(), target.GetDefinitions(),
         projectConfig.GetDependencies(), projectConfig.GetMainTag().GetCompileOptions().GetPlatform(),
-            projectConfig.GetMainTag().GetVersion()); err != nil {
+        projectConfig.GetMainTag().GetVersion()); err != nil {
         log.Writeln(log.NONE, color.New(color.FgRed), "failure")
         log.PrintQueue(queue, log.TWO_SPACES)
         log.WriteErrorlnExit(err)
@@ -188,7 +188,7 @@ func (run Run) Execute() {
     }
 
     log.Write(log.INFO, color.New(color.FgCyan), "generating building files for \"%s\" ... ", targetName)
-    log.Writeln(log.VERB_NONE, nil, "")
+    log.Writeln(log.NONE, nil, "")
 
     // build targets cmake
     if err := buildTargetCmake(targetDirectory); err != nil {

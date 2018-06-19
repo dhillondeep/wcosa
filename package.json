@@ -1,7 +1,7 @@
 {
   "name": "wio",
-  "version": "0.2.4",
-  "description": "An Embedded Development Environment",
+  "version": "0.3.0",
+  "description": "An Iot Development Environment",
   "main": "index.js",
   "scripts": {
     "preinstall": "node npm-go/preinstall.js",
@@ -11,7 +11,7 @@
   "bin": "./bin/wio",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/waterloop/wio.git"
+    "url": "git+https://github.com/wio/wio-core.git"
   },
   "keywords": [
     "wio",
@@ -19,18 +19,22 @@
     "c++",
     "avr",
     "arduino",
-    "cosa"
+    "cosa",
+    "iot"
   ],
-  "author": "Deep Dhillon",
+  "author": "Deep Dhillon <deep@deepdhillon.ca> (https://github.com/dhillondeep)",
+  "contributors": [
+    "Jeff Niu <jeffniu22@gmail.com> (https://github.com/mogball)"
+  ],
   "license": "MIT",
   "bugs": {
-    "url": "https://github.com/waterloop/wio/issues"
+    "url": "https://github.com/wio/wio-core/issues"
   },
-  "homepage": "https://github.com/waterloop/wio#readme",
+  "homepage": "https://github.com/wio/wio-core#readme",
   "goBinary": {
     "name": "wio",
     "path": "./bin",
-    "url": "https://github.com/waterloop/wio/releases/download/v{{version}}/wio_{{version}}_{{platform}}_{{arch}}.{{format}}"
+    "url": "https://github.com/wio/wio-core/releases/download/v{{version}}/wio_{{version}}_{{platform}}_{{arch}}.{{format}}"
   },
   "dependencies": {
     "decompress": "^4.2.0",

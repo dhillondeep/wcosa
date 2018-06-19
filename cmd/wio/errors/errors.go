@@ -90,8 +90,8 @@ func (err ConfigParsingError) Error() string {
 
 type UnsupportedWioConfigVersion struct {
     PackageName string
-    Version string
-    Err error
+    Version     string
+    Err         error
 }
 
 func (err UnsupportedWioConfigVersion) Error() string {
@@ -104,7 +104,6 @@ func (err UnsupportedWioConfigVersion) Error() string {
 
     return str
 }
-
 
 type ProjectTypeMismatchError struct {
     GivenType  string
@@ -244,7 +243,7 @@ func (err DeleteFileError) Error() string {
 
 type NotValidWioProjectError struct {
     Directory string
-    Err      error
+    Err       error
 }
 
 func (err NotValidWioProjectError) Error() string {
@@ -259,8 +258,8 @@ func (err NotValidWioProjectError) Error() string {
 
 type DependencyDoesNotExistError struct {
     DependencyName string
-    Vendor bool
-    Err      error
+    Vendor         bool
+    Err            error
 }
 
 func (err DependencyDoesNotExistError) Error() string {
@@ -281,10 +280,9 @@ func (err DependencyDoesNotExistError) Error() string {
 
 type InvalidPlaceholderReferenceError struct {
     DependencyName string
-    Placeholder string
-    Err error
+    Placeholder    string
+    Err            error
 }
-
 
 func (err InvalidPlaceholderReferenceError) Error() string {
 
@@ -299,16 +297,15 @@ func (err InvalidPlaceholderReferenceError) Error() string {
 
 type GlobalFlagsMissingError struct {
     DependencyName string
-    ProvidedFlags []string
-    MissingFlags []string
-    Err error
+    ProvidedFlags  []string
+    MissingFlags   []string
+    Err            error
 }
-
 
 func (err GlobalFlagsMissingError) Error() string {
     str := fmt.Sprintf("global flag/definition missing\n%sdependency: %s\n%sprovided flags/definitions: %s\n%smissing flags/definitions: %s",
         Spaces, err.DependencyName, Spaces, strings.Join(err.ProvidedFlags, ","), Spaces,
-            strings.Join(err.MissingFlags, ","))
+        strings.Join(err.MissingFlags, ","))
 
     if err.Err != nil {
         str += fmt.Sprintf("\n%s%s", Spaces, err.Err.Error())
@@ -317,15 +314,13 @@ func (err GlobalFlagsMissingError) Error() string {
     return str
 }
 
-
 type RequiredFlagsMissingError struct {
-    From string
-    To string
+    From          string
+    To            string
     ProvidedFlags []string
-    MissingFlags []string
-    Err error
+    MissingFlags  []string
+    Err           error
 }
-
 
 func (err RequiredFlagsMissingError) Error() string {
     str := fmt.Sprintf("required flag/definition missing\n%sfrom: %s    to: %s\n%sprovided flags/definitions: %s\n%smissing flags/definitions: %s",
@@ -340,9 +335,9 @@ func (err RequiredFlagsMissingError) Error() string {
 }
 
 type OnlyRequiredFlagsError struct {
-    Dependency string
+    Dependency       string
     FlagCategoryName string
-    Err      error
+    Err              error
 }
 
 func (err OnlyRequiredFlagsError) Error() string {
@@ -357,9 +352,9 @@ func (err OnlyRequiredFlagsError) Error() string {
 }
 
 type OnlyRequiredDefinitionsError struct {
-    Dependency string
+    Dependency       string
     FlagCategoryName string
-    Err      error
+    Err              error
 }
 
 func (err OnlyRequiredDefinitionsError) Error() string {
@@ -374,9 +369,9 @@ func (err OnlyRequiredDefinitionsError) Error() string {
 }
 
 type OnlyGlobalFlagsError struct {
-    Dependency string
+    Dependency       string
     FlagCategoryName string
-    Err      error
+    Err              error
 }
 
 func (err OnlyGlobalFlagsError) Error() string {
@@ -391,9 +386,9 @@ func (err OnlyGlobalFlagsError) Error() string {
 }
 
 type OnlyGlobalDefinitionsError struct {
-    Dependency string
+    Dependency       string
     FlagCategoryName string
-    Err      error
+    Err              error
 }
 
 func (err OnlyGlobalDefinitionsError) Error() string {
@@ -408,10 +403,10 @@ func (err OnlyGlobalDefinitionsError) Error() string {
 }
 
 type LinkerVisibilityError struct {
-    From string
-    To string
+    From            string
+    To              string
     GivenVisibility string
-    Err      error
+    Err             error
 }
 
 func (err LinkerVisibilityError) Error() string {
@@ -426,9 +421,9 @@ func (err LinkerVisibilityError) Error() string {
 }
 
 type FlagsDefinitionsVisibilityError struct {
-    PackageName string
+    PackageName     string
     GivenVisibility string
-    Err      error
+    Err             error
 }
 
 func (err FlagsDefinitionsVisibilityError) Error() string {
@@ -444,7 +439,7 @@ func (err FlagsDefinitionsVisibilityError) Error() string {
 
 type TargetDoesNotExistError struct {
     TargetName string
-    Err      error
+    Err        error
 }
 
 func (err TargetDoesNotExistError) Error() string {
@@ -457,10 +452,9 @@ func (err TargetDoesNotExistError) Error() string {
     return str
 }
 
-
 type CommandStartError struct {
     CommandName string
-    Err      error
+    Err         error
 }
 
 func (err CommandStartError) Error() string {
@@ -475,7 +469,7 @@ func (err CommandStartError) Error() string {
 
 type CommandWaitError struct {
     CommandName string
-    Err      error
+    Err         error
 }
 
 func (err CommandWaitError) Error() string {
@@ -490,7 +484,7 @@ func (err CommandWaitError) Error() string {
 
 type AutomaticPortNotDetectedError struct {
     CommandName string
-    Err      error
+    Err         error
 }
 
 func (err AutomaticPortNotDetectedError) Error() string {
@@ -504,13 +498,13 @@ func (err AutomaticPortNotDetectedError) Error() string {
 }
 
 type ActionNotSupportedByPlatform struct {
-    Platform string
+    Platform    string
     CommandName string
-    Err      error
+    Err         error
 }
 
 func (err ActionNotSupportedByPlatform) Error() string {
-    str := fmt.Sprintf("% platform does not support %s", err.Platform, err.CommandName)
+    str := fmt.Sprintf("%s platform does not support %s", err.Platform, err.CommandName)
 
     if err.Err != nil {
         str += fmt.Sprintf("\n%s%s", Spaces, err.Err.Error())
@@ -519,35 +513,18 @@ func (err ActionNotSupportedByPlatform) Error() string {
     return str
 }
 
-
-
-
-
-
-// An error for exceptions that are intended to be seen by the user.
-//
-// These exceptions won't have any debugging information printed when they're
-// thrown.
-type ApplicationError struct {
-    error
+type FatalError struct {
+    Log         interface{}
+    Err         error
 }
 
-// An exception class for exceptions that are intended to be seen by the user
-// and are associated with a problem in a file at some path.
-type FileError struct {
-    error
-    path string
-}
+func (err FatalError) Error() string {
+    str := fmt.Sprintf("a fatal error occured. Contact developers for a fix")
+    str += "\n" + Spaces + fmt.Sprintln(err.Log)
 
-type IoError struct {
-    error
-}
+    if err.Err != nil {
+        str += fmt.Sprintf("\n%s%s", Spaces, err.Err.Error())
+    }
 
-func (ioError IoError) GetType() string {
-    return "ioError"
-}
-
-func main() {
-    err := IoError{}
-    err.GetType()
+    return str
 }

@@ -14,9 +14,9 @@ import (
     "wio/cmd/wio/config"
     "wio/cmd/wio/errors"
     "wio/cmd/wio/log"
+    "wio/cmd/wio/types"
     "wio/cmd/wio/utils"
     "wio/cmd/wio/utils/io"
-    "wio/cmd/wio/types"
 )
 
 // This check is used to see if the cli arguments are provided and then based on that decide defaults

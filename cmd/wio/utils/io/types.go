@@ -8,15 +8,15 @@
 package io
 
 type IOHandler interface {
-	GetRoot() (string, error)
-	CopyFile(string, string, bool) error
-	CopyMultipleFiles([]string, []string, []bool) error
-	ReadFile(string) ([]byte, error)
-	WriteFile(string, []byte) error
-	ParseJson(string, interface{}) error
-	ParseYml(string, interface{}) error
-	WriteJson(string, interface{}) error
-	WriteYml(string, interface{}) error
+    GetRoot() (string, error)
+    CopyFile(string, string, bool) error
+    CopyMultipleFiles([]string, []string, []bool) error
+    ReadFile(string) ([]byte, error)
+    WriteFile(string, []byte) error
+    ParseJson(string, interface{}) error
+    ParseYml(string, interface{}) error
+    WriteJson(string, interface{}) error
+    WriteYml(string, interface{}) error
 }
 
 type NormalHandler byte

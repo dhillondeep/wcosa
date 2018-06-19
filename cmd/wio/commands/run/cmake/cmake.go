@@ -3,8 +3,10 @@ package cmake
 import (
     "path/filepath"
     "strings"
-    "wio/cmd/wio/utils/io"
     "wio/cmd/wio/types"
+    "wio/cmd/wio/utils/io"
+    "wio/cmd/wio/utils"
+    "os"
 )
 
 // CMake Target information
@@ -97,6 +99,13 @@ func GenerateAvrMainCMakeLists(appName string, appPath string, board string, por
         strings.Join(definitions.GetTargetDefinitions(), " "), -1)
 
     templateDataStr += "\n\ninclude(${DEPENDENCY_FILE})\n"
+
+    if !utils.PathExists(appPath+io.Sep+".wio"+io.Sep+"build") {
+        err := os.MkdirAll(appPath+io.Sep+".wio"+io.Sep+"build", os.ModePerm)
+        if err!= nil {
+            return err
+        }
+    }
 
     return io.NormalIO.WriteFile(appPath+io.Sep+".wio"+io.Sep+"build"+io.Sep+"CMakeLists.txt",
         []byte(templateDataStr))

@@ -13,7 +13,7 @@ const (
 )
 
 const (
-    AVR = "avr"
+    AVR     = "avr"
     DESKTOP = "desktop"
 )
 
@@ -406,7 +406,7 @@ func (appConfig *AppConfig) GetDependencies() DependenciesTag {
     return appConfig.DependenciesTag
 }
 
-func (appConfig *AppConfig) SetDependencies(tag DependenciesTag)  {
+func (appConfig *AppConfig) SetDependencies(tag DependenciesTag) {
     appConfig.DependenciesTag = tag
 }
 
@@ -432,7 +432,7 @@ func (pkgConfig *PkgConfig) GetDependencies() DependenciesTag {
     return pkgConfig.DependenciesTag
 }
 
-func (pkgConfig *PkgConfig) SetDependencies(tag DependenciesTag)  {
+func (pkgConfig *PkgConfig) SetDependencies(tag DependenciesTag) {
     pkgConfig.DependenciesTag = tag
 }
 

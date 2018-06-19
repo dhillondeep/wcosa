@@ -1,10 +1,10 @@
 package run
 
 import (
-    "os"
-    "wio/cmd/wio/log"
-    "wio/cmd/wio/errors"
     goerr "errors"
+    "os"
+    "wio/cmd/wio/errors"
+    "wio/cmd/wio/log"
 )
 
 func performArgumentCheck(args []string) string {

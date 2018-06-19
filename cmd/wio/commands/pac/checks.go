@@ -1,17 +1,17 @@
 package pac
 
 import (
-    "wio/cmd/wio/log"
-    "wio/cmd/wio/errors"
+    "bytes"
     goerr "errors"
+    "github.com/fatih/color"
+    "net/http"
+    "os/exec"
+    "regexp"
+    "strings"
+    "wio/cmd/wio/errors"
+    "wio/cmd/wio/log"
     "wio/cmd/wio/utils"
     "wio/cmd/wio/utils/io"
-    "os/exec"
-    "bytes"
-    "strings"
-    "regexp"
-    "net/http"
-    "github.com/fatih/color"
 )
 
 // Checks arguments to verify what to install
@@ -27,9 +27,9 @@ func installArgumentCheck(args []string) []string {
 func uninstallArgumentCheck(args []string) []string {
     if len(args) <= 0 {
         log.WriteErrorlnExit(errors.ProgramArgumentsError{
-            CommandName: "uninstall",
+            CommandName:  "uninstall",
             ArgumentName: "package name",
-            Err: goerr.New("atleast one package must be provided"),
+            Err:          goerr.New("atleast one package must be provided"),
         })
         return nil
     } else {
@@ -72,12 +72,12 @@ func dependencyCheck(queue *log.Queue, directory string, dependencyName string, 
     // dependency does not exist
     if resp.StatusCode == 404 {
         log.QueueWriteln(queue, log.VERB_NONE, color.New(color.FgRed), "failure")
-        return goerr.New("dependency: \""+dependencyName+"\" package does not exist on remote server")
+        return goerr.New("dependency: \"" + dependencyName + "\" package does not exist on remote server")
     } else {
         log.QueueWriteln(queue, log.VERB_NONE, color.New(color.FgGreen), "success")
     }
 
-    log.QueueWrite(queue, log.VERB, nil, "dependency: checking if "+dependencyName+"@"+dependencyVersion+" " +
+    log.QueueWrite(queue, log.VERB, nil, "dependency: checking if " + dependencyName + "@" + dependencyVersion + " "+
         "version exists ... ")
 
     // verify the version by executing npm info command
@@ -92,18 +92,18 @@ func dependencyCheck(queue *log.Queue, directory string, dependencyName string, 
         log.QueueWriteln(queue, log.VERB_NONE, color.New(color.FgRed), "failure")
         return errors.CommandStartError{
             CommandName: "npm info",
-            Err: err,
+            Err:         err,
         }
     }
 
     // version does not exists
     if cmdOutOutput.String() == "" {
         log.QueueWriteln(queue, log.VERB_NONE, color.New(color.FgRed), "failure")
-        return goerr.New("dependency: \""+dependencyName+"@"+dependencyVersion+
+        return goerr.New("dependency: \"" + dependencyName + "@" + dependencyVersion +
             "\" version does not exist")
     } else {
         log.QueueWriteln(queue, log.VERB_NONE, color.New(color.FgGreen), "success")
-        log.QueueWrite(queue, log.VERB, nil, "dependency: checking if "+dependencyName+"@"+dependencyVersion+
+        log.QueueWrite(queue, log.VERB, nil, "dependency: checking if " + dependencyName + "@" + dependencyVersion+
             " is a valid wio package ... ")
 
         // check if the package is a wio package by checking C, C++ and wio flags
@@ -116,7 +116,7 @@ func dependencyCheck(queue *log.Queue, directory string, dependencyName string, 
             log.QueueWriteln(queue, log.VERB_NONE, color.New(color.FgGreen), "success")
         } else {
             log.QueueWriteln(queue, log.VERB_NONE, color.New(color.FgRed), "failure")
-            return goerr.New("dependency: \""+dependencyName+"@"+dependencyVersion+
+            return goerr.New("dependency: \"" + dependencyName + "@" + dependencyVersion +
                 "\" is not a wio package")
         }
     }

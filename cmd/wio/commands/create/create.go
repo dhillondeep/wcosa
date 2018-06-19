@@ -178,7 +178,7 @@ func (create Create) createAVRProjectStructure(queue *log.Queue, directory strin
     fileConstrainsMap["example"] = create.Context.Bool("create-example")
     fileConstrainsMap["no-header-only"] = !create.Context.Bool("header-only")
 
-    log.QueueWrite(queue, log.VERB, color.New(color.Reset), "copying asset files ...")
+    log.QueueWrite(queue, log.VERB, color.New(color.Reset), "copying asset files ... ")
     subQueue := log.GetQueue()
 
     if err := copyProjectAssets(subQueue, directory, create.Update, structureTypeData, dirConstrainsMap, fileConstrainsMap); err != nil {
@@ -360,7 +360,7 @@ func (create Create) handleUpdate(directory string) {
 
     platform := projectConfig.GetMainTag().GetCompileOptions().GetPlatform()
 
-    if platform  == AVR {
+    if platform == AVR {
         // update AVR project files
         log.Write(log.INFO, color.New(color.FgCyan), "updating files for AVR platform ... ")
         queue := log.GetQueue()

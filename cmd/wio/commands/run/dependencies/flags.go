@@ -3,8 +3,8 @@ package dependencies
 import (
     "regexp"
     "strings"
-    "wio/cmd/wio/utils"
     "wio/cmd/wio/errors"
+    "wio/cmd/wio/utils"
 )
 
 // Verifies the placeholder syntax
@@ -50,7 +50,7 @@ func fillPlaceholderFlags(providedFlags []string, desiredFlags []string, depende
         if len(newFlags) == oldLength {
             err := errors.InvalidPlaceholderReferenceError{
                 DependencyName: dependencyName,
-                Placeholder: desiredFlag,
+                Placeholder:    desiredFlag,
             }
 
             return nil, err
@@ -91,8 +91,8 @@ func fillGlobalFlags(globalFlags []string, dependencyGlobalFlagsRequired []strin
     if len(dependencyGlobalFlagsRequired) != len(filledFlags) {
         err := errors.GlobalFlagsMissingError{
             DependencyName: dependencyName,
-            ProvidedFlags: filledFlags,
-            MissingFlags: notFilledFlags,
+            ProvidedFlags:  filledFlags,
+            MissingFlags:   notFilledFlags,
         }
 
         return nil, err
@@ -140,12 +140,11 @@ func fillRequiredFlags(providedFlags []string, dependencyFlagsRequired []string,
             to = "Package::" + dependencyName
         }
 
-
         err := errors.RequiredFlagsMissingError{
-            From: from,
-            To: to,
+            From:          from,
+            To:            to,
             ProvidedFlags: filledFlags,
-            MissingFlags: nonFilledRequiredFlags,
+            MissingFlags:  nonFilledRequiredFlags,
         }
 
         return nil, nil, err

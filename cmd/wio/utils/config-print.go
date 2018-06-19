@@ -102,7 +102,7 @@ func PrettyPrintConfig(projectConfig types.Config, filePath string, showHelp boo
                 strings.Contains(line, "pkg_flags: []") ||
                 strings.Contains(line, "global_definitions: []") ||
                 strings.Contains(line, "target_definitions: []") ||
-                strings.Contains(line, "pkg_definitions: []")){
+                strings.Contains(line, "pkg_definitions: []")) {
                 continue
             }
         }
@@ -132,7 +132,7 @@ func PrettyPrintConfig(projectConfig types.Config, filePath string, showHelp boo
             }
             finalStr += line
         } else if configTagPat.MatchString(line) || compileOptionsTagPat.MatchString(line) ||
-            metaTagPat.MatchString(line)  {
+            metaTagPat.MatchString(line) {
             finalStr += "\n"
             finalStr += line
         } else {

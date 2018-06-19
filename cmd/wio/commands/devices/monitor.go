@@ -7,53 +7,53 @@
 package devices
 
 import (
-	"github.com/urfave/cli"
-	"wio/cmd/wio/log"
-    "wio/cmd/wio/toolchain"
+    goerr "errors"
+    "fmt"
     "github.com/fatih/color"
+    "github.com/urfave/cli"
+    "go.bug.st/serial.v1"
     "os"
     "os/signal"
-    "syscall"
-    "fmt"
-    "wio/cmd/wio/errors"
-    "go.bug.st/serial.v1"
     "strings"
-    goerr "errors"
+    "syscall"
+    "wio/cmd/wio/errors"
+    "wio/cmd/wio/log"
+    "wio/cmd/wio/toolchain"
 )
 
 type Devices struct {
-	Context *cli.Context
-	Type    byte
-	error
+    Context *cli.Context
+    Type    byte
+    error
 }
 
 // get context for the command
 func (devices Devices) GetContext() *cli.Context {
-	return devices.Context
+    return devices.Context
 }
 
 const (
-	LIST  = 0
-	MONITOR = 1
+    LIST    = 0
+    MONITOR = 1
 )
 
 // Runs the build command when cli build option is provided
 func (devices Devices) Execute() {
-	switch devices.Type {
-	case MONITOR:
-		HandleMonitor(devices.Context.Int("baud"), devices.Context.IsSet("port"), devices.Context.String("port"))
-		break
-	case LIST:
-		handlePorts(devices.Context.Bool("basic"), devices.Context.Bool("show-all"))
-		break
-	}
+    switch devices.Type {
+    case MONITOR:
+        HandleMonitor(devices.Context.Int("baud"), devices.Context.IsSet("port"), devices.Context.String("port"))
+        break
+    case LIST:
+        handlePorts(devices.Context.Bool("basic"), devices.Context.Bool("show-all"))
+        break
+    }
 }
 
 // Provides information abouts ports
 func handlePorts(basic bool, showAll bool) {
     ports, err := toolchain.GetPorts()
-	if err != nil {
-        log.WriteErrorlnExit(err)
+    if err != nil {
+        log.WriteErrorlnExit(goerr.New("port data could not be gathered from the operating system"))
     }
 
     log.Write(log.INFO, color.New(color.FgCyan), "Num of total ports: ")
@@ -85,20 +85,20 @@ func handlePorts(basic bool, showAll bool) {
         log.Writeln(log.NONE, nil, "")
     }
 
-
     log.Write(log.INFO, color.New(color.FgCyan), "Num of open ports: ")
     log.Writeln(log.NONE, nil, "%d", numOpenPorts)
 }
 
-
 // Opens monitor to see serial data
 func HandleMonitor(baud int, portDefined bool, portProvided string) {
+    var port *toolchain.SerialPort
+
     ports, err := toolchain.GetPorts()
     if err != nil {
-        log.WriteErrorlnExit(err)
+        port = nil
+    } else {
+        port = toolchain.GetArduinoPort(ports)
     }
-
-    port := toolchain.GetArduinoPort(ports)
 
     portToUse := portProvided
 
@@ -110,51 +110,50 @@ func HandleMonitor(baud int, portDefined bool, portProvided string) {
         }
     }
 
-	// Open the first serial port detected at 9600bps N81
-	mode := &serial.Mode{
-		BaudRate: baud,
-		Parity:   serial.NoParity,
-		DataBits: 8,
-		StopBits: serial.OneStopBit,
-	}
-	serialPort, err := serial.Open(portToUse, mode)
-	if err != nil {
-	    if strings.Contains(err.Error(), "Invalid serial port") {
+    // Open the first serial port detected at 9600bps N81
+    mode := &serial.Mode{
+        BaudRate: baud,
+        Parity:   serial.NoParity,
+        DataBits: 8,
+        StopBits: serial.OneStopBit,
+    }
+    serialPort, err := serial.Open(portToUse, mode)
+    if err != nil {
+        if strings.Contains(err.Error(), "Invalid serial port") {
             log.WriteErrorlnExit(goerr.New("invalid baud rate"))
         }
-	}
+    }
 
-	defer serialPort.Close()
+    defer serialPort.Close()
 
-	log.Write(log.INFO, color.New(color.FgCyan), "Wio Serial Monitor")
+    log.Write(log.INFO, color.New(color.FgCyan), "Wio Serial Monitor")
     log.Write(log.INFO, color.New(color.FgYellow), "  @  ")
     log.Write(log.INFO, color.New(color.FgCyan), portToUse)
     log.Write(log.INFO, color.New(color.FgYellow), "  @  ")
     log.Writeln(log.INFO, color.New(color.FgCyan), "%d", baud)
     log.Writeln(log.INFO, color.New(color.FgCyan), "--- Quit: Ctrl+C ---")
 
+    c := make(chan os.Signal)
+    signal.Notify(c, os.Interrupt, syscall.SIGTERM)
+    go func() {
+        <-c
+        log.Writeln(log.INFO, nil, "\n--- exit ---")
+        os.Exit(1)
+    }()
 
-	c := make(chan os.Signal)
-	signal.Notify(c, os.Interrupt, syscall.SIGTERM)
-	go func() {
-		<-c
-		log.Writeln(log.INFO, nil, "\n--- exit ---")
-		os.Exit(1)
-	}()
-
-	// Read and print the response
-	buff := make([]byte, 100)
-	for {
-		// Reads up to 100 bytes
-		n, err := serialPort.Read(buff)
-		if err != nil {
-			panic(err)
-			break
-		}
-		if n == 0 {
-			fmt.Println("\nEOF")
-			break
-		}
-		fmt.Printf("%v", string(buff[:n]))
-	}
+    // Read and print the response
+    buff := make([]byte, 100)
+    for {
+        // Reads up to 100 bytes
+        n, err := serialPort.Read(buff)
+        if err != nil {
+            panic(err)
+            break
+        }
+        if n == 0 {
+            fmt.Println("\nEOF")
+            break
+        }
+        fmt.Printf("%v", string(buff[:n]))
+    }
 }

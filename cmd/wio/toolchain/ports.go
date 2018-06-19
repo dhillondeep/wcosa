@@ -2,8 +2,8 @@ package toolchain
 
 import (
     "bytes"
-    "os"
     "encoding/json"
+    "os"
     "strings"
 )
 
@@ -47,7 +47,7 @@ func GetArduinoPort(ports *SerialPorts) *SerialPort {
         if strings.Contains(strings.ToLower(port.Description), arduinoStr) ||
             strings.Contains(strings.ToLower(port.Product), arduinoStr) ||
             strings.Contains(strings.ToLower(port.Manufacturer), arduinoStr) {
-                return &port
+            return &port
         }
     }
 

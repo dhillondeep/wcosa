@@ -13,13 +13,14 @@ import (
     "time"
     "wio/cmd/wio/commands"
     "wio/cmd/wio/commands/create"
-    "wio/cmd/wio/config"
-    "wio/cmd/wio/log"
-    "wio/cmd/wio/utils/io"
-    "wio/cmd/wio/commands/run"
-    "wio/cmd/wio/types"
     "wio/cmd/wio/commands/devices"
     "wio/cmd/wio/commands/pac"
+    "wio/cmd/wio/commands/run"
+    "wio/cmd/wio/config"
+    "wio/cmd/wio/log"
+    "wio/cmd/wio/types"
+    "wio/cmd/wio/utils/io"
+    "wio/cmd/wio/errors"
 )
 
 func main() {
@@ -121,8 +122,8 @@ func main() {
             },
         },
         {
-            Name:  "update",
-            Usage: "Updates the current project and fixes any issues.",
+            Name:      "update",
+            Usage:     "Updates the current project and fixes any issues.",
             UsageText: "wio update [directory] [command options]",
             Flags: []cli.Flag{
                 cli.BoolFlag{Name: "verbose",
@@ -218,7 +219,6 @@ func main() {
                     },
                 },
             },
-
         },
         {
             Name:      "install",
@@ -530,6 +530,16 @@ func main() {
         log.WriteErrorlnExit(err)
     }
 
+    defer func() {
+        if r := recover(); r != nil {
+            fatalError := errors.FatalError{
+                Log: r,
+            }
+
+            log.WriteErrorlnExit(fatalError)
+        }
+    }()
+
     // execute the command
     if command != nil {
         // check if verbose flag is true
@@ -540,7 +550,7 @@ func main() {
         if command.GetContext().Bool("disable-warnings") {
             log.DisableWarnings()
         }
-
+        
         command.Execute()
     }
 }

@@ -1,19 +1,19 @@
-Wio a simplified development process for embedded applications.
-Create, Build, Test, and Upload AVR projects from Commandline.
+Wio is an open source iot development environment
+Create, Build, and Upload AVR projects from Commandline.
 
 Common Commands:
 
-    wio create <project type> [options] <output directory>
-        Create a new Wio project in the specified directory.
-
-    wio build [options]
-        Build the Wio project based on all the configurations defined
-
-    wio upload [options]
-        Upload the Wio project to an attached embedded device
+    wio create <platform> <project type> [options]
+        Create a new Wio project
 
     wio run [options]
-        Builds, Tests, and Uploads the Wio projects
+        Build the Wio project based on all the configurations defined
+
+    wio run --upload [options]
+        Upload the Wio project to an attached embedded device
+
+    wio install [options]
+        Installs wio packages as dependencies
 
 Usage: {{.HelpName}} {{if .VisibleFlags}}[global options]{{end}}{{if .Commands}} command [command options]{{end}} {{if .ArgsUsage}}{{.ArgsUsage}}{{else}}[arguments...]{{end}}
    {{if len .Authors}}
