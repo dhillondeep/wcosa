@@ -1,4 +1,4 @@
-package run
+package dependencies
 
 import (
     "wio/cmd/wio/log"
@@ -12,7 +12,7 @@ import (
     "wio/cmd/wio/errors"
     goerr "errors"
     "strings"
-    "wio/cmd/wio/commands/create"
+    "wio/cmd/wio/commands/run/cmake"
 )
 
 const (
@@ -22,27 +22,9 @@ const (
 )
 
 var packageVersions = map[string]string{}    /* Keeps track of versions for the packages */
-var cmakeTargets = map[string]*CMakeTarget{} /* CMake Target that will be built */
-var cmakeTargetsLink []CMakeTargetLink       /* CMake Target to Link to and from */
+var cmakeTargets = map[string]*cmake.CMakeTarget{} /* CMake Target that will be built */
+var cmakeTargetsLink []cmake.CMakeTargetLink       /* CMake Target to Link to and from */
 var cmakeTargetNames = map[string]bool{}     /* CMake Target Names. Used to check for unique names */
-
-// CMake Target information
-type CMakeTarget struct {
-    TargetName            string
-    Path                  string
-    Flags                 []string
-    Definitions           []string
-    FlagsVisibility       string
-    DefinitionsVisibility string
-    HeaderOnly            bool
-}
-
-// CMake Target Link information
-type CMakeTargetLink struct {
-    From           string
-    To             string
-    LinkVisibility string
-}
 
 // Stores information about every package that is scanned
 type DependencyScanStructure struct {
@@ -55,16 +37,23 @@ type DependencyScanStructure struct {
 }
 
 // Creates Scan structures for all the scanned packages
-func createDependencyScanStructure(depPath string, fromVendor bool) (*DependencyScanStructure, error) {
+func createDependencyScanStructure(name string, depPath string, fromVendor bool) (*DependencyScanStructure,  types.DependenciesTag, error) {
     wioPath := depPath + io.Sep + "wio.yml"
     wioObject := types.PkgConfig{}
     dependencyPackage := &DependencyScanStructure{}
 
     if err := io.NormalIO.ParseYml(wioPath, &wioObject); err != nil {
-        return nil, errors.ConfigParsingError{
+        return nil, nil, errors.ConfigParsingError{
             Err: err,
         }
     } else {
+        if strings.Trim(wioObject.MainTag.Config.WioVersion, " ") == "" {
+            return nil, nil, errors.UnsupportedWioConfigVersion{
+                PackageName: name,
+                Version: wioObject.MainTag.Config.WioVersion,
+            }
+        }
+
         dependencyPackage.Directory = depPath
         dependencyPackage.Name = wioObject.MainTag.Meta.Name
         dependencyPackage.FromVendor = fromVendor
@@ -73,12 +62,13 @@ func createDependencyScanStructure(depPath string, fromVendor bool) (*Dependency
         dependencyPackage.Dependencies = wioObject.DependenciesTag
         packageVersions[dependencyPackage.Name] = dependencyPackage.Version
 
-        return dependencyPackage, nil
+        return dependencyPackage, wioObject.DependenciesTag, nil
     }
 }
 
 // Go through all the dependency packages and get information about them
-func recursiveDependencyScan(queue *log.Queue, currDirectory string, dependencies map[string]*DependencyScanStructure) error {
+func recursiveDependencyScan(queue *log.Queue, currDirectory string,
+    dependencies map[string]*DependencyScanStructure, packageDependencies types.DependenciesTag) error {
     // if directory does not exist, do not do anything
     if !utils.PathExists(currDirectory) {
         log.QueueWriteln(queue, log.VERB, nil, "% does not exist, skipping", currDirectory)
@@ -93,6 +83,11 @@ func recursiveDependencyScan(queue *log.Queue, currDirectory string, dependencie
         for _, dir := range dirs {
             // ignore files
             if !dir.IsDir() {
+                continue
+            }
+
+            // only worry about dependencies in wio.yml file
+            if _, exists := packageDependencies[dir.Name()]; !exists {
                 continue
             }
 
@@ -113,7 +108,7 @@ func recursiveDependencyScan(queue *log.Queue, currDirectory string, dependencie
             }
 
             // create DependencyScanStructure
-            if dependencyPackage, err := createDependencyScanStructure(dirPath, fromVendor); err != nil {
+            if dependencyPackage, packageDeps, err := createDependencyScanStructure(dir.Name(), dirPath, fromVendor); err != nil {
                 return err
             } else {
                 dependencyName := dependencyPackage.Name + "__vendor"
@@ -125,16 +120,18 @@ func recursiveDependencyScan(queue *log.Queue, currDirectory string, dependencie
 
                 log.QueueWriteln(queue, log.VERB, nil, "%s package stored as dependency named: %s",
                     dirPath, dependencyName)
+
+                packageDependencies = packageDeps
             }
 
             if utils.PathExists(dirPath + io.Sep + REMOTE_NAME) {
                 // if remote directory exists
-                if err := recursiveDependencyScan(queue, dirPath+io.Sep+REMOTE_NAME, dependencies); err != nil {
+                if err := recursiveDependencyScan(queue, dirPath+io.Sep+REMOTE_NAME, dependencies, packageDependencies); err != nil {
                     return err
                 }
             } else if utils.PathExists(dirPath + io.Sep + VENDOR_NAME) {
                 // if vendor directory exists
-                if err := recursiveDependencyScan(queue, dirPath+io.Sep+VENDOR_NAME, dependencies); err != nil {
+                if err := recursiveDependencyScan(queue, dirPath+io.Sep+VENDOR_NAME, dependencies, packageDependencies); err != nil {
                     return err
                 }
             }
@@ -179,15 +176,23 @@ func convertPkgToDependency(packageDependencyPath string, projectName string, pr
     return nil
 }
 
-func createCMakeDependencyTargets(queue *log.Queue, projectName string, projectDirectory string, projectType string,
+func CreateCMakeDependencyTargets(queue *log.Queue, projectName string, projectDirectory string, projectType string,
     projectFlags types.TargetFlags, projectDefinitions types.TargetDefinitions, projectDependencies types.DependenciesTag,
-    platform string) error {
+    platform string, pkgVersion string) error {
     remotePackagesPath := projectDirectory + io.Sep + ".wio" + io.Sep + REMOTE_NAME
     vendorPackagesPath := projectDirectory + io.Sep + VENDOR_NAME
 
     scannedDependencies := map[string]*DependencyScanStructure{}
 
     if projectType == types.PKG {
+        // convert pkg project into tests dependency
+        projectDependencies[projectName] = &types.DependencyTag{
+            Version: pkgVersion,
+            Flags: projectFlags.GetPkgFlags(),
+            Definitions: projectDefinitions.GetPkgDefinitions(),
+            LinkVisibility: "PRIVATE",
+        }
+
         packageDependencyPath := projectDirectory + io.Sep + ".wio" + io.Sep + PKG_REMOTE_NAME
 
         log.QueueWrite(queue, log.VERB, nil, "converting project to a dependency to be used in tests ...")
@@ -204,7 +209,7 @@ func createCMakeDependencyTargets(queue *log.Queue, projectName string, projectD
 
         subQueue := log.GetQueue()
 
-        if err := recursiveDependencyScan(subQueue, packageDependencyPath, scannedDependencies); err != nil {
+        if err := recursiveDependencyScan(subQueue, packageDependencyPath, scannedDependencies, projectDependencies); err != nil {
             log.QueueWriteln(queue, log.VERB_NONE, color.New(color.FgRed), "failure")
             log.CopyQueue(subQueue, queue, log.TWO_SPACES)
             return err
@@ -217,7 +222,7 @@ func createCMakeDependencyTargets(queue *log.Queue, projectName string, projectD
     log.QueueWrite(queue, log.VERB, nil, "recursively scanning remote dependencies at path: %s ...", remotePackagesPath)
     subQueue := log.GetQueue()
 
-    if err := recursiveDependencyScan(subQueue, remotePackagesPath, scannedDependencies); err != nil {
+    if err := recursiveDependencyScan(subQueue, remotePackagesPath, scannedDependencies, projectDependencies); err != nil {
         log.QueueWriteln(queue, log.VERB_NONE, color.New(color.FgRed), "failure")
         log.CopyQueue(subQueue, queue, log.TWO_SPACES)
         return err
@@ -230,7 +235,7 @@ func createCMakeDependencyTargets(queue *log.Queue, projectName string, projectD
         vendorPackagesPath)
     subQueue = log.GetQueue()
 
-    if err := recursiveDependencyScan(subQueue, vendorPackagesPath, scannedDependencies); err != nil {
+    if err := recursiveDependencyScan(subQueue, vendorPackagesPath, scannedDependencies, projectDependencies); err != nil {
         log.QueueWriteln(queue, log.VERB_NONE, color.New(color.FgRed), "failure")
         log.CopyQueue(subQueue, queue, log.TWO_SPACES)
         return err
@@ -264,7 +269,7 @@ func createCMakeDependencyTargets(queue *log.Queue, projectName string, projectD
         log.QueueWrite(queue, log.VERB, nil, "creating cmake target for %s ...", dependencyNameToUseForLogs)
         subQueue := log.GetQueue()
 
-        requiredFlags, requiredDefinitions, err := createCMakeTargets(subQueue, parentTarget, false,
+        requiredFlags, requiredDefinitions, err := CreateCMakeTargets(subQueue, parentTarget, false,
             dependencyNameToUseForLogs, dependencyTargetName, dependencyTarget, projectFlags.GetGlobalFlags(),
             projectDefinitions.GetGlobalDefinitions(), projectDependency, projectDependency)
         if err != nil {
@@ -295,8 +300,8 @@ func createCMakeDependencyTargets(queue *log.Queue, projectName string, projectD
 
     cmakePath := projectDirectory + io.Sep + ".wio" + io.Sep + "build" + io.Sep + "dependencies.cmake"
 
-    if platform == create.AVR {
-        avrCmake := generateAvrDependencyCMakeString(cmakeTargets, cmakeTargetsLink)
+    if platform == types.AVR {
+        avrCmake := cmake.GenerateAvrDependencyCMakeString(cmakeTargets, cmakeTargetsLink)
 
         return io.NormalIO.WriteFile(cmakePath, []byte(strings.Join(avrCmake, "\n")))
     } else {

@@ -239,6 +239,7 @@ type DependenciesTag map[string]*DependencyTag
 
 type MainTag interface {
     GetName() string
+    GetVersion() string
     GetConfigurations() Configurations
     GetCompileOptions() CompileOptions
     GetIde() string
@@ -283,6 +284,10 @@ func (appCompileOptions AppCompileOptions) GetPlatform() string {
 
 func (appTag AppTag) GetName() string {
     return appTag.Name
+}
+
+func (appTag AppTag) GetVersion() string {
+    return "1.0.0"
 }
 
 func (appTag AppTag) GetConfigurations() Configurations {
@@ -355,6 +360,9 @@ type PkgTag struct {
 func (pkgTag PkgTag) GetName() string {
     return pkgTag.Meta.Name
 }
+func (pkgTag PkgTag) GetVersion() string {
+    return pkgTag.Meta.Version
+}
 
 func (pkgTag PkgTag) GetConfigurations() Configurations {
     return pkgTag.Config
@@ -373,6 +381,7 @@ type Config interface {
     GetMainTag() MainTag
     GetTargets() Targets
     GetDependencies() DependenciesTag
+    SetDependencies(tag DependenciesTag)
 }
 
 type AppConfig struct {
@@ -381,20 +390,24 @@ type AppConfig struct {
     DependenciesTag DependenciesTag `yaml:"dependencies"`
 }
 
-func (appConfig AppConfig) GetType() string {
+func (appConfig *AppConfig) GetType() string {
     return APP
 }
 
-func (appConfig AppConfig) GetMainTag() MainTag {
+func (appConfig *AppConfig) GetMainTag() MainTag {
     return appConfig.MainTag
 }
 
-func (appConfig AppConfig) GetTargets() Targets {
+func (appConfig *AppConfig) GetTargets() Targets {
     return appConfig.TargetsTag
 }
 
-func (appConfig AppConfig) GetDependencies() DependenciesTag {
+func (appConfig *AppConfig) GetDependencies() DependenciesTag {
     return appConfig.DependenciesTag
+}
+
+func (appConfig *AppConfig) SetDependencies(tag DependenciesTag)  {
+    appConfig.DependenciesTag = tag
 }
 
 type PkgConfig struct {
@@ -403,20 +416,24 @@ type PkgConfig struct {
     DependenciesTag DependenciesTag `yaml:"dependencies"`
 }
 
-func (pkgConfig PkgConfig) GetType() string {
+func (pkgConfig *PkgConfig) GetType() string {
     return PKG
 }
 
-func (pkgConfig PkgConfig) GetMainTag() MainTag {
+func (pkgConfig *PkgConfig) GetMainTag() MainTag {
     return pkgConfig.MainTag
 }
 
-func (pkgConfig PkgConfig) GetTargets() Targets {
+func (pkgConfig *PkgConfig) GetTargets() Targets {
     return pkgConfig.TargetsTag
 }
 
-func (pkgConfig PkgConfig) GetDependencies() DependenciesTag {
+func (pkgConfig *PkgConfig) GetDependencies() DependenciesTag {
     return pkgConfig.DependenciesTag
+}
+
+func (pkgConfig *PkgConfig) SetDependencies(tag DependenciesTag)  {
+    pkgConfig.DependenciesTag = tag
 }
 
 type NpmDependencyTag map[string]string

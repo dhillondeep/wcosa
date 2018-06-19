@@ -1,7 +1,6 @@
-package run
+package toolchain
 
 import (
-    "wio/cmd/wio/toolchain"
     "bytes"
     "os"
     "encoding/json"
@@ -23,7 +22,7 @@ type SerialPorts struct {
 }
 
 func GetPorts() (*SerialPorts, error) {
-    cmd, err := toolchain.GetPySerialCommand("-get-serial-devices")
+    cmd, err := GetPySerialCommand("-get-serial-devices")
     if err != nil {
         return nil, err
     }

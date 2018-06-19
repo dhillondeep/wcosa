@@ -9,7 +9,7 @@ package devices
 import (
 	"github.com/urfave/cli"
 	"wio/cmd/wio/log"
-    "wio/cmd/wio/commands/run"
+    "wio/cmd/wio/toolchain"
     "github.com/fatih/color"
     "os"
     "os/signal"
@@ -51,7 +51,7 @@ func (devices Devices) Execute() {
 
 // Provides information abouts ports
 func handlePorts(basic bool, showAll bool) {
-    ports, err := run.GetPorts()
+    ports, err := toolchain.GetPorts()
 	if err != nil {
         log.WriteErrorlnExit(err)
     }
@@ -93,12 +93,12 @@ func handlePorts(basic bool, showAll bool) {
 
 // Opens monitor to see serial data
 func HandleMonitor(baud int, portDefined bool, portProvided string) {
-    ports, err := run.GetPorts()
+    ports, err := toolchain.GetPorts()
     if err != nil {
         log.WriteErrorlnExit(err)
     }
 
-    port := run.GetArduinoPort(ports)
+    port := toolchain.GetArduinoPort(ports)
 
     portToUse := portProvided
 

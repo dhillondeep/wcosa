@@ -5,21 +5,21 @@ import (
 	"github.com/fatih/color"
 )
 
-type Node struct {
-	Value stackBuffer
+type node struct {
+	Value queueBuffer
 }
 
 // NewQueue returns a new queue with the given initial size.
 func NewQueue(size int) *Queue {
 	return &Queue{
-		nodes: make([]*Node, size),
+		nodes: make([]*node, size),
 		size:  size,
 	}
 }
 
 // Queue is a basic FIFO queue based on a circular list that resizes as needed.
 type Queue struct {
-	nodes []*Node
+	nodes []*node
 	size  int
 	head  int
 	tail  int
@@ -27,9 +27,9 @@ type Queue struct {
 }
 
 // Push adds a node to the queue.
-func (q *Queue) Push(n *Node) {
+func (q *Queue) push(n *node) {
 	if q.head == q.tail && q.count > 0 {
-		nodes := make([]*Node, len(q.nodes)+q.size)
+		nodes := make([]*node, len(q.nodes)+q.size)
 		copy(nodes, q.nodes[q.head:])
 		copy(nodes[len(q.nodes)-q.head:], q.nodes[:q.head])
 		q.head = 0
@@ -42,7 +42,7 @@ func (q *Queue) Push(n *Node) {
 }
 
 // Pop removes and returns a node from the queue in first to last order.
-func (q *Queue) Pop() *Node {
+func (q *Queue) pop() *node {
 	if q.count == 0 {
 		return nil
 	}
@@ -52,12 +52,13 @@ func (q *Queue) Pop() *Node {
 	return node
 }
 
-type stackBuffer struct {
+type queueBuffer struct {
 	text          string
 	logType       string
 	providedColor *color.Color
 }
 
+// creates a queue buffer from the logging information
 func pushLog(queue *Queue, logType string, providedColor *color.Color, message string, a ...interface{}) {
 	text := message
 
@@ -65,10 +66,11 @@ func pushLog(queue *Queue, logType string, providedColor *color.Color, message s
 		text = fmt.Sprintf(message, a...)
 	}
 
-	buff := stackBuffer{logType: logType, providedColor: providedColor, text: text}
-	queue.Push(&Node{buff})
+	buff := queueBuffer{logType: logType, providedColor: providedColor, text: text}
+	queue.push(&node{buff})
 }
 
-func popLog(queue *Queue) stackBuffer {
-	return queue.Pop().Value
+// removes the queue buffer and returns the value
+func popLog(queue *Queue) queueBuffer {
+	return queue.pop().Value
 }

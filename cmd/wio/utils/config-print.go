@@ -17,85 +17,8 @@ import (
     "wio/cmd/wio/utils/io"
 )
 
-// Write configuration for the project with information on top and nice spacing
-func PrettyPrintConfigHelp(projectConfig interface{}, filePath string) error {
-    appInfoPath := "templates" + io.Sep + "config" + io.Sep + "app-helper.txt"
-    pkgInfoPath := "templates" + io.Sep + "config" + io.Sep + "pkg-helper.txt"
-    targetsInfoPath := "templates" + io.Sep + "config" + io.Sep + "targets-helper.txt"
-    dependenciesInfoPath := "templates" + io.Sep + "config" + io.Sep + "dependencies-helper.txt"
-
-    var ymlData []byte
-    var appInfoData []byte
-    var pkgInfoData []byte
-    var targetsInfoData []byte
-    var dependenciesInfoData []byte
-    var err error
-
-    // get data
-    if ymlData, err = yaml.Marshal(projectConfig); err != nil {
-        return err
-    }
-    if appInfoData, err = io.AssetIO.ReadFile(appInfoPath); err != nil {
-        return err
-    }
-    if pkgInfoData, err = io.AssetIO.ReadFile(pkgInfoPath); err != nil {
-        return err
-    }
-    if targetsInfoData, err = io.AssetIO.ReadFile(targetsInfoPath); err != nil {
-        return err
-    }
-    if dependenciesInfoData, err = io.AssetIO.ReadFile(dependenciesInfoPath); err != nil {
-        return err
-    }
-
-    finalString := ""
-    currentString := strings.Split(string(ymlData), "\n")
-
-    beautify := false
-    first := false
-    create := true
-
-    for line := range currentString {
-        currLine := currentString[line]
-
-        if len(currLine) <= 1 {
-            continue
-        }
-
-        if strings.Contains(currLine, "app:") && create {
-            finalString += string(appInfoData) + "\n"
-            create = false
-        } else if strings.Contains(currLine, "pkg:") && create {
-            finalString += string(pkgInfoData) + "\n"
-            create = false
-        } else if strings.Contains(currLine, "targets:") {
-            finalString += "\n" + string(targetsInfoData) + "\n"
-        } else if strings.Contains(currLine, "create:") {
-            beautify = true
-        } else if strings.Contains(currLine, "dependencies:") {
-            beautify = true
-            first = false
-            finalString += "\n" + string(dependenciesInfoData) + "\n"
-        } else if beautify && !first {
-            first = true
-        } else if !strings.Contains(currLine, "compile_flags:") && beautify {
-            simpleString := strings.Trim(currLine, " ")
-
-            if simpleString[len(simpleString)-1] == ':' {
-                finalString += "\n"
-            }
-        }
-
-        finalString += currLine + "\n"
-    }
-
-    err = io.NormalIO.WriteFile(filePath, []byte(finalString))
-
-    return err
-}
-
 // Write configuration with nice spacing and information
-func PrettyPrintConfig(projectConfig types.Config, filePath string) error {
+func PrettyPrintConfig(projectConfig types.Config, filePath string, showHelp bool) error {
     appInfoPath := "templates" + io.Sep + "config" + io.Sep + "app-helper.txt"
     pkgInfoPath := "templates" + io.Sep + "config" + io.Sep + "pkg-helper.txt"
     targetsInfoPath := "templates" + io.Sep + "config" + io.Sep + "targets-helper.txt"
@@ -151,11 +74,6 @@ func PrettyPrintConfig(projectConfig types.Config, filePath string) error {
     configTagPat := regexp.MustCompile(`(^config:)|((\s| |^\w)config:(\s+|))`)
     compileOptionsTagPat := regexp.MustCompile(`(^compile_options:)|((\s| |^\w)compile_options:(\s+|))`)
     metaTagPat := regexp.MustCompile(`(^meta:)|((\s| |^\w)meta:(\s+|))`)
-    flagsTagPat := regexp.MustCompile(`(^flags:)|((\s| |^\w)flags:(\s+|))`)
-    definitionsTagPat := regexp.MustCompile(`(^definitions:)|((\s| |^\w)definitions:(\s+|))`)
-    definitionFlagsTagPat := regexp.MustCompile(`(^dependency_flags)|((\s| |^\w)dependency_flags(\s+|))`)
-    definitionDefinitionsTagPat := regexp.MustCompile(`(^dependency_definitions)|((\s| |^\w)dependency_definitions(\s+|))`)
-
 
     // empty array
     emptyArrayPat := regexp.MustCompile(`:\s+\[\]`)
@@ -179,24 +97,42 @@ func PrettyPrintConfig(projectConfig types.Config, filePath string) error {
 
         // ignore empty arrays, objects and tags
         if emptyArrayPat.MatchString(line) || emptyMapPat.MatchString(line) || emptyTagPat.MatchString(line) {
-            continue
+            if !(strings.Contains(line, "global_flags: []") ||
+                strings.Contains(line, "target_flags: []") ||
+                strings.Contains(line, "pkg_flags: []") ||
+                strings.Contains(line, "global_definitions: []") ||
+                strings.Contains(line, "target_definitions: []") ||
+                strings.Contains(line, "pkg_definitions: []")){
+                continue
+            }
         }
 
         if appTagPat.MatchString(line) {
-            finalStr += string(appInfoData) + "\n"
+            if showHelp {
+                finalStr += string(appInfoData) + "\n"
+            }
+
             finalStr += line
         } else if pkgTagPat.MatchString(line) {
-            finalStr += string(pkgInfoData) + "\n"
+            if showHelp {
+                finalStr += string(pkgInfoData) + "\n"
+            }
+
             finalStr += line
         } else if targetsTagPat.MatchString(line) {
-            finalStr += "\n" + string(targetsInfoData) + "\n"
+            finalStr += "\n"
+            if showHelp {
+                finalStr += string(targetsInfoData) + "\n"
+            }
             finalStr += line
         } else if dependenciesTagPat.MatchString(line) {
-            finalStr += "\n" + string(dependenciesInfoData) + "\n"
+            finalStr += "\n"
+            if showHelp {
+                finalStr += string(dependenciesInfoData) + "\n"
+            }
             finalStr += line
         } else if configTagPat.MatchString(line) || compileOptionsTagPat.MatchString(line) ||
-            flagsTagPat.MatchString(line) || definitionsTagPat.MatchString(line) || metaTagPat.MatchString(line) ||
-            definitionFlagsTagPat.MatchString(line) || definitionDefinitionsTagPat.MatchString(line) {
+            metaTagPat.MatchString(line)  {
             finalStr += "\n"
             finalStr += line
         } else {

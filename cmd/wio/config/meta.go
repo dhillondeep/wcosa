@@ -10,8 +10,8 @@ type meta struct {
 
 var ProjectMeta = meta{
 	Name:                 "wio",
-	Version:              "0.2.4",
+	Version:              "0.3.0",
 	EnableBashCompletion: true,
 	Copyright:            "Copyright (c) 2018 Waterloop",
-	UsageText:            "Create, Build and Upload Embedded projects",
+	UsageText:            "An Iot development environment",
 }

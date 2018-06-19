@@ -12,6 +12,7 @@ const (
 
 var operatingSystem = io.GetOS()
 
+// This returns the path to toolchain directory
 func GetToolchainPath() (string, error) {
 	executablePath, err := io.NormalIO.GetRoot()
 	if err != nil {
@@ -22,6 +23,7 @@ func GetToolchainPath() (string, error) {
 	return toolchainPath, nil
 }
 
+// This is the command to execute PySerial to get ports information
 func GetPySerialCommand(args ...string) (*exec.Cmd, error) {
 	pySerialPath, err := GetToolchainPath()
 	if err != nil {
@@ -39,14 +41,3 @@ func GetPySerialCommand(args ...string) (*exec.Cmd, error) {
 
 	return exec.Command(pySerialPath, args...), nil
 }
-
-//# all the paths toolchain can be at (this is because of different package managers)
-//if (EXISTS "${CMAKE_TOOLCHAIN_PATH}/{{TOOLCHAIN_FILE_REL}}")
-//set(CMAKE_TOOLCHAIN_FILE "${CMAKE_TOOLCHAIN_PATH}/{{TOOLCHAIN_FILE_REL}}")
-//elseif (EXISTS "${CMAKE_TOOLCHAIN_PATH}/../{{TOOLCHAIN_FILE_REL}}")
-//set(CMAKE_TOOLCHAIN_FILE "${CMAKE_TOOLCHAIN_PATH}/../{{TOOLCHAIN_FILE_REL}}")
-//elseif (EXISTS "/usr/share/wio/{{TOOLCHAIN_FILE_REL}}")
-//set(CMAKE_TOOLCHAIN_FILE "/usr/share/wio/{{TOOLCHAIN_FILE_REL}}")
-//else()
-//message(FATAL_ERROR "Toolchain cannot be found. Build Halted!")
-//endif()

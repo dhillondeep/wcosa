@@ -26,10 +26,10 @@ const (
 )
 
 const (
-	VERB_NONE = "VERB_NONE"
-	INFO_NONE = "INFO_NONE"
-	NONE      = "NONE"
-	INFO      = "INFO"
+	VERB_NONE = "VERB_NONE"             // Does not Show INFO tag in verbose mode (only activates in verbose mode)
+	INFO_NONE = "INFO_NONE"             // Only Shows text in Verbose mode
+	NONE      = "NONE"                  // Does not show INFO tag in regular mode
+	INFO      = "INFO"                  // Shows like a normal text in regular mode and INFO tag in verbose mode
 	VERB      = "VERB"
 	ERR       = "ERR"
 	WARN      = "WARN"
@@ -37,7 +37,6 @@ const (
 
 var logTypeColors map[string]*color.Color
 var logTypeStream map[string]io.Writer
-
 var createdWriter = writer{verbose: false, warnings: true}
 
 // user should not touch this
@@ -56,6 +55,7 @@ func DisableWarnings() {
 	createdWriter.warnings = false
 }
 
+// This must be called at the beggining
 func Init() {
 	logTypeColors = make(map[string]*color.Color)
 	logTypeStream = make(map[string]io.Writer)
@@ -72,18 +72,22 @@ func Init() {
 	logTypeStream[WARN] = colorable.NewColorableStderr()
 }
 
+// This provides a queue that can be used to log at different levels
 func GetQueue() *Queue {
 	return NewQueue(1)
 }
 
+// Write Queue
 func QueueWrite(queue *Queue, logType string, providedColor *color.Color, message string, a ...interface{}) {
 	pushLog(queue, logType, providedColor, message, a...)
 }
 
+// Writeln Queue
 func QueueWriteln(queue *Queue, logType string, providedColor *color.Color, message string, a ...interface{}) {
 	QueueWrite(queue, logType, providedColor, message+"\n", a...)
 }
 
+// Copy one queue to another
 func CopyQueue(fromQueue *Queue, toQueue *Queue, spaces string) {
 	for {
 		if fromQueue.count <= 0 {
@@ -102,6 +106,7 @@ func CopyQueue(fromQueue *Queue, toQueue *Queue, spaces string) {
 	}
 }
 
+// Print Queue on the console
 func PrintQueue(queue *Queue, spaces string) {
 	index := 0
 
@@ -122,25 +127,25 @@ func PrintQueue(queue *Queue, spaces string) {
 	}
 }
 
-func Writeln(logType string, providedColor *color.Color, message string, a ...interface{}) {
+// Generic Writeln function
+func Writeln(logType string, providedColor *color.Color, message string, a ...interface{}) bool {
 	if !showWarnings() && logType == WARN {
-		return
+		return false
 	}
 
-	Write(logType, providedColor, message, a...)
-
-	if (logType == VERB || logType == VERB_NONE) && !IsVerbose() {
-	    return
-    } else if logType == INFO_NONE && IsVerbose() {
-        return
+	if Write(logType, providedColor, message, a...) {
+        fmt.Println("")
+    } else {
+        return false
     }
 
-    fmt.Println("")
+    return true
 }
 
-func Write(logType string, providedColor *color.Color, message string, a ...interface{}) {
+// Generic Write function
+func Write(logType string, providedColor *color.Color, message string, a ...interface{}) bool {
     if logType == INFO_NONE && IsVerbose() {
-        return
+        return false
     }
 
 	if providedColor == nil {
@@ -149,12 +154,12 @@ func Write(logType string, providedColor *color.Color, message string, a ...inte
 
 	// they only apply in verbose mode
 	if (logType == VERB_NONE || logType == VERB) && !IsVerbose() {
-		return
+		return false
 	}
 
 	// only applies when show warnings is enabled
 	if !showWarnings() && logType == WARN {
-		return
+		return false
 	}
 
 	// verbose is INFO behind the screen
@@ -181,7 +186,7 @@ func Write(logType string, providedColor *color.Color, message string, a ...inte
 
 	if logType == NONE || logType == VERB_NONE {
 		messageColor.Fprintf(logTypeStream[logType], "%s", str)
-		return
+		return true
 	}
 
 	if logType != INFO || IsVerbose() {
@@ -191,6 +196,8 @@ func Write(logType string, providedColor *color.Color, message string, a ...inte
 	} else if logType == INFO && !IsVerbose() {
 		messageColor.Fprintf(logTypeStream[logType], "%s", str)
 	}
+
+	return true
 }
 
 // Record error to stderr and prints a new line. It also exists the program with an error code

@@ -7,555 +7,593 @@
 package pac
 
 import (
-	"bytes"
-	"errors"
-	"github.com/urfave/cli"
-	"net/http"
-	"os"
-	"os/exec"
-	"path/filepath"
-	"regexp"
-	"strconv"
-	"strings"
-	"time"
-	"wio/cmd/wio/commands"
-	"wio/cmd/wio/log"
-	"wio/cmd/wio/types"
-	"wio/cmd/wio/utils"
-	"wio/cmd/wio/utils/io"
+    "github.com/urfave/cli"
+    "os"
+    "os/exec"
+    "wio/cmd/wio/log"
+    "wio/cmd/wio/utils"
+    "wio/cmd/wio/utils/io"
+    "github.com/fatih/color"
+    "wio/cmd/wio/errors"
+    "bufio"
+    "strings"
+    goerr "errors"
+    "wio/cmd/wio/types"
+    "io/ioutil"
+    "regexp"
 )
 
 const (
-	ADD     = "add"
-	RM      = "rm"
-	LIST    = "list"
-	INFO    = "info"
-	PUBLISH = "publish"
-	GET     = "get"
-	UPDATE  = "update"
-	COLLECT = "collect"
+    LIST      = "list"
+    PUBLISH   = "PUBLISH"
+    UNINSTALL = "uninstall"
+    INSTALL   = "install"
+    COLLECT   = "collect"
 )
 
 type Pac struct {
-	Context *cli.Context
-	Type    string
-	error
+    Context *cli.Context
+    Type    string
+    error
 }
 
 // Get context for the command
 func (pac Pac) GetContext() *cli.Context {
-	return pac.Context
+    return pac.Context
 }
 
 // Executes the libraries command
 func (pac Pac) Execute() {
-	directory, err := filepath.Abs(pac.Context.String("dir"))
-	commands.RecordError(err, "")
+    // check if valid wio project
+    directory, err := os.Getwd()
+    if err != nil {
+        log.WriteErrorlnExit(err)
+    }
 
-	switch pac.Type {
-	case ADD:
-		if len(pac.Context.Args()) == 0 {
-			commands.RecordError(errors.New("you need to provide at least one package"), "")
-		}
+    if !utils.PathExists(directory + io.Sep + "wio.yml") {
+        log.WriteErrorlnExit(errors.ConfigMissing{})
+    }
 
-		handleAdd(directory, pac.Context.Args(), pac.Context.Bool("vendor"))
-	case RM:
-		handleRemove(directory, pac.Context.Args(), pac.Context.Bool("A"))
-	case LIST:
-		handleList(directory)
-	case INFO:
-		if len(pac.Context.Args()) == 0 {
-			commands.RecordError(errors.New("you need to provide a package name"), "")
-		} else if len(pac.Context.Args()) > 1 {
-			commands.RecordError(errors.New("only one package name is accepted"), "")
-		}
-
-		handleInfo(directory, pac.Context.Args()[0])
-	case PUBLISH:
-		handlePublish(directory)
-	case GET:
-		handleGet(directory, pac.Context.Bool("clean"))
-		break
-	case UPDATE:
-		handleUpdate(directory)
-		break
-	case COLLECT:
-		handleCollect(directory)
-		break
-	}
+    switch pac.Type {
+    case INSTALL:
+        pac.handleInstall(directory)
+        break
+    case UNINSTALL:
+        pac.handleUninstall(directory)
+        break
+    case COLLECT:
+        pac.handleCollect(directory)
+        break
+    case LIST:
+        pac.handleList(directory)
+        break
+    case PUBLISH:
+        pac.handlePublish(directory)
+        break
+    }
 }
 
-// This package.json file will be used to check if dependencies are up to date
-func createPrivatePackageJson(directory string, name string, dependencies types.DependenciesTag) {
-	log.Norm.Cyan(false, "setting up packages environment ... ")
+// This handles the install command and uses npm to install packages
+func (pac Pac) handleInstall(directory string) {
+    // check install arguments
+    installPackage := installArgumentCheck(pac.Context.Args())
 
-	// wio path
-	wioPath := directory + io.Sep + ".wio"
+    remoteDirectory := directory + io.Sep + ".wio" + io.Sep + "node_modules"
 
-	// npm config
-	npmConfig := types.NpmConfig{}
+    // clean npm_modules in .wio folder
+    if pac.Context.Bool("clean") {
+        log.Write(log.INFO, color.New(color.FgCyan), "cleaning npm packages ... ")
 
-	// fill all the fields for package.json
-	npmConfig.Name = name
-	npmConfig.Version = "0.0.1"
-	npmConfig.Main = ".wio.js"
+        if !utils.PathExists(remoteDirectory) || !utils.PathExists(directory + io.Sep + "wio.yml") {
+            log.Writeln(log.NONE, color.New(color.FgGreen), "nothing to do")
+        } else {
+            if err := os.RemoveAll(remoteDirectory); err != nil {
+                log.Writeln(log.NONE, color.New(color.FgRed), "failure")
+                log.WriteErrorlnExit(err)
+            } else {
+                if err := os.RemoveAll(directory + io.Sep + ".wio" + io.Sep + "package-lock.json "); err != nil {
+                    log.Writeln(log.NONE, color.New(color.FgRed), "failure")
+                    log.WriteErrorlnExit(err)
+                } else {
+                    log.Writeln(log.NONE, color.New(color.FgGreen), "success")
+                }
+            }
+        }
+    }
 
-	npmConfig.Dependencies = make(types.NpmDependencyTag)
+    var npmInstallArguments []string
 
-	log.Verb.Verbose(true, "")
+    if installPackage[0] != "all" {
+        log.Writeln(log.INFO, color.New(color.FgCyan), "installing %s ...", installPackage)
+        npmInstallArguments = append(npmInstallArguments, installPackage...)
+
+        if pac.Context.IsSet("save") {
+            projectConfig, err := utils.ReadWioConfig(directory + io.Sep + "wio.yml")
+            if err != nil {
+                log.WriteErrorlnExit(errors.ConfigParsingError{
+                    Err: err,
+                })
+            }
+
+            dependencies := projectConfig.GetDependencies()
+
+            if projectConfig.GetDependencies() == nil {
+                dependencies = types.DependenciesTag{}
+            }
+
+            for _, packageGiven := range installPackage {
+                strip := strings.Split(packageGiven, "@")
+
+                packageName := strip[0]
+                dependencies[packageName] = &types.DependencyTag{
+                    Version: "0.0.1",
+                    Vendor:  false,
+                }
+
+                if len(strip) > 1 {
+                    dependencies[packageName].Version = strip[1]
+                }
+            }
+
+            projectConfig.SetDependencies(dependencies)
+
+            log.Write(log.INFO, color.New(color.FgCyan), "saving changes in wio.yml file ...")
+            if err := utils.PrettyPrintConfig(projectConfig, directory+io.Sep+"wio.yml",
+                pac.Context.Bool("config-help")); err != nil {
+                log.Writeln(log.INFO, color.New(color.FgRed), "failure")
+                log.WriteErrorlnExit(errors.WriteFileError{
+                    FileName: directory + io.Sep + "wio.yml",
+                    Err:      err,
+                })
+            } else {
+                log.Writeln(log.INFO, color.New(color.FgGreen), "success")
+            }
+        }
+    } else {
+        if pac.Context.IsSet("save") {
+            log.WriteErrorlnExit(errors.ProgramArgumentsError{
+                CommandName:  "install",
+                ArgumentName: "--save",
+                Err:          goerr.New("--save flag needs atleast one dependency specified"),
+            })
+        }
+
+        log.Writeln(log.INFO, color.New(color.FgCyan), "installing dependencies ...")
+
+        projectConfig, err := utils.ReadWioConfig(directory + io.Sep + "wio.yml")
+        if err != nil {
+            log.WriteErrorlnExit(errors.ConfigParsingError{
+                Err: err,
+            })
+        }
+
+        for dependencyName, dependency := range projectConfig.GetDependencies() {
+            npmInstallArguments = append(npmInstallArguments, dependencyName+"@"+dependency.Version)
+        }
+    }
+
+    if len(npmInstallArguments) <= 0 {
+        log.Writeln(log.NONE, color.New(color.FgGreen), "nothing to do")
+    } else {
+        // install packages
+        cmdNpm := exec.Command("npm", "install")
+
+        if log.IsVerbose() {
+            npmInstallArguments = append(npmInstallArguments, "--verbose")
+        }
+
+        cmdNpm.Args = append([]string{"npm", "install"}, npmInstallArguments...)
+        cmdNpm.Dir = directory + io.Sep + ".wio"
+
+        npmStderrReader, err := cmdNpm.StderrPipe()
+        if err != nil {
+            log.WriteErrorlnExit(err)
+        }
+        npmStdoutReader, err := cmdNpm.StdoutPipe()
+        if err != nil {
+            log.WriteErrorlnExit(err)
+        }
+
+        npmStdoutScanner := bufio.NewScanner(npmStdoutReader)
+        go func() {
+            for npmStdoutScanner.Scan() {
+                log.Writeln(log.INFO, color.New(color.Reset), npmStdoutScanner.Text())
+            }
+        }()
+
+        npmStderrScanner := bufio.NewScanner(npmStderrReader)
+        go func() {
+            for npmStderrScanner.Scan() {
+                line := npmStderrScanner.Text()
+                line = strings.Trim(strings.Replace(line, "npm", "wio", -1), " ")
+
+                if strings.Contains(line, "no such file or directory") ||
+                    strings.Contains(line, "No description") || strings.Contains(line, "No repository field") ||
+                    strings.Contains(line, "No README data") || strings.Contains(line, "No license field") ||
+                    strings.Contains(line, "notice created a lockfile as package-lock.json.") {
+                    continue
+                } else if line == "" {
+                    continue
+                } else if strings.Contains(line, "debug.log") || strings.Contains(line, "A complete log of this run can be found in:") {
+                    continue
+                } else {
+                    line = strings.Replace(line, "wio", "", -1)
+                    line = strings.Replace(line, "verb", "", -1)
+                    line = strings.Replace(line, "info", "", -1)
+                    line = strings.Replace(line, "WARN ", "", -1)
+                    line = strings.Replace(line, "ERR!", "", -1)
+                    line = strings.Replace(line, "notarget", "", -1)
+
+                    line = strings.Trim(line, " ")
+
+                    log.Writeln(log.ERR, color.New(color.Reset), line)
+                }
+            }
+        }()
+
+        err = cmdNpm.Start()
+        if err != nil {
+            log.WriteErrorlnExit(errors.CommandStartError{
+                CommandName: "wio install",
+            })
+        }
+
+        err = cmdNpm.Wait()
+        if err != nil {
+            log.WriteErrorlnExit(errors.CommandWaitError{
+                CommandName: "wio install",
+            })
+        }
+    }
+}
+
+// This handles the uninstall and removes packages already downloaded
+func (pac Pac) handleUninstall(directory string) {
+    // check install arguments
+    uninstallPackage := uninstallArgumentCheck(pac.Context.Args())
+
+    remoteDirectory := directory + io.Sep + ".wio" + io.Sep + "node_modules"
+
+    var projectConfig types.Config
+    var err error
+    if pac.Context.IsSet("save") {
+        projectConfig, err = utils.ReadWioConfig(directory + io.Sep + "wio.yml")
+        if err != nil {
+            log.WriteErrorlnExit(errors.ConfigParsingError{
+                Err: err,
+            })
+        }
+    }
+
+    dependencyDeleted := false
+
+    for _, packageGiven := range uninstallPackage {
+        log.Write(log.INFO, color.New(color.FgCyan), "uninstalling %s ... ", packageGiven)
+        strip := strings.Split(packageGiven, "@")
+
+        packageName := strip[0]
+
+        if !utils.PathExists(remoteDirectory + io.Sep + packageName) {
+            log.Writeln(log.INFO, color.New(color.FgYellow), "does not exist")
+            continue
+        }
+
+        if err := os.RemoveAll(remoteDirectory + io.Sep + packageName); err != nil {
+            log.Writeln(log.INFO, color.New(color.FgRed), "failure")
+            log.WriteErrorlnExit(errors.DeleteDirectoryError{
+                DirName: remoteDirectory + io.Sep + packageName,
+                Err:     err,
+            })
+        } else {
+            log.Writeln(log.INFO, color.New(color.FgGreen), "success")
+        }
+
+        if pac.Context.IsSet("save") {
+            if _, exists := projectConfig.GetDependencies()[packageName]; exists {
+                dependencyDeleted = true
+                delete(projectConfig.GetDependencies(), packageName)
+            }
+        }
+    }
+
+    if dependencyDeleted {
+        log.Write(log.INFO, color.New(color.FgCyan), "saving changes in wio.yml file ...")
+        if err := utils.PrettyPrintConfig(projectConfig, directory+io.Sep+"wio.yml",
+            pac.Context.Bool("config-help")); err != nil {
+            log.Writeln(log.INFO, color.New(color.FgRed), "failure")
+            log.WriteErrorlnExit(errors.WriteFileError{
+                FileName: directory + io.Sep + "wio.yml",
+                Err:      err,
+            })
+        } else {
+            log.Writeln(log.INFO, color.New(color.FgGreen), "success")
+        }
+    }
+}
+
+// This handles the collect command to collect remote dependencies into vendor folder
+func (pac Pac) handleCollect(directory string) {
+    // check install arguments
+    collectPackages := collectArgumentCheck(pac.Context.Args())
+
+    remoteDirectory := directory + io.Sep + ".wio" + io.Sep + "node_modules"
+
+    var projectConfig types.Config
+    var err error
+    if pac.Context.IsSet("save") {
+        projectConfig, err = utils.ReadWioConfig(directory + io.Sep + "wio.yml")
+        if err != nil {
+            log.WriteErrorlnExit(errors.ConfigParsingError{
+                Err: err,
+            })
+        }
+    }
+
+    modified := false
+
+    if collectPackages[0] == "_______all__________" {
+        files, err := ioutil.ReadDir(remoteDirectory)
+        if err != nil {
+            log.WriteErrorlnExit(err)
+        }
+
+        for _, f := range files {
+            collectPackages = append(collectPackages, f.Name())
+        }
+    }
+
+    for _, packageGiven := range collectPackages {
+        // this is put in by verification process
+        if packageGiven == "_______all__________" {
+            continue
+        }
+
+        log.Write(log.INFO, color.New(color.FgCyan), "copying %s to vendor ... ", packageGiven)
+
+        strip := strings.Split(packageGiven, "@")
+
+        packageName := strip[0]
+
+        if !utils.PathExists(remoteDirectory + io.Sep + packageName) {
+            log.Writeln(log.INFO, color.New(color.FgYellow), "remote package does not exist")
+            continue
+        }
+
+        if utils.PathExists(directory + io.Sep + "vendor" + io.Sep + packageName) {
+            log.Writeln(log.INFO, color.New(color.FgYellow), "package already exists in vendor")
+            continue
+        }
+
+        if err := utils.CopyDir(remoteDirectory+io.Sep+packageName, directory+io.Sep+"vendor"+io.Sep+packageName); err != nil {
+            log.Writeln(log.INFO, color.New(color.FgRed), "failure")
+            log.WriteErrorlnExit(err)
+        } else {
+            log.Writeln(log.INFO, color.New(color.FgGreen), "success")
+        }
+
+        if pac.Context.IsSet("save") {
+            if val, exists := projectConfig.GetDependencies()[packageName]; exists {
+                val.Vendor = true
+                modified = true
+            }
+        }
+    }
+
+    if modified {
+        log.Write(log.INFO, color.New(color.FgCyan), "saving changes in wio.yml file ...")
+        if err := utils.PrettyPrintConfig(projectConfig, directory+io.Sep+"wio.yml",
+            pac.Context.Bool("config-help")); err != nil {
+            log.Writeln(log.INFO, color.New(color.FgRed), "failure")
+            log.WriteErrorlnExit(errors.WriteFileError{
+                FileName: directory + io.Sep + "wio.yml",
+                Err:      err,
+            })
+        } else {
+            log.Writeln(log.INFO, color.New(color.FgGreen), "success")
+        }
+    }
+}
+
+// This handles the list command to show dependencies of the project
+func (pac Pac) handleList(directory string) {
+    cmdNpm := exec.Command("npm", "list")
+    cmdNpm.Dir = directory + io.Sep + ".wio"
+    cmdNpm.Stderr = os.Stderr
+
+    npmStdoutReader, err := cmdNpm.StdoutPipe()
+    if err != nil {
+        log.WriteErrorlnExit(err)
+    }
+
+    npmStdoutScanner := bufio.NewScanner(npmStdoutReader)
+    go func() {
+        for npmStdoutScanner.Scan() {
+            line := npmStdoutScanner.Text()
+            if strings.Contains(line, directory) {
+                line = directory
+            }
+
+            log.Writeln(log.INFO, color.New(color.Reset), line)
+        }
+    }()
+
+    err = cmdNpm.Start()
+    if err != nil {
+        log.WriteErrorlnExit(errors.CommandStartError{
+            CommandName: "wio install",
+        })
+    }
+
+    err = cmdNpm.Wait()
+    if err != nil {
+        log.WriteErrorlnExit(errors.CommandWaitError{
+            CommandName: "wio install",
+        })
+    }
+}
+
+// This handles the publish command and uses npm to publish packages
+func (pac Pac) handlePublish(directory string) {
+    publishCheck(directory)
+
+    // read wio.yml file
+    pkgConfig := &types.PkgConfig{}
+
+    if err := io.NormalIO.ParseYml(directory+io.Sep+"wio.yml", pkgConfig); err != nil {
+        log.WriteErrorlnExit(errors.ConfigParsingError{
+            Err: err})
+    }
+
+    log.Write(log.INFO, color.New(color.FgCyan), "checking files and packing them ... ")
+
+    queue := log.GetQueue()
+
+    log.QueueWrite(queue, log.VERB, nil, "creating package.json file ... ")
+
+    // npm config
+    npmConfig := types.NpmConfig{}
+
+    // fill all the fields for package.json
+    npmConfig.Name = pkgConfig.MainTag.Meta.Name
+    npmConfig.Version = pkgConfig.MainTag.Meta.Version
+    npmConfig.Description = pkgConfig.MainTag.Meta.Description
+    npmConfig.Repository = pkgConfig.MainTag.Meta.Repository
+    npmConfig.Main = ".wio.js"
+    npmConfig.Keywords = utils.AppendIfMissing(pkgConfig.MainTag.Meta.Keywords, []string{"c++", "c", "wio", "pkg", "iot"})
+    npmConfig.Author = pkgConfig.MainTag.Meta.Author
+    npmConfig.License = pkgConfig.MainTag.Meta.License
+    npmConfig.Contributors = pkgConfig.MainTag.Meta.Contributors
+
+    versionPat := regexp.MustCompile(`[0-9]+.[0-9]+.[0-9]+`)
+    stringPat := regexp.MustCompile(`[\w"]+`)
+
+    // verify tag values
+    if !stringPat.MatchString(npmConfig.Author) {
+        log.Writeln(log.NONE, color.New(color.FgRed), "failure")
+        log.QueueWriteln(queue, log.VERB_NONE, color.New(color.FgRed), "failure")
+        log.PrintQueue(queue, log.TWO_SPACES)
+        log.WriteErrorlnExit(goerr.New("author must be specified for a package"))
+    }
+    if !stringPat.MatchString(npmConfig.Description){
+        log.Writeln(log.NONE, color.New(color.FgRed), "failure")
+        log.QueueWriteln(queue, log.VERB_NONE, color.New(color.FgRed), "failure")
+        log.PrintQueue(queue, log.TWO_SPACES)
+        log.WriteErrorlnExit(goerr.New("description must be specified for a package"))
+    }
+    if !versionPat.MatchString(npmConfig.Version) {
+        log.Writeln(log.NONE, color.New(color.FgRed), "failure")
+        log.QueueWriteln(queue, log.VERB_NONE, color.New(color.FgRed), "failure")
+        log.PrintQueue(queue, log.TWO_SPACES)
+        log.WriteErrorlnExit(goerr.New("package does not have a valid version"))
+    }
+    if !stringPat.MatchString(npmConfig.License) {
+        log.QueueWriteln(queue, log.VERB_NONE, color.New(color.FgYellow), "warning")
+        log.WriteErrorln(errors.ProgrammingArgumentAssumption{
+            CommandName: "wio publish",
+            ArgumentName: "LICENSE",
+            Err: goerr.New("LICENSE was not provided, and is assumed to be MIT"),
+        }, true)
+        npmConfig.License = "MIT"
+    }
+
+    npmConfig.Dependencies = make(types.NpmDependencyTag)
+
+    subQueue := log.GetQueue()
 
     // add dependencies to package.json
-    for dependencyName, dependencyValue := range dependencies {
+    for dependencyName, dependencyValue := range pkgConfig.DependenciesTag {
         if !dependencyValue.Vendor {
+            if err := dependencyCheck(subQueue, directory, dependencyName, dependencyValue.Version); err != nil {
+                log.Writeln(log.NONE, color.New(color.FgRed), "failure")
+                log.QueueWriteln(queue, log.VERB_NONE, color.New(color.FgRed), "failure")
+                log.CopyQueue(subQueue, queue, log.TWO_SPACES)
+                log.PrintQueue(queue, log.TWO_SPACES)
+                log.WriteErrorlnExit(err)
+            }
+
             npmConfig.Dependencies[dependencyName] = dependencyValue.Version
         }
     }
 
-	// write package.json file
-	if err := io.NormalIO.WriteJson(wioPath+io.Sep+"package.json", &npmConfig); err != nil {
-		commands.RecordError(err, "failure")
-	}
-
-	log.Norm.Green(true, "success")
-}
-
-// publishes the package to npm backend
-func handlePublish(directory string) {
-	log.Norm.Yellow(true, "Publishing this package using npm server")
-	log.Norm.Cyan(false, "verifying project structure ... ")
-
-	// read wio.yml file
-	pkgConfig := &types.PkgConfig{}
-
-	io.NormalIO.ParseYml(directory+io.Sep+"wio.yml", pkgConfig)
-
-	if pkgConfig.MainTag.Name == "" {
-		commands.RecordError(errors.New("push command only works on project of type \"pkg\""), "failure")
-	} else {
-		log.Norm.Green(true, "success")
-	}
-
-	log.Norm.Cyan(false, "packing project files ... ")
-
-	pacDir := directory + io.Sep + ".wio" + io.Sep + "pac" + io.Sep + strconv.Itoa(time.Now().Nanosecond())
-
-	// copy src and include folder to .wio/pac folder
-	commands.RecordError(utils.CopyDir(directory+io.Sep+"src",
-		pacDir+io.Sep+"src"), "failure")
-	commands.RecordError(utils.CopyDir(directory+io.Sep+"include",
-		pacDir+io.Sep+"include"), "failure")
-	commands.RecordError(utils.CopyFile(directory+io.Sep+"wio.yml",
-		pacDir+io.Sep+"wio.yml"), "failure")
-	commands.RecordError(utils.CopyFile(directory+io.Sep+"README.md",
-		pacDir+io.Sep+"README.md"), "failure")
-	commands.RecordError(utils.CopyFile(directory+io.Sep+"LICENSE",
-		pacDir+io.Sep+"LICENSE"), "failure")
-
-	log.Norm.Green(true, "success")
-
-	log.Verb.Verbose(false, "creating package manager files ... ")
-
-	// npm config
-	npmConfig := types.NpmConfig{}
-
-	// fill all the fields for package.json
-	npmConfig.Name = pkgConfig.MainTag.Name
-	npmConfig.Version = pkgConfig.MainTag.Version
-	npmConfig.Description = pkgConfig.MainTag.Description
-	npmConfig.Repository = pkgConfig.MainTag.Repository
-	npmConfig.Main = ".wio.js"
-	npmConfig.Keywords = utils.AppendIfMissing(pkgConfig.MainTag.Keywords, []string{"c++", "c", "wio"})
-	npmConfig.Author = pkgConfig.MainTag.Author
-	npmConfig.License = pkgConfig.MainTag.License
-	npmConfig.Contributors = pkgConfig.MainTag.Contributors
-
-	npmConfig.Dependencies = make(types.NpmDependencyTag)
-
-	log.Verb.Verbose(true, "")
-
-	// add dependencies to package.json
-	for dependencyName, dependencyValue := range pkgConfig.DependenciesTag {
-		if !dependencyValue.Vendor {
-			dependencyCheck(directory, dependencyName, dependencyValue.Version)
-
-			npmConfig.Dependencies[dependencyName] = "^" + dependencyValue.Version
-		}
-	}
-
-	// write package.json file
-	if err := io.NormalIO.WriteJson(pacDir+io.Sep+"package.json", &npmConfig); err != nil {
-		commands.RecordError(err, "failure")
-	}
-
-	// write .wio.js file so that this is the entry point
-	if err := io.NormalIO.WriteFile(pacDir+io.Sep+".wio.js", []byte("console.log('H"+
-		"i!!! Welcome to Wio world!')")); err != nil {
-		removeNpmFiles(pacDir)
-		commands.RecordError(err, "failure")
-	}
-
-	log.Verb.Verbose(true, "success")
-	log.Norm.Cyan(false, "running publish command ... ")
-
-	// execute cmake command
-	npmPublishCommand := exec.Command("npm", "publish")
-	npmPublishCommand.Dir = pacDir
-
-	// Stderr buffer
-	cmdErrOutput := &bytes.Buffer{}
-	npmPublishCommand.Stderr = cmdErrOutput
-
-	if log.Verb.IsVerbose() {
-		npmPublishCommand.Stdout = os.Stdout
-	}
-	err := npmPublishCommand.Run()
-	if err != nil {
-		removeNpmFiles(pacDir)
-
-		// this means user needs to login
-		if strings.Contains(cmdErrOutput.String(), "npm adduser") ||
-			strings.Contains(cmdErrOutput.String(), "npm login") {
-			log.Norm.Yellow(true, "\nNPM backend is used for package management")
-			log.Norm.Green(true, "Run \"npm adduser\" to login/create account to publish the package")
-
-			os.Exit(2)
-		}
-
-		commands.RecordError(err, "failure", strings.Trim(cmdErrOutput.String(), "\n"))
-	} else {
-		log.Norm.Green(true, "success")
-	}
-
-	removeNpmFiles(pacDir)
-
-	log.Verb.Verbose(true, "success")
-	log.Norm.Yellow(true, pkgConfig.MainTag.Name+"@"+pkgConfig.MainTag.Version+" published!!")
-}
-
-// checks if dependencies are valid wio packages and if they are already pushed
-func dependencyCheck(directory string, dependencyName string, dependencyVersion string) {
-	log.Verb.Verbose(false, "dependency: checking if "+dependencyName+" package exists ... ")
-
-	resp, err := http.Get("https://www.npmjs.com/package/" + dependencyName + "/v/" + dependencyVersion)
-	if err != nil {
-		commands.RecordError(err, "failure")
-	}
-
-	// dependency does not exist
-	if resp.StatusCode == 404 {
-		log.Verb.Verbose(true, "failure")
-		commands.RecordError(errors.New("dependency: \""+dependencyName+"\" package does not exist on remote "+
-			"server"), "")
-	}
-	resp.Body.Close()
-
-	log.Verb.Verbose(true, "success")
-	log.Verb.Verbose(false, "dependency: checking if "+dependencyName+"@"+dependencyVersion+
-		" version exists ... ")
-
-	// verify the version by executing npm info command
-	npmInfoCommand := exec.Command("npm", "info", dependencyName+"@"+dependencyVersion)
-	npmInfoCommand.Dir = directory
-
-	// Stderr buffer
-	cmdErrOutput := &bytes.Buffer{}
-	cmdOutOutput := &bytes.Buffer{}
-	npmInfoCommand.Stderr = cmdErrOutput
-	npmInfoCommand.Stdout = cmdOutOutput
-
-	err = npmInfoCommand.Run()
-	if err != nil {
-		commands.RecordError(err, "failure", strings.Trim(cmdErrOutput.String(), "\n"))
-	}
-
-	// version does not exists
-	if cmdOutOutput.String() == "" {
-		commands.RecordError(errors.New("dependency: \""+dependencyName+"@"+dependencyVersion+
-			"\" version does not exist"), "failure")
-	} else {
-		log.Verb.Verbose(true, "success")
-
-		log.Verb.Verbose(false, "dependency: checking if "+dependencyName+"@"+dependencyVersion+
-			" is a valid wio package ... ")
-
-		// check if the package is a wio package by checking C, C++ and wio flags
-		pat := regexp.MustCompile(`keywords: .*[\r\n]`)
-		s := pat.FindString(cmdOutOutput.String())
-
-		// if wio, c and c++ found, this package is a valid wio package
-		if strings.Contains(s, "wio") && strings.Contains(s, "c") && strings.Contains(s, "c++") {
-			log.Verb.Verbose(true, "success")
-		} else {
-			commands.RecordError(errors.New("dependency: \""+dependencyName+"@"+dependencyVersion+
-				"\" is not a wio package"), "failure")
-		}
-	}
-}
-
-// removes files used for npm publish
-func removeNpmFiles(directory string) {
-	log.Verb.Verbose(false, "removing npm files ... ")
-
-	commands.RecordError(os.RemoveAll(directory), "failure")
-	log.Verb.Verbose(true, "success")
-}
-
-// gets and updates the packages to the versions specified in wio.yml file
-func handleGet(directory string, clean bool) {
-	log.Norm.Yellow(true, "Getting packages from npm server")
-
-	// clean npm_modules in .wio folder
-	if clean {
-		log.Norm.Cyan(false, "removing all the pulled packages ... ")
-
-		if err := os.RemoveAll(directory + io.Sep + ".wio" + io.Sep + "node_modules"); err != nil {
-			commands.RecordError(err, "failure")
-		} else {
-			log.Norm.Green(true, "success")
-		}
-	}
-
-	// read wio.yml file. We gonna use dependencies tag so it does not matter if this is app or pkg
-	pkgConfig := &types.PkgConfig{}
-
-	// create private json file
-	createPrivatePackageJson(directory, filepath.Base(directory), pkgConfig.DependenciesTag)
-
-	commands.RecordError(io.NormalIO.ParseYml(directory+io.Sep+"wio.yml", pkgConfig), "")
-
-	// add dependencies to package.json
-	for dependencyName, dependencyValue := range pkgConfig.DependenciesTag {
-		if dependencyValue.Vendor {
-			continue
-		}
-
-		dependencyCheck(directory, dependencyName, dependencyValue.Version)
-
-		log.Norm.Cyan(false, "pulling "+dependencyName+"@"+dependencyValue.Version+
-			" package ... ")
-
-		// execute cmake command
-		npmInstallCommand := exec.Command("npm", "install", dependencyName+"@"+dependencyValue.Version)
-		npmInstallCommand.Dir = directory + io.Sep + ".wio"
-
-		// Stderr buffer
-		cmdErrOutput := &bytes.Buffer{}
-		npmInstallCommand.Stderr = cmdErrOutput
-
-		if log.Verb.IsVerbose() {
-			log.Norm.Verbose(true, "")
-			npmInstallCommand.Stdout = os.Stdout
-		}
-		err := npmInstallCommand.Run()
-		if err != nil {
-			commands.RecordError(err, "failure", strings.Trim(cmdErrOutput.String(), "\n"))
-		}
-
-		log.Norm.Green(true, "success")
-	}
-
-	log.Norm.Yellow(true, "All packages pulled successfully")
-}
-
-// add and update dependencies from cli
-func handleAdd(directory string, args []string, vendor bool) {
-	log.Norm.Yellow(true, "Adding/Updating dependencies")
-
-	// read wio.yml file. We gonna use dependencies tag so it does not matter if this is app or pkg
-	pkgConfig := &types.PkgConfig{}
-
-	commands.RecordError(io.NormalIO.ParseYml(directory+io.Sep+"wio.yml", pkgConfig), "")
-
-	changed := false
-
-	for _, addArg := range args {
-		newDependency := strings.Split(addArg, "@")
-
-		depName := newDependency[0]
-		depVersion := "latest"
-
-		if len(newDependency) > 1 {
-			depVersion = newDependency[1]
-		}
-
-		// check if this dependency exists and check it's version
-		if val, ok := pkgConfig.DependenciesTag[depName]; ok {
-			// override with vendor
-			if !val.Vendor && vendor {
-				pkgConfig.DependenciesTag[depName].Vendor = true
-				pkgConfig.DependenciesTag[depName].Version = ""
-
-				log.Norm.Cyan(true, "overridden remote dependency by vendor dependency: "+depName)
-				changed = true
-			} else if vendor {
-				log.Norm.Cyan(true, "unchanged vendor dependency: "+depName)
-			} else if val.Version != depVersion {
-				if val.Vendor {
-					log.Norm.Cyan(true, "delete vendor dependency before updating to remote")
-				} else {
-					// change the version since it already exists
-					pkgConfig.DependenciesTag[depName].Version = depVersion
-
-					log.Norm.Cyan(true, "updated remote dependency: "+depName+"@"+val.Version+
-						"   ->   "+depName+"@"+depVersion)
-
-					changed = true
-				}
-			} else {
-				log.Norm.Cyan(true, "unchanged remote dependency: "+depName+"@"+val.Version)
-			}
-		} else {
-			if vendor {
-				pkgConfig.DependenciesTag[depName] = &types.DependencyTag{Vendor: true}
-
-				log.Norm.Cyan(true, "added vendor dependency: "+depName)
-			} else {
-				pkgConfig.DependenciesTag[depName] = &types.DependencyTag{Version: depVersion}
-
-				log.Norm.Cyan(true, "added remote dependency: "+depName+"@"+depVersion)
-			}
-
-			changed = true
-		}
-	}
-
-	if !changed {
-		log.Norm.Yellow(true, "Dependencies remained unchanged!")
-	} else {
-		// check if the configuration is app
-		if data, err := io.NormalIO.ReadFile(directory + io.Sep + "wio.yml"); err != nil {
-			commands.RecordError(err, "")
-		} else {
-			// if there is "app:" tag use app configuration
-			if strings.Contains(string(data), "app:") {
-				appConfig := &types.AppConfig{}
-
-				appConfig.DependenciesTag = pkgConfig.DependenciesTag
-
-				if err = io.NormalIO.ParseYml(directory+io.Sep+"wio.yml", appConfig); err != nil {
-					commands.RecordError(err, "")
-				}
-
-				commands.RecordError(utils.PrettyPrintConfigSpacing(appConfig, directory+io.Sep+"wio.yml"), "")
-			} else {
-				commands.RecordError(utils.PrettyPrintConfigSpacing(pkgConfig, directory+io.Sep+"wio.yml"), "")
-			}
-		}
-
-		log.Norm.Yellow(true, "Provides dependencies added/updated successfully")
-	}
-}
-
-// remove dependencies from cli
-func handleRemove(directory string, args []string, all bool) {
-	log.Norm.Yellow(true, "Removing dependencies")
-
-	// read wio.yml file. We gonna use dependencies tag so it does not matter if this is app or pkg
-	pkgConfig := &types.PkgConfig{}
-
-	commands.RecordError(io.NormalIO.ParseYml(directory+io.Sep+"wio.yml", pkgConfig), "")
-
-	changed := false
-
-	if len(pkgConfig.DependenciesTag) == 0 {
-		log.Norm.Cyan(true, "project has No dependencies")
-	} else if all {
-		pkgConfig.DependenciesTag = make(map[string]*types.DependencyTag)
-
-		log.Norm.Cyan(true, "deleted All the dependencies")
-		changed = true
-	} else {
-		for _, depName := range args {
-			// check if this dependency exists and check it's version
-			if _, ok := pkgConfig.DependenciesTag[depName]; ok {
-				delete(pkgConfig.DependenciesTag, depName)
-
-				log.Norm.Cyan(true, "deleted "+depName)
-				changed = true
-			} else {
-				log.Norm.Cyan(true, "no such dependency of name: \""+depName+"\", skipping!")
-			}
-		}
-	}
-
-	if !changed {
-		log.Norm.Yellow(true, "Dependencies remained unchanged!")
-	} else {
-		// check if the configuration is app
-		if data, err := io.NormalIO.ReadFile(directory + io.Sep + "wio.yml"); err != nil {
-			commands.RecordError(err, "")
-		} else {
-			// if there is "app:" tag use app configuration
-			if strings.Contains(string(data), "app:") {
-				appConfig := &types.AppConfig{}
-
-				if err = io.NormalIO.ParseYml(directory+io.Sep+"wio.yml", appConfig); err != nil {
-					commands.RecordError(err, "")
-				}
-
-				appConfig.DependenciesTag = pkgConfig.DependenciesTag
-
-				commands.RecordError(utils.PrettyPrintConfigSpacing(appConfig, directory+io.Sep+"wio.yml"), "")
-			} else {
-				commands.RecordError(utils.PrettyPrintConfigSpacing(pkgConfig, directory+io.Sep+"wio.yml"), "")
-			}
-		}
-
-		log.Norm.Yellow(true, "Provided dependencies removed successfully")
-	}
-}
-
-// list all the project dependencies
-func handleList(directory string) {
-	// read wio.yml file. We gonna use dependencies tag so it does not matter if this is app or pkg
-	pkgConfig := &types.PkgConfig{}
-
-	commands.RecordError(io.NormalIO.ParseYml(directory+io.Sep+"wio.yml", pkgConfig), "")
-
-	if len(pkgConfig.DependenciesTag) == 0 {
-		log.Norm.Yellow(true, "This project has no dependencies")
-	} else {
-		log.Norm.Yellow(true, "Project dependencies: ")
-		for key, value := range pkgConfig.DependenciesTag {
-			if value.Vendor {
-				log.Norm.Cyan(false, "vendor: ")
-				log.Norm.Cyan(true, key)
-			} else {
-				log.Norm.Cyan(false, "remote: ")
-				log.Norm.Cyan(true, key+"@"+value.Version)
-			}
-		}
-	}
-}
-
-// provide information about one individual package
-func handleInfo(directory string, depName string) {
-	// read wio.yml file. We gonna use dependencies tag so it does not matter if this is app or pkg
-	pkgConfig := &types.PkgConfig{}
-
-	commands.RecordError(io.NormalIO.ParseYml(directory+io.Sep+"wio.yml", pkgConfig), "")
-
-	if len(pkgConfig.DependenciesTag) == 0 {
-		log.Norm.Yellow(true, "This project has no dependencies")
-	} else {
-		if val, ok := pkgConfig.DependenciesTag[depName]; ok {
-			log.Norm.Yellow(true, depName+": ")
-			log.Norm.Cyan(true, "is vendor: "+strconv.FormatBool(val.Vendor))
-
-			if !val.Vendor {
-				log.Norm.Cyan(true, "version: "+val.Version)
-			}
-			log.Norm.Cyan(true, "compile flags: ["+strings.Join(val.DependencyFlags, ",")+"]")
-		}
-	}
-}
-
-func handleUpdate(directory string) {
-	// TODO future versions
-	// do npm outdated and see if something needs to be updated
-	// then read package.json file and update the version of wio dependency
-}
-
-func handleCollect(directory string) {
-	// TODO future versions
+    // write package.json file
+    if err := io.NormalIO.WriteJson(directory+io.Sep+"package.json", &npmConfig); err != nil {
+        log.Writeln(log.NONE, color.New(color.FgRed), "failure")
+        log.QueueWriteln(queue, log.VERB_NONE, color.New(color.FgRed), "failure")
+        log.PrintQueue(queue, log.TWO_SPACES)
+        log.WriteErrorlnExit(errors.WriteFileError{
+            FileName: "package.json",
+        })
+    } else {
+        log.Writeln(log.NONE, color.New(color.FgGreen), "success")
+        log.QueueWriteln(queue, log.VERB_NONE, color.New(color.FgGreen), "success")
+        log.PrintQueue(queue, log.TWO_SPACES)
+    }
+
+    log.Writeln(log.INFO, color.New(color.FgCyan), "publishing the package to remote server ... ")
+
+    var cmdNpm *exec.Cmd
+
+    // execute cmake command
+    if !log.IsVerbose() {
+        cmdNpm = exec.Command("npm", "publish")
+    } else {
+        cmdNpm = exec.Command("npm", "publish", "--verbose")
+    }
+
+    cmdNpm.Dir = directory
+
+    npmStderrReader, err := cmdNpm.StderrPipe()
+    if err != nil {
+        log.WriteErrorlnExit(err)
+    }
+    npmStdoutReader, err := cmdNpm.StdoutPipe()
+    if err != nil {
+        log.WriteErrorlnExit(err)
+    }
+
+    npmStdoutScanner := bufio.NewScanner(npmStdoutReader)
+    go func() {
+        for npmStdoutScanner.Scan() {
+            log.Writeln(log.INFO, color.New(color.Reset), npmStdoutScanner.Text())
+        }
+    }()
+
+    npmStderrScanner := bufio.NewScanner(npmStderrReader)
+    go func() {
+        for npmStderrScanner.Scan() {
+            line := npmStderrScanner.Text()
+            line = strings.Trim(strings.Replace(line, "npm", "wio", -1), " ")
+
+            if line == "" {
+                continue
+            } else if strings.Contains(line, "debug.log") || strings.Contains(line, "A complete log of this run can be found in:") {
+                continue
+            } else {
+                line = strings.Replace(line, "wio", "", -1)
+                line = strings.Replace(line, "verb", "", -1)
+                line = strings.Replace(line, "info", "", -1)
+                line = strings.Replace(line, "WARN ", "", -1)
+                line = strings.Replace(line, "ERR!", "", -1)
+                line = strings.Replace(line, "notarget", "", -1)
+
+                line = strings.Trim(line, " ")
+
+                log.Writeln(log.INFO, color.New(color.Reset), line)
+            }
+        }
+    }()
+
+    err = cmdNpm.Start()
+    if err != nil {
+        log.WriteErrorlnExit(errors.CommandStartError{
+            CommandName: "wio publish",
+        })
+    }
+
+    err = cmdNpm.Wait()
+    if err != nil {
+        log.WriteErrorlnExit(errors.CommandWaitError{
+            CommandName: "wio publish",
+        })
+    }
 }

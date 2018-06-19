@@ -1,4 +1,4 @@
-package run
+package dependencies
 
 import (
     goerr "errors"
@@ -10,6 +10,7 @@ import (
     "wio/cmd/wio/utils"
     "github.com/fatih/color"
     "wio/cmd/wio/errors"
+    "wio/cmd/wio/commands/run/cmake"
 )
 
 // recursively goes through dependencies and creates CMake target and CMake Link
@@ -55,7 +56,7 @@ func recursivelyGoThroughTransDependencies(queue *log.Queue, parentName string, 
 
         subQueue := log.GetQueue()
 
-        requiredFlags, requiredDefinitions, err := createCMakeTargets(subQueue, parentName, parentHeaderOnly,
+        requiredFlags, requiredDefinitions, err := CreateCMakeTargets(subQueue, parentName, parentHeaderOnly,
             dependencyNameToUseForLogs, dependencyTargetName, dependencyTarget, globalFlags,
             globalDefinitions, projectDependency, transDependencyPackage)
         if err != nil {
@@ -87,7 +88,7 @@ func recursivelyGoThroughTransDependencies(queue *log.Queue, parentName string, 
 }
 
 // Recursively calls recursivelyGoThroughTransDependencies function and creates CMake targets
-func createCMakeTargets(queue *log.Queue, parentTargetName string, parentTargetHeaderOnly bool,
+func CreateCMakeTargets(queue *log.Queue, parentTargetName string, parentTargetHeaderOnly bool,
     dependencyNameToUseForLogs string, dependencyTargetName string, dependencyTarget *DependencyScanStructure,
     globalFlags []string, globalDefinitions []string, configDependency *types.DependencyTag,
         targetDependency *types.DependencyTag)([]string, []string, error) {
@@ -232,7 +233,7 @@ func createCMakeTargets(queue *log.Queue, parentTargetName string, parentTargetH
 
     if val, exists := cmakeTargets[hash]; exists {
         linkVisibility = linkVisibilityVerify(queue, parentTargetName, val.TargetName, linkVisibility, parentTargetHeaderOnly)
-        cmakeTargetsLink = append(cmakeTargetsLink, CMakeTargetLink{From: parentTargetName, To: val.TargetName, LinkVisibility: linkVisibility})
+        cmakeTargetsLink = append(cmakeTargetsLink, cmake.CMakeTargetLink{From: parentTargetName, To: val.TargetName, LinkVisibility: linkVisibility})
     } else {
         dependencyNameToUse := dependencyTargetName
         counter := 2
@@ -255,12 +256,12 @@ func createCMakeTargets(queue *log.Queue, parentTargetName string, parentTargetH
         // verify linker visibility
         linkVisibility = linkVisibilityVerify(queue, parentTargetName, dependencyNameToUse, linkVisibility, parentTargetHeaderOnly)
 
-        cmakeTargets[hash] = &CMakeTarget{TargetName: dependencyNameToUse,
+        cmakeTargets[hash] = &cmake.CMakeTarget{TargetName: dependencyNameToUse,
             Path: dependencyTarget.Directory, Flags: allFlags, Definitions: allDefinitions,
             HeaderOnly: dependencyTarget.MainTag.CompileOptions.HeaderOnly}
 
 
-        cmakeTargetsLink = append(cmakeTargetsLink, CMakeTargetLink{From: parentTargetName, To: dependencyNameToUse,
+        cmakeTargetsLink = append(cmakeTargetsLink, cmake.CMakeTargetLink{From: parentTargetName, To: dependencyNameToUse,
             LinkVisibility: linkVisibility})
 
         cmakeTargetNames[dependencyNameToUse] = true

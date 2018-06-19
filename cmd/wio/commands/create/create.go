@@ -306,8 +306,8 @@ func (create Create) fillAVRProjectConfig(queue *log.Queue, directory string, bo
         // create pkg target
         pkgConfig.TargetsTag.DefaultTarget = config.ProjectDefaults.PkgTargetName
         pkgConfig.TargetsTag.Targets = map[string]types.PkgAVRTarget{
-            config.ProjectDefaults.AppTargetName: {
-                Src:       directory + io.Sep + "tests",
+            config.ProjectDefaults.PkgTargetName: {
+                Src:       "tests",
                 Framework: framework,
                 Board:     board,
                 Flags: types.PkgTargetFlags{
@@ -329,7 +329,7 @@ func (create Create) fillAVRProjectConfig(queue *log.Queue, directory string, bo
         log.QueueWrite(queue, log.INFO, nil, "pretty printing wio.yml file ... ")
     }
 
-    if err := utils.PrettyPrintConfig(projectConfig, directory+io.Sep+"wio.yml"); err != nil {
+    if err := utils.PrettyPrintConfig(projectConfig, directory+io.Sep+"wio.yml", true); err != nil {
         if !onlyConfig {
             log.QueueWriteln(queue, log.VERB_NONE, color.New(color.FgRed), "failure")
         } else {
@@ -413,6 +413,8 @@ func (create Create) updateConfig(queue *log.Queue, projectConfig types.Config, 
     if isApp {
         appConfig := projectConfig.(*types.AppConfig)
 
+        appConfig.MainTag.Name = filepath.Base(directory)
+
         //////////////////////////////////////////// Targets //////////////////////////////////////////////////
         updateAVRAppTargets(&appConfig.TargetsTag, directory)
 
@@ -422,6 +424,8 @@ func (create Create) updateConfig(queue *log.Queue, projectConfig types.Config, 
         }
     } else {
         pkgConfig := projectConfig.(*types.PkgConfig)
+
+        pkgConfig.MainTag.Meta.Name = filepath.Base(directory)
 
         //////////////////////////////////////////// Targets //////////////////////////////////////////////////
         updateAVRPkgTargets(&pkgConfig.TargetsTag, directory)
@@ -468,7 +472,7 @@ func (create Create) updateConfig(queue *log.Queue, projectConfig types.Config, 
         }
     }
 
-    if err := utils.PrettyPrintConfig(projectConfig, directory+io.Sep+"wio.yml"); err != nil {
+    if err := utils.PrettyPrintConfig(projectConfig, directory+io.Sep+"wio.yml", create.Context.Bool("config-help")); err != nil {
         return errors.WriteFileError{
             FileName: directory + io.Sep + "wio.yml",
             Err:      err,

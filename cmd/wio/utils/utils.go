@@ -49,16 +49,6 @@ func IsEmpty(name string) (bool, error) {
 	return false, err // Either not empty or error, suits both cases
 }
 
-// This checks if a string is in the slice
-func StringInSlice(a string, list []string) bool {
-	for _, b := range list {
-		if b == a {
-			return true
-		}
-	}
-	return false
-}
-
 // It takes in a slice and an element and then ut appends that element to the slice only
 // if that element in not already in the slice
 func AppendIfMissingElem(slice []string, i string) []string {
@@ -196,6 +186,7 @@ func CopyDir(src string, dst string) (err error) {
 	return
 }
 
+// Checks if the config file is of App type or Pkg type
 func IsAppType(wioPath string) (bool, error) {
 	// read wio.yml file to see which project type we are building
 	data, err := wio.NormalIO.ReadFile(wioPath)
@@ -210,7 +201,7 @@ func IsAppType(wioPath string) (bool, error) {
 	return s != "", nil
 }
 
-// difference returns the elements in a that aren't in b
+//  Eeturns elements in a that aren't in b
 func Difference(a, b []string) []string {
 	mb := map[string]bool{}
 	for _, x := range b {
@@ -225,6 +216,7 @@ func Difference(a, b []string) []string {
 	return ab
 }
 
+// Read config file and return config object
 func ReadWioConfig(path string) (types.Config, error) {
 	defer func() {
 		if r := recover(); r != nil {

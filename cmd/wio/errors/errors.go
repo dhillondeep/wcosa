@@ -88,6 +88,24 @@ func (err ConfigParsingError) Error() string {
     return str
 }
 
+type UnsupportedWioConfigVersion struct {
+    PackageName string
+    Version string
+    Err error
+}
+
+func (err UnsupportedWioConfigVersion) Error() string {
+    str := fmt.Sprintf(`current wio does not support config file of %s => version is invalid: %s`,
+        err.PackageName, err.Version)
+
+    if err.Err != nil {
+        str += fmt.Sprintf("\n%s%s", Spaces, err.Err.Error())
+    }
+
+    return str
+}
+
+
 type ProjectTypeMismatchError struct {
     GivenType  string
     ParsedType string

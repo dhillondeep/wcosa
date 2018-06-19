@@ -21,6 +21,9 @@ import (
     "wio/cmd/wio/types"
     "wio/cmd/wio/utils"
     "wio/cmd/wio/utils/io"
+    "wio/cmd/wio/commands/run/dependencies"
+    "wio/cmd/wio/commands/run/cmake"
+    "wio/cmd/wio/toolchain"
 )
 
 type Run struct {
@@ -58,7 +61,9 @@ func (run Run) Execute() {
         })
     }
 
-    // show information
+    targetDirectory := directory + io.Sep + ".wio" + io.Sep + "build" + io.Sep + "targets" + io.Sep + targetName
+
+    // show information about the whole run process
     log.Write(log.INFO, color.New(color.FgYellow), "Platform:             ")
     log.Writeln(log.NONE, nil, projectConfig.GetMainTag().GetCompileOptions().GetPlatform())
     log.Write(log.INFO, color.New(color.FgYellow), "Framework:            ")
@@ -66,7 +71,7 @@ func (run Run) Execute() {
     log.Write(log.INFO, color.New(color.FgYellow), "Target Name:          ")
     log.Writeln(log.NONE, nil, targetName)
     log.Write(log.INFO, color.New(color.FgYellow), "Target Source:        ")
-    log.Writeln(log.NONE, nil, directory + io.Sep + target.GetSrc())
+    log.Writeln(log.NONE, nil, directory+io.Sep+target.GetSrc())
 
     portToUse := ""
     performUpload := false
@@ -80,10 +85,10 @@ func (run Run) Execute() {
         if run.Context.Bool("upload") {
             performUpload = true
             if !run.Context.IsSet("port") {
-                if ports, err := GetPorts(); err != nil {
+                if ports, err := toolchain.GetPorts(); err != nil {
                     log.WriteErrorlnExit(err)
                 } else {
-                    port := GetArduinoPort(ports)
+                    port := toolchain.GetArduinoPort(ports)
 
                     if port == nil {
                         log.WriteErrorlnExit(errors.AutomaticPortNotDetectedError{})
@@ -111,6 +116,8 @@ func (run Run) Execute() {
         }, true)
     }
 
+    /////////////////////////////////////////// Main CMakeLists ///////////////////////////////////////
+
     log.Writeln(log.INFO, color.New(color.FgYellow).Add(color.Underline), "building target")
     log.Write(log.INFO, color.New(color.FgCyan), "creating project CMakeLists file ... ")
 
@@ -118,7 +125,7 @@ func (run Run) Execute() {
 
     // create CMakeLists.txt file
     if projectConfig.GetMainTag().GetCompileOptions().GetPlatform() == create.AVR {
-        if err := generateAvrMainCMakeLists(projectConfig.GetMainTag().GetName(), directory,
+        if err := cmake.GenerateAvrMainCMakeLists(projectConfig.GetMainTag().GetName(), directory,
             target.GetBoard(), portToUse, target.GetFramework(),
             targetName, target.GetSrc(), target.GetFlags(), target.GetDefinitions()); err != nil {
             log.Writeln(log.NONE, color.New(color.FgRed), "failure")
@@ -136,12 +143,17 @@ func (run Run) Execute() {
         log.WriteErrorlnExit(err)
     }
 
+    ////////////////////////////// Dependency Scan and dependencies.cmake /////////////////////////////////////
+
     log.Write(log.INFO, color.New(color.FgCyan), "scanning dependencies and creating build files ... ")
 
+    projectConfig.GetMainTag().GetName()
+
     // scan dependencies and create dependencies.cmake file
-    if err := createCMakeDependencyTargets(queue, projectConfig.GetMainTag().GetName(), directory,
+    if err := dependencies.CreateCMakeDependencyTargets(queue, projectConfig.GetMainTag().GetName(), directory,
         projectConfig.GetType(), target.GetFlags(), target.GetDefinitions(),
-        projectConfig.GetDependencies(), projectConfig.GetMainTag().GetCompileOptions().GetPlatform()); err != nil {
+        projectConfig.GetDependencies(), projectConfig.GetMainTag().GetCompileOptions().GetPlatform(),
+            projectConfig.GetMainTag().GetVersion()); err != nil {
         log.Writeln(log.NONE, color.New(color.FgRed), "failure")
         log.PrintQueue(queue, log.TWO_SPACES)
         log.WriteErrorlnExit(err)
@@ -150,7 +162,7 @@ func (run Run) Execute() {
         log.PrintQueue(queue, log.TWO_SPACES)
     }
 
-    targetDirectory := directory + io.Sep + ".wio" + io.Sep + "build" + io.Sep + "targets" + io.Sep + targetName
+    //////////////////////////////////////////////// Clean ////////////////////////////////////////////
 
     // clean build files for the target
     if run.Context.Bool("clean") {
@@ -167,6 +179,8 @@ func (run Run) Execute() {
             log.Writeln(log.NONE, color.New(color.FgGreen), "success")
         }
     }
+
+    /////////////////////////////////////////////// Build ///////////////////////////////////////////
 
     // create a directory for the target
     if err := os.MkdirAll(targetDirectory, os.ModePerm); err != nil {
@@ -188,6 +202,8 @@ func (run Run) Execute() {
     if err := buildTargetMake(targetDirectory); err != nil {
         log.WriteErrorlnExit(err)
     }
+
+    //////////////////////////////////////////// Upload ////////////////////////////////////////
 
     // upload if instructed or supported
     if performUpload {
@@ -337,59 +353,46 @@ func uploadTarget(targetDirectory string) error {
     makeCommand := exec.Command("make", "upload")
     makeCommand.Dir = targetDirectory
 
-    if !log.IsVerbose() {
-        // this version is used if verbose mode is not on
+    makeStderrReader, err := makeCommand.StderrPipe()
+    if err != nil {
+        return err
+    }
+    makeStdoutReader, err := makeCommand.StdoutPipe()
+    if err != nil {
+        return err
+    }
 
-        makeCommand.Stdout = os.Stdout
-        makeCommand.Stderr = os.Stderr
-
-        if err := makeCommand.Run(); err != nil {
-            return errors.CommandWaitError{
-                CommandName: "avrdude",
-            }
+    makeStdoutScanner := bufio.NewScanner(makeStdoutReader)
+    go func() {
+        for makeStdoutScanner.Scan() {
+            log.Writeln(log.INFO, color.New(color.Reset), makeStdoutScanner.Text())
         }
+    }()
 
-        return nil
-    } else {
-        // this version is used if verbose mode is on
-
-        makeStderrReader, err := makeCommand.StderrPipe()
-        if err != nil {
-            return err
-        }
-        makeStdoutReader, err := makeCommand.StdoutPipe()
-        if err != nil {
-            return err
-        }
-
-        makeStdoutScanner := bufio.NewScanner(makeStdoutReader)
-        go func() {
-            for makeStdoutScanner.Scan() {
-                log.Writeln(log.INFO, color.New(color.Reset), makeStdoutScanner.Text())
-            }
-        }()
-
-        makeStderrScanner := bufio.NewScanner(makeStderrReader)
-        go func() {
-            for makeStderrScanner.Scan() {
+    makeStderrScanner := bufio.NewScanner(makeStderrReader)
+    go func() {
+        for makeStderrScanner.Scan() {
+            if !log.IsVerbose() {
+                log.Writeln(log.INFO, color.New(color.FgGreen), makeStderrScanner.Text())
+            } else {
                 log.Writeln(log.ERR, color.New(color.FgRed), makeStderrScanner.Text())
             }
-        }()
-
-        err = makeCommand.Start()
-        if err != nil {
-            return errors.CommandStartError{
-                CommandName: "make",
-            }
         }
+    }()
 
-        err = makeCommand.Wait()
-        if err != nil {
-            return errors.CommandWaitError{
-                CommandName: "make",
-            }
+    err = makeCommand.Start()
+    if err != nil {
+        return errors.CommandStartError{
+            CommandName: "make",
         }
-
-        return nil
     }
+
+    err = makeCommand.Wait()
+    if err != nil {
+        return errors.CommandWaitError{
+            CommandName: "make",
+        }
+    }
+
+    return nil
 }

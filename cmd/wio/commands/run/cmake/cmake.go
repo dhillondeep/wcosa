@@ -1,4 +1,4 @@
-package run
+package cmake
 
 import (
     "path/filepath"
@@ -7,24 +7,26 @@ import (
     "wio/cmd/wio/types"
 )
 
-const avrHeaderOnlyString = `add_library({{DEPENDENCY_NAME}} INTERFACE)
-target_compile_definitions({{DEPENDENCY_NAME}} {{DEFINITIONS_VISIBILITY}} __AVR_${FRAMEWORK}__ {{DEPENDENCY_DEFINITIONS}})
-target_compile_options({{DEPENDENCY_NAME}} {{FLAGS_VISIBILITY}} {{DEPENDENCY_FLAGS}})
-target_include_directories({{DEPENDENCY_NAME}} INTERFACE "{{DEPENDENCY_PATH}}/include")`
+// CMake Target information
+type CMakeTarget struct {
+    TargetName            string
+    Path                  string
+    Flags                 []string
+    Definitions           []string
+    FlagsVisibility       string
+    DefinitionsVisibility string
+    HeaderOnly            bool
+}
 
-const avrNonHeaderOnlyString = `file(GLOB_RECURSE SRC_FILES "{{DEPENDENCY_PATH}}/src/*.cpp" "{{DEPENDENCY_PATH}}/src/*.cc" "{{DEPENDENCY_PATH}}/src/*.c")
-generate_arduino_library({{DEPENDENCY_NAME}}
-	SRCS ${SRC_FILES}
-	BOARD ${BOARD})
-target_compile_definitions({{DEPENDENCY_NAME}} {{DEFINITIONS_VISIBILITY}} __AVR_${FRAMEWORK}__ {{DEPENDENCY_DEFINITIONS}})
-target_compile_options({{DEPENDENCY_NAME}} {{FLAGS_VISIBILITY}} {{DEPENDENCY_FLAGS}})
-target_include_directories({{DEPENDENCY_NAME}} PUBLIC "{{DEPENDENCY_PATH}}/include")
-target_include_directories({{DEPENDENCY_NAME}} PRIVATE "{{DEPENDENCY_PATH}}/src")`
+// CMake Target Link information
+type CMakeTargetLink struct {
+    From           string
+    To             string
+    LinkVisibility string
+}
 
-const linkString = `target_link_libraries({{LINKER_NAME}} {{LINK_VISIBILITY}} {{DEPENDENCY_NAME}})`
-
-// creates
-func generateAvrDependencyCMakeString(targets map[string]*CMakeTarget, links []CMakeTargetLink) []string {
+// This creates CMake library string that will be used to link libraries
+func GenerateAvrDependencyCMakeString(targets map[string]*CMakeTarget, links []CMakeTargetLink) []string {
     cmakeStrings := make([]string, 0)
 
     for _, target := range targets {
@@ -61,8 +63,8 @@ func generateAvrDependencyCMakeString(targets map[string]*CMakeTarget, links []C
     return cmakeStrings
 }
 
-// Creates the main CMakeLists.txt file for AVR app type project
-func generateAvrMainCMakeLists(appName string, appPath string, board string, port string, framework string,
+// THis Creates the main CMakeLists.txt file for AVR app type project
+func GenerateAvrMainCMakeLists(appName string, appPath string, board string, port string, framework string,
     targetName string, targetPath string, flags types.TargetFlags, definitions types.TargetDefinitions) error {
 
     executablePath, err := io.NormalIO.GetRoot()
