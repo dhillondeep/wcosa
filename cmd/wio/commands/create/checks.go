@@ -14,9 +14,9 @@ import (
     "wio/cmd/wio/config"
     "wio/cmd/wio/errors"
     "wio/cmd/wio/log"
-    "wio/cmd/wio/types"
     "wio/cmd/wio/utils"
     "wio/cmd/wio/utils/io"
+    "wio/cmd/wio/constants"
 )
 
 // This check is used to see if the cli arguments are provided and then based on that decide defaults
@@ -43,7 +43,7 @@ func performArgumentCheck(context *cli.Context, isUpdating bool, platform string
     }
 
     // check board for create
-    if !isUpdating && platform == AVR && len(context.Args()) <= 1 {
+    if !isUpdating && platform == constants.AVR && len(context.Args()) <= 1 {
         err = errors.ProgrammingArgumentAssumption{
             CommandName:  "create",
             ArgumentName: "board",
@@ -52,7 +52,7 @@ func performArgumentCheck(context *cli.Context, isUpdating bool, platform string
 
         log.WriteErrorln(err, true)
         board = config.ProjectDefaults.AVRBoard
-    } else if !isUpdating && platform == AVR && len(context.Args()) >= 1 {
+    } else if !isUpdating && platform == constants.AVR && len(context.Args()) >= 1 {
         board = context.Args()[1]
     } else {
         board = ""
@@ -90,9 +90,9 @@ func performPreUpdateCheck(directory string, create *Create) {
     }
 
     if isApp {
-        create.Type = types.APP
+        create.Type = constants.APP
     } else {
-        create.Type = types.PKG
+        create.Type = constants.PKG
     }
 
     // check the platform
@@ -102,7 +102,7 @@ func performPreUpdateCheck(directory string, create *Create) {
     } else {
         create.Platform = projectConfig.GetMainTag().GetCompileOptions().GetPlatform()
 
-        if strings.ToLower(create.Platform) != AVR {
+        if strings.ToLower(create.Platform) != constants.AVR {
             err := errors.PlatformNotSupportedError{
                 Platform: create.Platform,
                 Err:      goerr.New("update the platform tag before updating the project"),

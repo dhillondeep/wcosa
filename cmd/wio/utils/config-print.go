@@ -15,6 +15,7 @@ import (
     "wio/cmd/wio/errors"
     "wio/cmd/wio/types"
     "wio/cmd/wio/utils/io"
+    "wio/cmd/wio/constants"
 )
 
 // Write configuration with nice spacing and information
@@ -88,7 +89,7 @@ func PrettyPrintConfig(projectConfig types.Config, filePath string, showHelp boo
     for scanner.Scan() {
         line := scanner.Text()
 
-        if projectConfig.GetMainTag().GetCompileOptions().GetPlatform() == types.DESKTOP {
+        if projectConfig.GetMainTag().GetCompileOptions().GetPlatform() == constants.DESKTOP {
             // skip board tags for desktop platform
             if boardPat.MatchString(line) {
                 continue

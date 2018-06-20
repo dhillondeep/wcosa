@@ -7,15 +7,7 @@
 
 package types
 
-const (
-    APP = "app"
-    PKG = "pkg"
-)
-
-const (
-    AVR     = "avr"
-    DESKTOP = "desktop"
-)
+import "wio/cmd/wio/constants"
 
 // ############################################### Targets ##################################################
 
@@ -391,7 +383,7 @@ type AppConfig struct {
 }
 
 func (appConfig *AppConfig) GetType() string {
-    return APP
+    return constants.APP
 }
 
 func (appConfig *AppConfig) GetMainTag() MainTag {
@@ -417,7 +409,7 @@ type PkgConfig struct {
 }
 
 func (pkgConfig *PkgConfig) GetType() string {
-    return PKG
+    return constants.PKG
 }
 
 func (pkgConfig *PkgConfig) GetMainTag() MainTag {

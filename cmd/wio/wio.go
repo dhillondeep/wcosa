@@ -18,9 +18,9 @@ import (
     "wio/cmd/wio/commands/run"
     "wio/cmd/wio/config"
     "wio/cmd/wio/log"
-    "wio/cmd/wio/types"
     "wio/cmd/wio/utils/io"
     "wio/cmd/wio/errors"
+    "wio/cmd/wio/constants"
 )
 
 func main() {
@@ -84,7 +84,7 @@ func main() {
                                     Usage: "Turns verbose mode on to show detailed errors and commands being executed."},
                             },
                             Action: func(c *cli.Context) {
-                                command = create.Create{Context: c, Type: types.PKG, Platform: create.AVR, Update: false}
+                                command = create.Create{Context: c, Type: constants.PKG, Platform: constants.AVR, Update: false}
                             },
                         },
                     },
@@ -114,7 +114,7 @@ func main() {
                                     Usage: "Disables all the warning shown by wio."},
                             },
                             Action: func(c *cli.Context) {
-                                command = create.Create{Context: c, Type: types.APP, Platform: create.AVR, Update: false}
+                                command = create.Create{Context: c, Type: constants.APP, Platform: constants.AVR, Update: false}
                             },
                         },
                     },

@@ -7,6 +7,8 @@ import (
     "wio/cmd/wio/utils/io"
     "wio/cmd/wio/utils"
     "os"
+    "wio/cmd/wio/constants"
+    "wio/cmd/wio/errors"
 )
 
 // CMake Target information
@@ -74,7 +76,15 @@ func GenerateAvrMainCMakeLists(appName string, appPath string, board string, por
         return err
     }
 
-    toolChainPath := "toolchain/cmake/CosaToolchain.cmake"
+    var toolChainPath string
+    if framework == constants.COSA {
+        toolChainPath = "toolchain/cmake/CosaToolchain.cmake"
+    } else {
+        return errors.FrameworkNotSupportedError{
+            Platform: constants.AVR,
+            Framework: framework,
+        }
+    }
 
     // read the CMakeLists.txt file template
     templateData, err := io.AssetIO.ReadFile("templates/cmake/CMakeListsAVR.txt.tpl")

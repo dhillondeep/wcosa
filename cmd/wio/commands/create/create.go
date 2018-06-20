@@ -19,10 +19,7 @@ import (
     "wio/cmd/wio/types"
     "wio/cmd/wio/utils"
     "wio/cmd/wio/utils/io"
-)
-
-const (
-    AVR = "avr"
+    "wio/cmd/wio/constants"
 )
 
 type Create struct {
@@ -56,7 +53,7 @@ func (create Create) Execute() {
         performPreCreateCheck(directory, create.Context.Bool("only-config"))
 
         // handle AVR creation
-        if create.Platform == AVR {
+        if create.Platform == constants.AVR {
             create.handleAVRCreation(directory, board)
         } else {
             err := errors.PlatformNotSupportedError{
@@ -117,17 +114,17 @@ func (create Create) handleAVRCreation(directory string, board string) {
     // print structure summary
     log.Writeln(log.NONE, nil, "")
     log.Writeln(log.INFO, color.New(color.FgYellow).Add(color.Underline), "Project structure summary")
-    if (create.Type == types.PKG && !create.Context.Bool("header-only")) || create.Type == types.APP {
+    if (create.Type == constants.PKG && !create.Context.Bool("header-only")) || create.Type == constants.APP {
         log.Write(log.INFO, color.New(color.FgCyan), "src              ")
         log.Writeln(log.NONE, color.New(color.Reset), "source/non client files go here")
     }
 
-    if create.Type == types.PKG {
+    if create.Type == constants.PKG {
         log.Write(log.INFO, color.New(color.FgCyan), "tests            ")
         log.Writeln(log.NONE, color.New(color.Reset), "source files to test the package go here")
     }
 
-    if create.Type == types.PKG {
+    if create.Type == constants.PKG {
         log.Write(log.INFO, color.New(color.FgCyan), "include          ")
         log.Writeln(log.NONE, color.New(color.Reset), "client headers for the package go here")
     }
@@ -161,7 +158,7 @@ func (create Create) createAVRProjectStructure(queue *log.Queue, directory strin
 
     var structureTypeData StructureTypeData
 
-    if create.Type == types.APP {
+    if create.Type == constants.APP {
         structureTypeData = structureData.App
     } else {
         structureTypeData = structureData.Pkg
@@ -223,7 +220,7 @@ func (create Create) fillAVRProjectConfig(queue *log.Queue, directory string, bo
     var projectConfig types.Config
 
     // handle app
-    if create.Type == types.APP {
+    if create.Type == constants.APP {
         if !onlyConfig {
             log.QueueWrite(queue, log.VERB, nil, "creating config file for application ... ")
         } else {
@@ -236,9 +233,9 @@ func (create Create) fillAVRProjectConfig(queue *log.Queue, directory string, bo
         appConfig.MainTag.Ide = config.ProjectDefaults.Ide
 
         // supported board, framework and platform and wio version
-        fillMainTagConfiguration(&appConfig.MainTag.Config, []string{board}, AVR, []string{framework})
+        fillMainTagConfiguration(&appConfig.MainTag.Config, []string{board}, constants.AVR, []string{framework})
 
-        appConfig.MainTag.CompileOptions.Platform = AVR
+        appConfig.MainTag.CompileOptions.Platform = constants.AVR
 
         // create app target
         appConfig.TargetsTag.DefaultTarget = config.ProjectDefaults.AppTargetName
@@ -270,14 +267,14 @@ func (create Create) fillAVRProjectConfig(queue *log.Queue, directory string, bo
         pkgConfig.MainTag.Meta.Name = filepath.Base(directory)
         pkgConfig.MainTag.Meta.Version = "0.0.1"
         pkgConfig.MainTag.Meta.License = "MIT"
-        pkgConfig.MainTag.Meta.Keywords = []string{AVR, "c", "c++", "wio", framework}
-        pkgConfig.MainTag.Meta.Description = "A wio " + AVR + " " + create.Type + " using " + framework + " framework"
+        pkgConfig.MainTag.Meta.Keywords = []string{constants.AVR, "c", "c++", "wio", framework}
+        pkgConfig.MainTag.Meta.Description = "A wio " + constants.AVR + " " + create.Type + " using " + framework + " framework"
 
         pkgConfig.MainTag.CompileOptions.HeaderOnly = create.Context.Bool("header-only")
-        pkgConfig.MainTag.CompileOptions.Platform = AVR
+        pkgConfig.MainTag.CompileOptions.Platform = constants.AVR
 
         // supported board, framework and platform and wio version
-        fillMainTagConfiguration(&pkgConfig.MainTag.Config, []string{board}, AVR, []string{framework})
+        fillMainTagConfiguration(&pkgConfig.MainTag.Config, []string{board}, constants.AVR, []string{framework})
 
         // flags
         pkgConfig.MainTag.Flags.GlobalFlags = []string{}
@@ -360,7 +357,7 @@ func (create Create) handleUpdate(directory string) {
 
     platform := projectConfig.GetMainTag().GetCompileOptions().GetPlatform()
 
-    if platform == AVR {
+    if platform == constants.AVR {
         // update AVR project files
         log.Write(log.INFO, color.New(color.FgCyan), "updating files for AVR platform ... ")
         queue := log.GetQueue()
@@ -431,7 +428,7 @@ func (create Create) updateConfig(queue *log.Queue, projectConfig types.Config, 
         updateAVRPkgTargets(&pkgConfig.TargetsTag, directory)
 
         // make sure framework is AVR
-        pkgConfig.MainTag.CompileOptions.Platform = AVR
+        pkgConfig.MainTag.CompileOptions.Platform = constants.AVR
 
         // make current wio version as the default version if no version is provided
         if strings.Trim(pkgConfig.MainTag.Config.WioVersion, " ") == "" {

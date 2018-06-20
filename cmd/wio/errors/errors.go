@@ -151,6 +151,22 @@ func (err PlatformNotSupportedError) Error() string {
     return str
 }
 
+type FrameworkNotSupportedError struct {
+    Framework string
+    Platform string
+    Err      error
+}
+
+func (err FrameworkNotSupportedError) Error() string {
+    str := fmt.Sprintf(`"%s" framework is not supported for %s platform by wio`, err.Framework, err.Platform)
+
+    if err.Err != nil {
+        str += fmt.Sprintf("\n%s%s", Spaces, err.Err.Error())
+    }
+
+    return str
+}
+
 type ProjectStructureConstrainError struct {
     Constrain string
     Path      string

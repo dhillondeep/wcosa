@@ -13,6 +13,7 @@ import (
     "wio/cmd/wio/types"
     "wio/cmd/wio/utils"
     "wio/cmd/wio/utils/io"
+    "wio/cmd/wio/constants"
 )
 
 const (
@@ -184,7 +185,7 @@ func CreateCMakeDependencyTargets(queue *log.Queue, projectName string, projectD
 
     scannedDependencies := map[string]*DependencyScanStructure{}
 
-    if projectType == types.PKG {
+    if projectType == constants.PKG {
         if projectDependencies == nil {
             projectDependencies = types.DependenciesTag{}
         }
@@ -304,7 +305,7 @@ func CreateCMakeDependencyTargets(queue *log.Queue, projectName string, projectD
 
     cmakePath := projectDirectory + io.Sep + ".wio" + io.Sep + "build" + io.Sep + "dependencies.cmake"
 
-    if platform == types.AVR {
+    if platform == constants.AVR {
         avrCmake := cmake.GenerateAvrDependencyCMakeString(cmakeTargets, cmakeTargetsLink)
 
         return io.NormalIO.WriteFile(cmakePath, []byte(strings.Join(avrCmake, "\n")))

@@ -14,7 +14,6 @@ import (
     "os"
     "os/exec"
     "strings"
-    "wio/cmd/wio/commands/create"
     "wio/cmd/wio/commands/run/cmake"
     "wio/cmd/wio/commands/run/dependencies"
     "wio/cmd/wio/config"
@@ -24,6 +23,7 @@ import (
     "wio/cmd/wio/types"
     "wio/cmd/wio/utils"
     "wio/cmd/wio/utils/io"
+    "wio/cmd/wio/constants"
 )
 
 type Run struct {
@@ -77,7 +77,7 @@ func (run Run) Execute() {
     performUpload := false
 
     // check if we can perform upload and if we can, choose port
-    if projectConfig.GetMainTag().GetCompileOptions().GetPlatform() == create.AVR {
+    if projectConfig.GetMainTag().GetCompileOptions().GetPlatform() == constants.AVR {
         log.Write(log.INFO, color.New(color.FgYellow), "Board:                ")
         log.Writeln(log.NONE, nil, target.GetBoard())
 
@@ -124,7 +124,7 @@ func (run Run) Execute() {
     queue := log.GetQueue()
 
     // create CMakeLists.txt file
-    if projectConfig.GetMainTag().GetCompileOptions().GetPlatform() == create.AVR {
+    if projectConfig.GetMainTag().GetCompileOptions().GetPlatform() == constants.AVR {
         if err := cmake.GenerateAvrMainCMakeLists(projectConfig.GetMainTag().GetName(), directory,
             target.GetBoard(), portToUse, target.GetFramework(),
             targetName, target.GetSrc(), target.GetFlags(), target.GetDefinitions()); err != nil {
