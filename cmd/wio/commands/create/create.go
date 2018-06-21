@@ -67,6 +67,11 @@ func (create Create) Execute() {
 
 ///////////////////////////////////////////// Creation ////////////////////////////////////////////////////////
 
+// Creation of Native projects
+func (create Create) handleNativeCreation(directory string) {
+
+}
+
 // Creation of AVR projects
 func (create Create) handleAVRCreation(directory string, board string) {
     onlyConfig := create.Context.Bool("only-config")
@@ -230,7 +235,7 @@ func (create Create) fillAVRProjectConfig(queue *log.Queue, directory string, bo
         appConfig := &types.AppConfig{}
 
         appConfig.MainTag.Name = filepath.Base(directory)
-        appConfig.MainTag.Ide = config.ProjectDefaults.Ide
+        appConfig.MainTag.Ide = config.AvrProjectDefaults.Ide
 
         // supported board, framework and platform and wio version
         fillMainTagConfiguration(&appConfig.MainTag.Config, []string{board}, constants.AVR, []string{framework})
@@ -238,9 +243,9 @@ func (create Create) fillAVRProjectConfig(queue *log.Queue, directory string, bo
         appConfig.MainTag.CompileOptions.Platform = constants.AVR
 
         // create app target
-        appConfig.TargetsTag.DefaultTarget = config.ProjectDefaults.AppTargetName
+        appConfig.TargetsTag.DefaultTarget = config.AvrProjectDefaults.AppTargetName
         appConfig.TargetsTag.Targets = map[string]types.AppAVRTarget{
-            config.ProjectDefaults.AppTargetName: {
+            config.AvrProjectDefaults.AppTargetName: {
                 Src:       "src",
                 Framework: framework,
                 Board:     board,
@@ -261,7 +266,7 @@ func (create Create) fillAVRProjectConfig(queue *log.Queue, directory string, bo
 
         pkgConfig := &types.PkgConfig{}
 
-        pkgConfig.MainTag.Ide = config.ProjectDefaults.Ide
+        pkgConfig.MainTag.Ide = config.AvrProjectDefaults.Ide
 
         // package meta information
         pkgConfig.MainTag.Meta.Name = filepath.Base(directory)
@@ -301,9 +306,9 @@ func (create Create) fillAVRProjectConfig(queue *log.Queue, directory string, bo
         }
 
         // create pkg target
-        pkgConfig.TargetsTag.DefaultTarget = config.ProjectDefaults.PkgTargetName
+        pkgConfig.TargetsTag.DefaultTarget = config.AvrProjectDefaults.PkgTargetName
         pkgConfig.TargetsTag.Targets = map[string]types.PkgAVRTarget{
-            config.ProjectDefaults.PkgTargetName: {
+            config.AvrProjectDefaults.PkgTargetName: {
                 Src:       "tests",
                 Framework: framework,
                 Board:     board,

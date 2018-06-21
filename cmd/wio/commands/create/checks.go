@@ -47,11 +47,11 @@ func performArgumentCheck(context *cli.Context, isUpdating bool, platform string
         err = errors.ProgrammingArgumentAssumption{
             CommandName:  "create",
             ArgumentName: "board",
-            Err:          goerr.New("board is not provided so a default board is used: " + config.ProjectDefaults.AVRBoard),
+            Err:          goerr.New("board is not provided so a default board is used: " + config.AvrProjectDefaults.AVRBoard),
         }
 
         log.WriteErrorln(err, true)
-        board = config.ProjectDefaults.AVRBoard
+        board = config.AvrProjectDefaults.AVRBoard
     } else if !isUpdating && platform == constants.AVR && len(context.Args()) >= 1 {
         board = context.Args()[1]
     } else {

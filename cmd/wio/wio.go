@@ -61,30 +61,58 @@ func main() {
                     Name:      "pkg",
                     Usage:     "Creates a wio package, intended to be used by other people.",
                     UsageText: "wio create pkg [command options]",
+                    Flags: []cli.Flag{
+                        cli.BoolFlag{
+                            Name:  "header-only",
+                            Usage: "Specify a header-only package.",
+                        },
+                        cli.BoolFlag{
+                            Name:  "create-example",
+                            Usage: "This will create an example project that user can build and upload.",
+                        },
+                        cli.BoolFlag{
+                            Name:  "only-config",
+                            Usage: "Creates only the configuration file (wio.yml).",
+                        },
+                        cli.BoolFlag{
+                            Name:  "no-extras",
+                            Usage: "This will restrict wio from creating .gitignore, README.md, etc files.",
+                        },
+                        cli.BoolFlag{
+                            Name:  "disable-warnings",
+                            Usage: "Disables all the warning shown by wio.",
+                        },
+                        cli.BoolFlag{
+                            Name:  "verbose",
+                            Usage: "Turns verbose mode on to show detailed errors and commands being executed.",
+                        },
+                    },
                     Subcommands: cli.Commands{
                         cli.Command{
                             Name:      "avr",
                             Usage:     "Creates an AVR package.",
                             UsageText: "wio create pkg avr [directory] [board] [command options]",
                             Flags: []cli.Flag{
-                                cli.BoolFlag{Name: "header-only",
-                                    Usage: "This flag can be used to specify that the package is header only."},
-                                cli.StringFlag{Name: "framework",
-                                    Usage: "Framework being used for this project. Framework is Cosa/Arduino SDK.",
-                                    Value: config.ProjectDefaults.Framework},
-                                cli.BoolFlag{Name: "create-example",
-                                    Usage: "This will create an example project that user can build and upload."},
-                                cli.BoolFlag{Name: "only-config",
-                                    Usage: "Creates only the configuration file (wio.yml)."},
-                                cli.BoolFlag{Name: "no-extras",
-                                    Usage: "This will restrict wio from creating .gitignore, README.md, etc files."},
-                                cli.BoolFlag{Name: "disable-warnings",
-                                    Usage: "Disables all the warning shown by wio."},
-                                cli.BoolFlag{Name: "verbose",
-                                    Usage: "Turns verbose mode on to show detailed errors and commands being executed."},
+                                cli.StringFlag{
+                                    Name:  "framework",
+                                    Usage: "AVR Framework to use: `Cosa` or `Arduino`",
+                                    Value: config.AvrProjectDefaults.Framework,
+                                },
                             },
                             Action: func(c *cli.Context) {
                                 command = create.Create{Context: c, Type: constants.PKG, Platform: constants.AVR, Update: false}
+                            },
+                        },
+                        cli.Command{
+                            Name:      "native",
+                            Usage:     "Create native (Desktop) package.",
+                            UsageText: "wio create pkg native [directory] [command options]",
+                            Flags: []cli.Flag{
+                                cli.StringFlag{
+                                    Name:  "framework",
+                                    Usage: "Currently unused.",
+                                    Value: config.NativeProjectDefaults.Framework,
+                                },
                             },
                         },
                     },
@@ -101,7 +129,7 @@ func main() {
                             Flags: []cli.Flag{
                                 cli.StringFlag{Name: "framework",
                                     Usage: "Framework being used for this project. Framework contains the core libraries.",
-                                    Value: config.ProjectDefaults.Framework},
+                                    Value: config.AvrProjectDefaults.Framework},
                                 cli.BoolFlag{Name: "create-example",
                                     Usage: "This will create an example project that user can build and upload."},
                                 cli.BoolFlag{Name: "only-config",
@@ -147,7 +175,7 @@ func main() {
             Flags: []cli.Flag{
                 cli.StringFlag{Name: "target",
                     Usage: "Builds, Runs and/or uploads a specified target instead of the main/default target.",
-                    Value: config.ProjectDefaults.DefaultTarget,
+                    Value: config.AvrProjectDefaults.DefaultTarget,
                 },
                 cli.BoolFlag{Name: "clean",
                     Usage: "Clean the project build files before new build is triggered.",
@@ -157,7 +185,7 @@ func main() {
                 },
                 cli.StringFlag{Name: "port",
                     Usage: "Port to upload the project to, (default: automatically select).",
-                    Value: config.ProjectDefaults.Port,
+                    Value: config.AvrProjectDefaults.Port,
                 },
                 cli.BoolFlag{Name: "build-all",
                     Usage: "Build all the targets specified in wio.yml file.",
@@ -185,10 +213,10 @@ func main() {
                     Flags: []cli.Flag{
                         cli.IntFlag{Name: "baud",
                             Usage: "Baud rate for the Serial port.",
-                            Value: config.ProjectDefaults.Baud},
+                            Value: config.AvrProjectDefaults.Baud},
                         cli.StringFlag{Name: "port",
                             Usage: "Serial Port to open.",
-                            Value: config.ProjectDefaults.Port},
+                            Value: config.AvrProjectDefaults.Port},
                         cli.BoolFlag{Name: "gui",
                             Usage: "Runs the GUI version of the serial monitor tool"},
                         cli.BoolFlag{Name: "disable-warnings",
@@ -550,7 +578,7 @@ func main() {
         if command.GetContext().Bool("disable-warnings") {
             log.DisableWarnings()
         }
-        
+
         command.Execute()
     }
 }
