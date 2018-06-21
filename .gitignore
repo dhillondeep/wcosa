@@ -10,3 +10,4 @@ bin
 dist/
 node_modules/
 package-lock.json
+cmd/wio/utils/io/bindata.go

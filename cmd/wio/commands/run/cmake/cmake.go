@@ -41,7 +41,7 @@ func GenerateAvrDependencyCMakeString(targets map[string]*CMakeTarget, links []C
         }
 
         finalString = strings.Replace(finalString, "{{DEPENDENCY_NAME}}", target.TargetName, -1)
-        finalString = strings.Replace(finalString, "{{DEPENDENCY_PATH}}", target.Path, -1)
+        finalString = strings.Replace(finalString, "{{DEPENDENCY_PATH}}", filepath.ToSlash(target.Path), -1)
         finalString = strings.Replace(finalString, "{{DEPENDENCY_FLAGS}}",
             strings.Join(target.Flags, " "), -1)
         finalString = strings.Replace(finalString, "{{DEPENDENCY_DEFINITIONS}}",
@@ -107,8 +107,6 @@ func GenerateAvrMainCMakeLists(appName string, appPath string, board string, por
         strings.Join(flags.GetTargetFlags(), " "), -1)
     templateDataStr = strings.Replace(templateDataStr, "{{TARGET_COMPILE_DEFINITIONS}}",
         strings.Join(definitions.GetTargetDefinitions(), " "), -1)
-
-    templateDataStr += "\n\ninclude(${DEPENDENCY_FILE})\n"
 
     if !utils.PathExists(appPath+io.Sep+".wio"+io.Sep+"build") {
         err := os.MkdirAll(appPath+io.Sep+".wio"+io.Sep+"build", os.ModePerm)
