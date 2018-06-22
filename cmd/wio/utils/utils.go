@@ -261,3 +261,12 @@ func ReadWioConfig(path string) (types.Config, error) {
         return appConfig, nil
     }
 }
+
+func Contains(slice []string, value string) bool {
+    for _, element := range slice {
+        if element == value {
+            return true
+        }
+    }
+    return false
+}

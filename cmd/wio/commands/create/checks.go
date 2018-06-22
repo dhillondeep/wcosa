@@ -11,7 +11,6 @@ import (
     "github.com/urfave/cli"
     "os"
     "strings"
-    "wio/cmd/wio/config"
     "wio/cmd/wio/errors"
     "wio/cmd/wio/log"
     "wio/cmd/wio/utils"
@@ -19,46 +18,19 @@ import (
     "wio/cmd/wio/constants"
 )
 
-// This check is used to see if the cli arguments are provided and then based on that decide defaults
-func performArgumentCheck(context *cli.Context, isUpdating bool, platform string) (string, string) {
+// Check directory
+func performDirectoryCheck(context *cli.Context) string {
     var directory string
-    var board string
     var err error
 
-    // check directory
+    // Directory is always the first argument
     if len(context.Args()) <= 0 {
         directory, err = os.Getwd()
-
         log.WriteErrorlnExit(err)
-
-        err = errors.ProgrammingArgumentAssumption{
-            CommandName:  "create",
-            ArgumentName: "directory",
-            Err:          goerr.New("directory is not provided so current directory is used: " + directory),
-        }
-
-        log.WriteErrorln(err, true)
     } else {
         directory = context.Args()[0]
     }
-
-    // check board for create
-    if !isUpdating && platform == constants.AVR && len(context.Args()) <= 1 {
-        err = errors.ProgrammingArgumentAssumption{
-            CommandName:  "create",
-            ArgumentName: "board",
-            Err:          goerr.New("board is not provided so a default board is used: " + config.AvrProjectDefaults.AVRBoard),
-        }
-
-        log.WriteErrorln(err, true)
-        board = config.AvrProjectDefaults.AVRBoard
-    } else if !isUpdating && platform == constants.AVR && len(context.Args()) >= 1 {
-        board = context.Args()[1]
-    } else {
-        board = ""
-    }
-
-    return directory, board
+    return directory
 }
 
 // This check is used to see if wio.yml file exists and the directory is valid
@@ -113,11 +85,13 @@ func performPreUpdateCheck(directory string, create *Create) {
     }
 }
 
-/// This method is a crucial peace of check to make sure people do not lose their work. It makes
+/// This method is a crucial piece of check to make sure people do not lose their work. It makes
 /// sure that if people are creating the project when there are files in the folder, they mean it
 /// and not doing it by mistake. It will warn them to update instead if they want
 func performPreCreateCheck(directory string, onlyConfig bool) {
+    // Configure existing directory
     if onlyConfig {
+        // Check if config exists
         if utils.PathExists(directory + io.Sep + "wio.yml") {
             err := errors.OverridePossibilityError{
                 Path: directory,
@@ -128,13 +102,11 @@ func performPreCreateCheck(directory string, onlyConfig bool) {
             log.WriteErrorAndPrompt(err, log.INFO, "y", true)
         }
 
-        return
-    }
-
-    if utils.PathExists(directory) {
-        if status, err := utils.IsEmpty(directory); err != nil {
+    } else if utils.PathExists(directory) {
+        if isEmpty, err := utils.IsEmpty(directory); err != nil {
             log.WriteErrorlnExit(err)
-        } else if !status {
+        } else if !isEmpty {
+            // Directory is not empty
             err := errors.OverridePossibilityError{
                 Path: directory,
                 Err: goerr.New("files will be replaced with new project files.\n" + errors.Spaces +

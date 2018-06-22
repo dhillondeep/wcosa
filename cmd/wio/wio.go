@@ -23,6 +23,52 @@ import (
     "wio/cmd/wio/constants"
 )
 
+var packageFlags = []cli.Flag{
+    cli.StringFlag{
+        Name: "platform",
+        Usage: "Target platform: 'AVR', 'Native', or 'all'",
+        Value: "all",
+    },
+    cli.StringFlag{
+        Name: "framework",
+        Usage: "Target framework: 'Arduino', 'Cosa', or 'all'",
+        Value: "all",
+    },
+    cli.StringFlag{
+        Name: "board",
+        Usage: "Target boards: e.g. 'uno', 'mega2560', or 'all'",
+        Value: "all",
+    },
+
+    cli.BoolFlag{
+        Name:  "only-config",
+        Usage: "Creates only the configuration file (wio.yml).",
+    },
+    cli.BoolFlag{
+        Name:  "header-only",
+        Usage: "Specify a header-only package.",
+    },
+
+    cli.BoolFlag{
+        Name:  "no-extras",
+        Usage: "This will restrict wio from creating .gitignore, README.md, etc files.",
+    },
+
+    cli.BoolFlag{
+        Name:  "disable-warnings",
+        Usage: "Disables all the warning shown by wio.",
+    },
+    cli.BoolFlag{
+        Name:  "verbose",
+        Usage: "Turns verbose mode on to show detailed errors and commands being executed.",
+    },
+
+    /*cli.BoolFlag{
+        Name:  "create-example",
+        Usage: "This will create an example project that user can build and upload.",
+    },*/
+}
+
 func main() {
     log.Init()
 
@@ -59,62 +105,11 @@ func main() {
             Subcommands: cli.Commands{
                 cli.Command{
                     Name:      "pkg",
-                    Usage:     "Creates a wio package, intended to be used by other people.",
+                    Usage:     "Creates a wio package.",
                     UsageText: "wio create pkg [command options]",
-                    Flags: []cli.Flag{
-                        cli.BoolFlag{
-                            Name:  "header-only",
-                            Usage: "Specify a header-only package.",
-                        },
-                        cli.BoolFlag{
-                            Name:  "create-example",
-                            Usage: "This will create an example project that user can build and upload.",
-                        },
-                        cli.BoolFlag{
-                            Name:  "only-config",
-                            Usage: "Creates only the configuration file (wio.yml).",
-                        },
-                        cli.BoolFlag{
-                            Name:  "no-extras",
-                            Usage: "This will restrict wio from creating .gitignore, README.md, etc files.",
-                        },
-                        cli.BoolFlag{
-                            Name:  "disable-warnings",
-                            Usage: "Disables all the warning shown by wio.",
-                        },
-                        cli.BoolFlag{
-                            Name:  "verbose",
-                            Usage: "Turns verbose mode on to show detailed errors and commands being executed.",
-                        },
-                    },
-                    Subcommands: cli.Commands{
-                        cli.Command{
-                            Name:      "avr",
-                            Usage:     "Creates an AVR package.",
-                            UsageText: "wio create pkg avr [directory] [board] [command options]",
-                            Flags: []cli.Flag{
-                                cli.StringFlag{
-                                    Name:  "framework",
-                                    Usage: "AVR Framework to use: `Cosa` or `Arduino`",
-                                    Value: config.AvrProjectDefaults.Framework,
-                                },
-                            },
-                            Action: func(c *cli.Context) {
-                                command = create.Create{Context: c, Type: constants.PKG, Platform: constants.AVR, Update: false}
-                            },
-                        },
-                        cli.Command{
-                            Name:      "native",
-                            Usage:     "Create native (Desktop) package.",
-                            UsageText: "wio create pkg native [directory] [command options]",
-                            Flags: []cli.Flag{
-                                cli.StringFlag{
-                                    Name:  "framework",
-                                    Usage: "Currently unused.",
-                                    Value: config.NativeProjectDefaults.Framework,
-                                },
-                            },
-                        },
+                    Flags: packageFlags,
+                    Action: func(c *cli.Context) {
+                        command = create.Create{Context: c, Type: constants.PKG, Update: false}
                     },
                 },
                 cli.Command{

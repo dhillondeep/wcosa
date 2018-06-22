@@ -24,7 +24,7 @@ var AvrProjectDefaults = avrDefaults{
 
 type nativeDefaults struct {
     Ide           string
-    Framework     string
+    Language      string
     Port          string
     DefaultTarget string
     AppTargetName string
@@ -33,7 +33,7 @@ type nativeDefaults struct {
 
 var NativeProjectDefaults = nativeDefaults{
     Ide:           "none",
-    Framework:     "none",
+    Language:      "none",
     Port:          "none",
     DefaultTarget: "default",
     AppTargetName: "main",

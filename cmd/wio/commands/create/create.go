@@ -25,7 +25,6 @@ import (
 type Create struct {
     Context  *cli.Context
     Type     string
-    Platform string
     Update   bool
     error    error
 }
@@ -37,52 +36,37 @@ func (create Create) GetContext() *cli.Context {
 
 // Executes the create command
 func (create Create) Execute() {
-    directory, board := performArgumentCheck(create.Context, create.Update, create.Platform)
+    directory := performDirectoryCheck(create.Context)
 
     if create.Update {
         // this checks if wio.yml file exists for it to update
         performWioExistsCheck(directory)
-
         // this checks if project is valid state to be updated
         performPreUpdateCheck(directory, &create)
-
         create.handleUpdate(directory)
 
     } else {
         // this checks if directory is empty before create can be triggered
         performPreCreateCheck(directory, create.Context.Bool("only-config"))
-
-        // handle AVR creation
-        if create.Platform == constants.AVR {
-            create.handleAVRCreation(directory, board)
-        } else {
-            err := errors.PlatformNotSupportedError{
-                Platform: create.Platform,
-            }
-
-            log.WriteErrorlnExit(err)
-        }
+        create.handleCreation(directory)
     }
 }
 
 ///////////////////////////////////////////// Creation ////////////////////////////////////////////////////////
 
-// Creation of Native projects
-func (create Create) handleNativeCreation(directory string) {
-
-}
-
 // Creation of AVR projects
-func (create Create) handleAVRCreation(directory string, board string) {
+func (create Create) handleCreation(directory string) {
+    platform := create.Context.String("platform")
+    framework := create.Context.String("platform")
+    board := create.Context.String("board")
+
     onlyConfig := create.Context.Bool("only-config")
 
+    // Generate project structure
     queue := log.GetQueue()
-
     if !onlyConfig {
-        // create project structure
         log.Write(log.INFO, color.New(color.FgCyan), "creating project structure ... ")
-
-        if err := create.createAVRProjectStructure(queue, directory); err != nil {
+        if err := create.createProjectStructure(queue, directory, platform, framework, board); err != nil {
             log.Writeln(log.NONE, color.New(color.FgGreen), "failure")
             log.PrintQueue(queue, log.TWO_SPACES)
             log.WriteErrorlnExit(err)
@@ -92,28 +76,16 @@ func (create Create) handleAVRCreation(directory string, board string) {
         }
     }
 
-    if !onlyConfig {
-        // fill config file
-        log.Write(log.INFO, color.New(color.FgCyan), "configuring project files ... ")
-    }
+    // Fill configuration file
     queue = log.GetQueue()
-
-    if err := create.fillAVRProjectConfig(queue, directory, board, onlyConfig); err != nil {
-        if !onlyConfig {
-            log.Writeln(log.NONE, color.New(color.FgGreen), "failure")
-            log.PrintQueue(queue, log.TWO_SPACES)
-            log.WriteErrorlnExit(err)
-        } else {
-            log.PrintQueue(queue, "")
-            log.WriteErrorlnExit(err)
-        }
+    log.Write(log.INFO, color.New(color.FgCyan), "configuring project files ... ")
+    if err := create.fillProjectConfig(queue, directory, platform, framework, board); err != nil {
+        log.Writeln(log.NONE, color.New(color.FgGreen), "failure")
+        log.PrintQueue(queue, log.TWO_SPACES)
+        log.WriteErrorlnExit(err)
     } else {
-        if !onlyConfig {
-            log.Writeln(log.NONE, color.New(color.FgGreen), "success")
-            log.PrintQueue(queue, log.TWO_SPACES)
-        } else {
-            log.PrintQueue(queue, "")
-        }
+        log.Writeln(log.NONE, color.New(color.FgGreen), "success")
+        log.PrintQueue(queue, log.TWO_SPACES)
     }
 
     // print structure summary
@@ -148,9 +120,11 @@ func (create Create) handleAVRCreation(directory string, board string) {
 }
 
 // AVR project structure creation
-func (create Create) createAVRProjectStructure(queue *log.Queue, directory string) error {
-    log.QueueWrite(queue, log.VERB, color.New(color.Reset), "reading paths.json file ... ")
+func (create Create) createProjectStructure(
+    queue *log.Queue, directory string,
+    platform string, framework string, board string) error {
 
+    log.QueueWrite(queue, log.VERB, color.New(color.Reset), "reading paths.json file ... ")
     structureData := &StructureConfigData{}
 
     // read configurationsFile
@@ -200,7 +174,9 @@ func (create Create) createAVRProjectStructure(queue *log.Queue, directory strin
             Err:      err,
         }
     } else {
-        newReadmeString := strings.Replace(string(data), "{{PLATFORM}}", create.Platform, 1)
+        newReadmeString := strings.Replace(string(data), "{{PLATFORM}}", platform, 1)
+        newReadmeString = strings.Replace(newReadmeString, "{{FRAMEWORK}}", framework, 1)
+        newReadmeString = strings.Replace(newReadmeString, "{{BOARD}}", board, 1)
         newReadmeString = strings.Replace(newReadmeString, "{{PROJECT_NAME}}", filepath.Base(directory), 1)
         newReadmeString = strings.Replace(newReadmeString, "{{PROJECT_VERSION}}", "0.0.1", 1)
 
@@ -219,21 +195,16 @@ func (create Create) createAVRProjectStructure(queue *log.Queue, directory strin
 }
 
 // Create wio.yml file for AVR project
-func (create Create) fillAVRProjectConfig(queue *log.Queue, directory string, board string, onlyConfig bool) error {
+func (create Create) fillProjectConfig(queue *log.Queue, directory string, onlyConfig bool) error {
     framework := strings.ToLower(create.Context.String("framework"))
 
     var projectConfig types.Config
 
     // handle app
     if create.Type == constants.APP {
-        if !onlyConfig {
-            log.QueueWrite(queue, log.VERB, nil, "creating config file for application ... ")
-        } else {
-            log.QueueWrite(queue, log.INFO, nil, "creating config file for application ... ")
-        }
+        log.QueueWrite(queue, log.INFO, nil, "creating config file for application ... ")
 
         appConfig := &types.AppConfig{}
-
         appConfig.MainTag.Name = filepath.Base(directory)
         appConfig.MainTag.Ide = config.AvrProjectDefaults.Ide
 
@@ -525,9 +496,17 @@ func (create Create) updateAVRProjectFiles(queue *log.Queue, directory string) e
 // Updates configurations for the project to specify supported platforms, frameworks, and boards
 func fillMainTagConfiguration(configurations *types.Configurations, board []string, platform string, framework []string) {
     // supported board, framework and platform and wio version
-    configurations.SupportedBoards = append(configurations.SupportedBoards, board...)
+    if utils.Contains(configurations.SupportedBoards, "ALL") {
+
+    }
+
+    if utils.Contains(configurations.)
+
     configurations.SupportedPlatforms = append(configurations.SupportedPlatforms, platform)
     configurations.SupportedFrameworks = append(configurations.SupportedFrameworks, framework...)
+    if configurations.SupportedPlatforms.con
+    configurations.SupportedBoards = append(configurations.SupportedBoards, board...)
+
     configurations.WioVersion = config.ProjectMeta.Version
 }
 
