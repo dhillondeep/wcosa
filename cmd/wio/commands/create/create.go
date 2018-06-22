@@ -29,6 +29,16 @@ type Create struct {
     error    error
 }
 
+type createInfo struct {
+    Type string
+
+    Platform string
+    Framework string
+    Board string
+
+
+}
+
 // get context for the command
 func (create Create) GetContext() *cli.Context {
     return create.Context
@@ -57,10 +67,11 @@ func (create Create) Execute() {
 // Creation of AVR projects
 func (create Create) handleCreation(directory string) {
     platform := create.Context.String("platform")
-    framework := create.Context.String("platform")
+    framework := create.Context.String("framework")
     board := create.Context.String("board")
 
     onlyConfig := create.Context.Bool("only-config")
+    headerOnly := create.Context.Bool("header-only")
 
     // Generate project structure
     queue := log.GetQueue()
@@ -91,20 +102,16 @@ func (create Create) handleCreation(directory string) {
     // print structure summary
     log.Writeln(log.NONE, nil, "")
     log.Writeln(log.INFO, color.New(color.FgYellow).Add(color.Underline), "Project structure summary")
-    if (create.Type == constants.PKG && !create.Context.Bool("header-only")) || create.Type == constants.APP {
+    if !headerOnly {
         log.Write(log.INFO, color.New(color.FgCyan), "src              ")
-        log.Writeln(log.NONE, color.New(color.Reset), "source/non client files go here")
+        log.Writeln(log.NONE, color.New(color.Reset), "source/non client files")
     }
 
-    if create.Type == constants.PKG {
-        log.Write(log.INFO, color.New(color.FgCyan), "tests            ")
-        log.Writeln(log.NONE, color.New(color.Reset), "source files to test the package go here")
-    }
+    log.Write(log.INFO, color.New(color.FgCyan), "tests            ")
+    log.Writeln(log.NONE, color.New(color.Reset), "source files for test target")
 
-    if create.Type == constants.PKG {
-        log.Write(log.INFO, color.New(color.FgCyan), "include          ")
-        log.Writeln(log.NONE, color.New(color.Reset), "client headers for the package go here")
-    }
+    log.Write(log.INFO, color.New(color.FgCyan), "include          ")
+    log.Writeln(log.NONE, color.New(color.Reset), "public headers for the package")
 
     // print project summary
     log.Writeln(log.NONE, nil, "")
@@ -114,7 +121,9 @@ func (create Create) handleCreation(directory string) {
     log.Write(log.INFO, color.New(color.FgCyan), "project type     ")
     log.Writeln(log.NONE, color.New(color.Reset), create.Type)
     log.Write(log.INFO, color.New(color.FgCyan), "platform         ")
-    log.Writeln(log.NONE, color.New(color.Reset), create.Platform)
+    log.Writeln(log.NONE, color.New(color.Reset), platform)
+    log.Write(log.INFO, color.New(color.FgCyan), "framework        ")
+    log.Writeln(log.NONE, color.New(color.Reset), framework)
     log.Write(log.INFO, color.New(color.FgCyan), "board            ")
     log.Writeln(log.NONE, color.New(color.Reset), board)
 }
@@ -174,11 +183,11 @@ func (create Create) createProjectStructure(
             Err:      err,
         }
     } else {
-        newReadmeString := strings.Replace(string(data), "{{PLATFORM}}", platform, 1)
-        newReadmeString = strings.Replace(newReadmeString, "{{FRAMEWORK}}", framework, 1)
-        newReadmeString = strings.Replace(newReadmeString, "{{BOARD}}", board, 1)
-        newReadmeString = strings.Replace(newReadmeString, "{{PROJECT_NAME}}", filepath.Base(directory), 1)
-        newReadmeString = strings.Replace(newReadmeString, "{{PROJECT_VERSION}}", "0.0.1", 1)
+        newReadmeString := strings.Replace(string(data), "{{PLATFORM}}", platform, -1)
+        newReadmeString = strings.Replace(newReadmeString, "{{FRAMEWORK}}", framework, -1)
+        newReadmeString = strings.Replace(newReadmeString, "{{BOARD}}", board, -1)
+        newReadmeString = strings.Replace(newReadmeString, "{{PROJECT_NAME}}", filepath.Base(directory), -1)
+        newReadmeString = strings.Replace(newReadmeString, "{{PROJECT_VERSION}}", "0.0.1", -1)
 
         if err := io.NormalIO.WriteFile(directory+io.Sep+"README.md", []byte(newReadmeString)); err != nil {
             log.QueueWriteln(queue, log.VERB_NONE, color.New(color.FgRed), "failure")
@@ -195,18 +204,19 @@ func (create Create) createProjectStructure(
 }
 
 // Create wio.yml file for AVR project
-func (create Create) fillProjectConfig(queue *log.Queue, directory string, onlyConfig bool) error {
-    framework := strings.ToLower(create.Context.String("framework"))
+func (create Create) fillProjectConfig(
+    queue *log.Queue, directory string,
+    platform string, framework string, board string) error {
 
     var projectConfig types.Config
 
-    // handle app
+    /*// handle app
     if create.Type == constants.APP {
         log.QueueWrite(queue, log.INFO, nil, "creating config file for application ... ")
 
         appConfig := &types.AppConfig{}
         appConfig.MainTag.Name = filepath.Base(directory)
-        appConfig.MainTag.Ide = config.AvrProjectDefaults.Ide
+        appConfig.MainTag.Ide = config.ProjectDefaults.Ide
 
         // supported board, framework and platform and wio version
         fillMainTagConfiguration(&appConfig.MainTag.Config, []string{board}, constants.AVR, []string{framework})
@@ -214,9 +224,9 @@ func (create Create) fillProjectConfig(queue *log.Queue, directory string, onlyC
         appConfig.MainTag.CompileOptions.Platform = constants.AVR
 
         // create app target
-        appConfig.TargetsTag.DefaultTarget = config.AvrProjectDefaults.AppTargetName
+        appConfig.TargetsTag.DefaultTarget = config.ProjectDefaults.AppTargetName
         appConfig.TargetsTag.Targets = map[string]types.AppAVRTarget{
-            config.AvrProjectDefaults.AppTargetName: {
+            config.ProjectDefaults.AppTargetName: {
                 Src:       "src",
                 Framework: framework,
                 Board:     board,
@@ -228,93 +238,75 @@ func (create Create) fillProjectConfig(queue *log.Queue, directory string, onlyC
         }
 
         projectConfig = appConfig
+    } else {*/
+    log.QueueWrite(queue, log.VERB, nil, "creating config file for package ... ")
+
+    pkgConfig := &types.PkgConfig{}
+
+    pkgConfig.MainTag.Ide = config.ProjectDefaults.Ide
+
+    // package meta information
+    pkgConfig.MainTag.Meta.Name = filepath.Base(directory)
+    pkgConfig.MainTag.Meta.Version = "0.0.1"
+    pkgConfig.MainTag.Meta.License = "MIT"
+    pkgConfig.MainTag.Meta.Keywords = []string{platform, "c", "c++", "wio", framework}
+    pkgConfig.MainTag.Meta.Description = "A wio " + platform + " " + create.Type + " using " + framework + " framework"
+
+    pkgConfig.MainTag.CompileOptions.HeaderOnly = create.Context.Bool("header-only")
+    pkgConfig.MainTag.CompileOptions.Platform = platform
+
+    // supported board, framework and platform and wio version
+    fillMainTagConfiguration(&pkgConfig.MainTag.Config, []string{board}, platform, []string{framework})
+
+    // flags
+    pkgConfig.MainTag.Flags.GlobalFlags = []string{}
+    pkgConfig.MainTag.Flags.RequiredFlags = []string{}
+    pkgConfig.MainTag.Flags.AllowOnlyGlobalFlags = false
+    pkgConfig.MainTag.Flags.AllowOnlyRequiredFlags = false
+
+    if pkgConfig.MainTag.CompileOptions.HeaderOnly {
+        pkgConfig.MainTag.Flags.Visibility = "INTERFACE"
     } else {
-        if !onlyConfig {
-            log.QueueWrite(queue, log.VERB, nil, "creating config file for package ... ")
-        } else {
-            log.QueueWrite(queue, log.INFO, nil, "creating config file for package ... ")
-        }
+        pkgConfig.MainTag.Flags.Visibility = "PRIVATE"
+    }
 
-        pkgConfig := &types.PkgConfig{}
+    // definitions
+    pkgConfig.MainTag.Definitions.GlobalDefinitions = []string{}
+    pkgConfig.MainTag.Definitions.RequiredDefinitions = []string{}
+    pkgConfig.MainTag.Definitions.AllowOnlyGlobalDefinitions = false
+    pkgConfig.MainTag.Definitions.AllowOnlyRequiredDefinitions = false
 
-        pkgConfig.MainTag.Ide = config.AvrProjectDefaults.Ide
+    if pkgConfig.MainTag.CompileOptions.HeaderOnly {
+        pkgConfig.MainTag.Definitions.Visibility = "INTERFACE"
+    } else {
+        pkgConfig.MainTag.Definitions.Visibility = "PRIVATE"
+    }
 
-        // package meta information
-        pkgConfig.MainTag.Meta.Name = filepath.Base(directory)
-        pkgConfig.MainTag.Meta.Version = "0.0.1"
-        pkgConfig.MainTag.Meta.License = "MIT"
-        pkgConfig.MainTag.Meta.Keywords = []string{constants.AVR, "c", "c++", "wio", framework}
-        pkgConfig.MainTag.Meta.Description = "A wio " + constants.AVR + " " + create.Type + " using " + framework + " framework"
-
-        pkgConfig.MainTag.CompileOptions.HeaderOnly = create.Context.Bool("header-only")
-        pkgConfig.MainTag.CompileOptions.Platform = constants.AVR
-
-        // supported board, framework and platform and wio version
-        fillMainTagConfiguration(&pkgConfig.MainTag.Config, []string{board}, constants.AVR, []string{framework})
-
-        // flags
-        pkgConfig.MainTag.Flags.GlobalFlags = []string{}
-        pkgConfig.MainTag.Flags.RequiredFlags = []string{}
-        pkgConfig.MainTag.Flags.AllowOnlyGlobalFlags = false
-        pkgConfig.MainTag.Flags.AllowOnlyRequiredFlags = false
-
-        if pkgConfig.MainTag.CompileOptions.HeaderOnly {
-            pkgConfig.MainTag.Flags.Visibility = "INTERFACE"
-        } else {
-            pkgConfig.MainTag.Flags.Visibility = "PRIVATE"
-        }
-
-        // definitions
-        pkgConfig.MainTag.Definitions.GlobalDefinitions = []string{}
-        pkgConfig.MainTag.Definitions.RequiredDefinitions = []string{}
-        pkgConfig.MainTag.Definitions.AllowOnlyGlobalDefinitions = false
-        pkgConfig.MainTag.Definitions.AllowOnlyRequiredDefinitions = false
-
-        if pkgConfig.MainTag.CompileOptions.HeaderOnly {
-            pkgConfig.MainTag.Definitions.Visibility = "INTERFACE"
-        } else {
-            pkgConfig.MainTag.Definitions.Visibility = "PRIVATE"
-        }
-
-        // create pkg target
-        pkgConfig.TargetsTag.DefaultTarget = config.AvrProjectDefaults.PkgTargetName
-        pkgConfig.TargetsTag.Targets = map[string]types.PkgAVRTarget{
-            config.AvrProjectDefaults.PkgTargetName: {
-                Src:       "tests",
-                Framework: framework,
-                Board:     board,
-                Flags: types.PkgTargetFlags{
-                    GlobalFlags: []string{},
-                    TargetFlags: []string{},
-                    PkgFlags:    []string{},
-                },
+    // create pkg target
+    pkgConfig.TargetsTag.DefaultTarget = config.ProjectDefaults.PkgTargetName
+    pkgConfig.TargetsTag.Targets = map[string]types.PkgAVRTarget{
+        config.ProjectDefaults.PkgTargetName: {
+            Src:       config.ProjectDefaults.PkgTargetName,
+            Framework: framework,
+            Board:     board,
+            Flags: types.PkgTargetFlags{
+                GlobalFlags: []string{},
+                TargetFlags: []string{},
+                PkgFlags:    []string{},
             },
-        }
-
-        projectConfig = pkgConfig
+        },
     }
 
-    if !onlyConfig {
-        log.QueueWriteln(queue, log.VERB_NONE, color.New(color.FgGreen), "success")
-        log.QueueWrite(queue, log.VERB, nil, "pretty printing wio.yml file ... ")
-    } else {
-        log.QueueWriteln(queue, log.NONE, color.New(color.FgGreen), "success")
-        log.QueueWrite(queue, log.INFO, nil, "pretty printing wio.yml file ... ")
-    }
+    projectConfig = pkgConfig
+
+    log.QueueWriteln(queue, log.VERB_NONE, color.New(color.FgGreen), "success")
+    log.QueueWrite(queue, log.VERB, nil, "pretty printing wio.yml file ... ")
 
     if err := utils.PrettyPrintConfig(projectConfig, directory+io.Sep+"wio.yml", true); err != nil {
-        if !onlyConfig {
-            log.QueueWriteln(queue, log.VERB_NONE, color.New(color.FgRed), "failure")
-        } else {
-            log.QueueWriteln(queue, log.NONE, color.New(color.FgRed), "failure")
-        }
+        log.QueueWriteln(queue, log.VERB_NONE, color.New(color.FgRed), "failure")
         return err
     } else {
-        if !onlyConfig {
-            log.QueueWriteln(queue, log.VERB_NONE, color.New(color.FgGreen), "success")
-        } else {
-            log.QueueWriteln(queue, log.NONE, color.New(color.FgGreen), "success")
-        }
+        log.QueueWriteln(queue, log.VERB_NONE, color.New(color.FgGreen), "success")
     }
 
     return nil
@@ -369,7 +361,7 @@ func (create Create) handleUpdate(directory string) {
     log.Write(log.INFO, color.New(color.FgCyan), "project type     ")
     log.Writeln(log.NONE, color.New(color.Reset), create.Type)
     log.Write(log.INFO, color.New(color.FgCyan), "platform         ")
-    log.Writeln(log.NONE, color.New(color.Reset), create.Platform)
+    log.Writeln(log.NONE, color.New(color.Reset), platform)
     log.Write(log.INFO, color.New(color.FgCyan), "board            ")
     log.Writeln(log.NONE, color.New(color.Reset), board)
 }
@@ -494,19 +486,23 @@ func (create Create) updateAVRProjectFiles(queue *log.Queue, directory string) e
 }
 
 // Updates configurations for the project to specify supported platforms, frameworks, and boards
-func fillMainTagConfiguration(configurations *types.Configurations, board []string, platform string, framework []string) {
-    // supported board, framework and platform and wio version
-    if utils.Contains(configurations.SupportedBoards, "ALL") {
-
+func fillMainTagConfiguration(configurations *types.Configurations, boards []string, platform string, frameworks []string) {
+    // supported boards, frameworks and platform and wio version
+    if utils.ContainsNoCase(configurations.SupportedBoards, "all") {
+        configurations.SupportedBoards = []string{"all"}
+    } else {
+        configurations.SupportedBoards = append(configurations.SupportedBoards, boards...)
     }
-
-    if utils.Contains(configurations.)
-
-    configurations.SupportedPlatforms = append(configurations.SupportedPlatforms, platform)
-    configurations.SupportedFrameworks = append(configurations.SupportedFrameworks, framework...)
-    if configurations.SupportedPlatforms.con
-    configurations.SupportedBoards = append(configurations.SupportedBoards, board...)
-
+    if utils.ContainsNoCase(configurations.SupportedFrameworks, "all") {
+        configurations.SupportedFrameworks = []string{"all"}
+    } else {
+        configurations.SupportedFrameworks = append(configurations.SupportedFrameworks, frameworks...)
+    }
+    if utils.ContainsNoCase(configurations.SupportedPlatforms, "all") {
+        configurations.SupportedPlatforms = []string{"all"}
+    } else {
+        configurations.SupportedPlatforms = append(configurations.SupportedPlatforms, platform)
+    }
     configurations.WioVersion = config.ProjectMeta.Version
 }
 

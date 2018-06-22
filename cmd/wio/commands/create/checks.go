@@ -72,11 +72,11 @@ func performPreUpdateCheck(directory string, create *Create) {
     if err != nil {
         log.WriteErrorlnExit(err)
     } else {
-        create.Platform = projectConfig.GetMainTag().GetCompileOptions().GetPlatform()
+        platform := projectConfig.GetMainTag().GetCompileOptions().GetPlatform()
 
-        if strings.ToLower(create.Platform) != constants.AVR {
+        if strings.ToLower(platform) != constants.AVR {
             err := errors.PlatformNotSupportedError{
-                Platform: create.Platform,
+                Platform: platform,
                 Err:      goerr.New("update the platform tag before updating the project"),
             }
 

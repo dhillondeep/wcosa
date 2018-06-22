@@ -15,7 +15,6 @@ import (
     "wio/cmd/wio/errors"
     "wio/cmd/wio/types"
     "wio/cmd/wio/utils/io"
-    "wio/cmd/wio/constants"
 )
 
 // Write configuration with nice spacing and information
@@ -82,19 +81,10 @@ func PrettyPrintConfig(projectConfig types.Config, filePath string, showHelp boo
     emptyMapPat := regexp.MustCompile(`:\s+\{\}`)
     // empty tag
     emptyTagPat := regexp.MustCompile(`:\s+\n+|:\s+"\s+"|:\s+""|:"\s+"|:""`)
-    // board
-    boardPat := regexp.MustCompile(`board`)
 
     scanner := bufio.NewScanner(strings.NewReader(string(ymlData)))
     for scanner.Scan() {
         line := scanner.Text()
-
-        if projectConfig.GetMainTag().GetCompileOptions().GetPlatform() == constants.DESKTOP {
-            // skip board tags for desktop platform
-            if boardPat.MatchString(line) {
-                continue
-            }
-        }
 
         // ignore empty arrays, objects and tags
         if emptyArrayPat.MatchString(line) || emptyMapPat.MatchString(line) || emptyTagPat.MatchString(line) {

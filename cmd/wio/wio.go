@@ -124,7 +124,7 @@ func main() {
                             Flags: []cli.Flag{
                                 cli.StringFlag{Name: "framework",
                                     Usage: "Framework being used for this project. Framework contains the core libraries.",
-                                    Value: config.AvrProjectDefaults.Framework},
+                                    Value: config.ProjectDefaults.Framework},
                                 cli.BoolFlag{Name: "create-example",
                                     Usage: "This will create an example project that user can build and upload."},
                                 cli.BoolFlag{Name: "only-config",
@@ -137,7 +137,7 @@ func main() {
                                     Usage: "Disables all the warning shown by wio."},
                             },
                             Action: func(c *cli.Context) {
-                                command = create.Create{Context: c, Type: constants.APP, Platform: constants.AVR, Update: false}
+                                command = create.Create{Context: c, Type: constants.APP, Update: false}
                             },
                         },
                     },
@@ -170,7 +170,7 @@ func main() {
             Flags: []cli.Flag{
                 cli.StringFlag{Name: "target",
                     Usage: "Builds, Runs and/or uploads a specified target instead of the main/default target.",
-                    Value: config.AvrProjectDefaults.DefaultTarget,
+                    Value: config.ProjectDefaults.DefaultTarget,
                 },
                 cli.BoolFlag{Name: "clean",
                     Usage: "Clean the project build files before new build is triggered.",
@@ -180,7 +180,7 @@ func main() {
                 },
                 cli.StringFlag{Name: "port",
                     Usage: "Port to upload the project to, (default: automatically select).",
-                    Value: config.AvrProjectDefaults.Port,
+                    Value: config.ProjectDefaults.Port,
                 },
                 cli.BoolFlag{Name: "build-all",
                     Usage: "Build all the targets specified in wio.yml file.",
@@ -208,10 +208,10 @@ func main() {
                     Flags: []cli.Flag{
                         cli.IntFlag{Name: "baud",
                             Usage: "Baud rate for the Serial port.",
-                            Value: config.AvrProjectDefaults.Baud},
+                            Value: config.ProjectDefaults.Baud},
                         cli.StringFlag{Name: "port",
                             Usage: "Serial Port to open.",
-                            Value: config.AvrProjectDefaults.Port},
+                            Value: config.ProjectDefaults.Port},
                         cli.BoolFlag{Name: "gui",
                             Usage: "Runs the GUI version of the serial monitor tool"},
                         cli.BoolFlag{Name: "disable-warnings",

@@ -13,6 +13,7 @@ import (
     "wio/cmd/wio/log"
     "wio/cmd/wio/types"
     wio "wio/cmd/wio/utils/io"
+    "strings"
 )
 
 // Checks if path exists and returns true and false based on that
@@ -265,6 +266,15 @@ func ReadWioConfig(path string) (types.Config, error) {
 func Contains(slice []string, value string) bool {
     for _, element := range slice {
         if element == value {
+            return true
+        }
+    }
+    return false
+}
+
+func ContainsNoCase(slice []string, value string) bool {
+    for _, element := range slice {
+        if strings.ToLower(element) == strings.ToLower(value) {
             return true
         }
     }

@@ -47,7 +47,7 @@ func (run Run) Execute() {
     }
 
     targetName := run.Context.String("target")
-    if targetName == config.AvrProjectDefaults.DefaultTarget {
+    if targetName == config.ProjectDefaults.DefaultTarget {
         targetName = projectConfig.GetTargets().GetDefaultTarget()
     }
 

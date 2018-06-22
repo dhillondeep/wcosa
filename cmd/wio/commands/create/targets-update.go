@@ -21,8 +21,8 @@ func updateAVRAppTargets(targets *types.AppAVRTargets, directory string) {
             // create a default target
             targets.Targets[targets.DefaultTarget] = types.AppAVRTarget{
                 Src:       "src",
-                Framework: config.AvrProjectDefaults.Framework,
-                Board:     config.AvrProjectDefaults.AVRBoard,
+                Framework: config.ProjectDefaults.Framework,
+                Board:     config.ProjectDefaults.AVRBoard,
                 Flags: types.AppTargetFlags{
                     GlobalFlags: []string{},
                     TargetFlags: []string{},
@@ -32,13 +32,13 @@ func updateAVRAppTargets(targets *types.AppAVRTargets, directory string) {
     } else {
         // create a default target or make one the default
         if len(targets.Targets) <= 0 {
-            targets.DefaultTarget = config.AvrProjectDefaults.AppTargetName
+            targets.DefaultTarget = config.ProjectDefaults.AppTargetName
             // create a default target
             targets.Targets = map[string]types.AppAVRTarget{
-                config.AvrProjectDefaults.AppTargetName: {
+                config.ProjectDefaults.AppTargetName: {
                     Src:       "src",
-                    Framework: config.AvrProjectDefaults.Framework,
-                    Board:     config.AvrProjectDefaults.AVRBoard,
+                    Framework: config.ProjectDefaults.Framework,
+                    Board:     config.ProjectDefaults.AVRBoard,
                     Flags: types.AppTargetFlags{
                         GlobalFlags: []string{},
                         TargetFlags: []string{},
@@ -63,8 +63,8 @@ func updateAVRPkgTargets(targets *types.PkgAVRTargets, directory string) {
             // create a default target
             targets.Targets[targets.DefaultTarget] = types.PkgAVRTarget{
                 Src:       "tests",
-                Framework: config.AvrProjectDefaults.Framework,
-                Board:     config.AvrProjectDefaults.AVRBoard,
+                Framework: config.ProjectDefaults.Framework,
+                Board:     config.ProjectDefaults.AVRBoard,
                 Flags: types.PkgTargetFlags{
                     GlobalFlags: []string{},
                     TargetFlags: []string{},
@@ -75,13 +75,13 @@ func updateAVRPkgTargets(targets *types.PkgAVRTargets, directory string) {
     } else {
         // create a default target or make one the default
         if len(targets.Targets) <= 0 {
-            targets.DefaultTarget = config.AvrProjectDefaults.AppTargetName
+            targets.DefaultTarget = config.ProjectDefaults.AppTargetName
             // create a default target
             targets.Targets = map[string]types.PkgAVRTarget{
-                config.AvrProjectDefaults.AppTargetName: {
+                config.ProjectDefaults.AppTargetName: {
                     Src:       "tests",
-                    Framework: config.AvrProjectDefaults.Framework,
-                    Board:     config.AvrProjectDefaults.AVRBoard,
+                    Framework: config.ProjectDefaults.Framework,
+                    Board:     config.ProjectDefaults.AVRBoard,
                     Flags: types.PkgTargetFlags{
                         GlobalFlags: []string{},
                         TargetFlags: []string{},
