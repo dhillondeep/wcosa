@@ -236,10 +236,10 @@ func WriteErrorAndPrompt(err error, logType string, promptRightAnswer string, ca
     text, err := reader.ReadString('\n')
     WriteErrorlnExit(err)
 
-    text = strings.TrimSuffix(text, "\n")
+    text = strings.Trim(strings.Trim(strings.Trim(text, "\n"), "\r"), " ")
 
     if caseSensitive {
-        promptRightAnswer = strings.ToLower(promptRightAnswer)
+        promptRightAnswer = strings.Trim(strings.ToLower(promptRightAnswer), " ")
         text = strings.ToLower(text)
     }
 
@@ -248,6 +248,7 @@ func WriteErrorAndPrompt(err error, logType string, promptRightAnswer string, ca
     } else {
         fmt.Fprint(colorable.NewColorableStderr(), "\n")
     }
+
 }
 
 // This returns true if verbose mode is on and false otherwise

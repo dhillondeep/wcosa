@@ -17,6 +17,7 @@ import (
     "wio/cmd/wio/utils"
     "wio/cmd/wio/utils/io"
     "wio/cmd/wio/constants"
+    "path/filepath"
 )
 
 // This check is used to see if the cli arguments are provided and then based on that decide defaults
@@ -56,6 +57,11 @@ func performArgumentCheck(context *cli.Context, isUpdating bool, platform string
         board = context.Args()[1]
     } else {
         board = ""
+    }
+
+    directory, err = filepath.Abs(directory)
+    if err != nil {
+        log.WriteErrorlnExit(err)
     }
 
     return directory, board
@@ -144,13 +150,10 @@ func performPreCreateCheck(directory string, onlyConfig bool) {
             log.WriteErrorAndPrompt(err, log.INFO, "y", true)
 
             // delete all the files
-            if err := os.RemoveAll(directory); err != nil {
-                deleteError := errors.DeleteDirectoryError{
-                    DirName: directory,
-                    Err:     err,
-                }
-
-                log.WriteErrorlnExit(deleteError)
+            if err := utils.RemoveContents(directory); err != nil {
+                log.WriteErrorlnExit(err)
+            } else {
+                log.Writeln(log.VERB, nil, "deleted all the files from: %s", directory)
             }
         }
     }
