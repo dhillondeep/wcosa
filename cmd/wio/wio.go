@@ -25,17 +25,17 @@ import (
 
 var packageFlags = []cli.Flag{
     cli.StringFlag{
-        Name: "platform",
+        Name:  "platform",
         Usage: "Target platform: 'AVR', 'Native', or 'all'",
         Value: "all",
     },
     cli.StringFlag{
-        Name: "framework",
+        Name:  "framework",
         Usage: "Target framework: 'Arduino', 'Cosa', or 'all'",
         Value: "all",
     },
     cli.StringFlag{
-        Name: "board",
+        Name:  "board",
         Usage: "Target boards: e.g. 'uno', 'mega2560', or 'all'",
         Value: "all",
     },
@@ -107,7 +107,7 @@ func main() {
                     Name:      "pkg",
                     Usage:     "Creates a wio package.",
                     UsageText: "wio create pkg [command options]",
-                    Flags: packageFlags,
+                    Flags:     packageFlags,
                     Action: func(c *cli.Context) {
                         command = create.Create{Context: c, Type: constants.PKG, Update: false}
                     },

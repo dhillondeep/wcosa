@@ -20,23 +20,27 @@ import (
     "wio/cmd/wio/utils"
     "wio/cmd/wio/utils/io"
     "wio/cmd/wio/constants"
+    "wio/cmd/wio/utils/template"
 )
 
 type Create struct {
-    Context  *cli.Context
-    Type     string
-    Update   bool
-    error    error
+    Context *cli.Context
+    Type    string
+    Update  bool
+    error   error
 }
 
 type createInfo struct {
-    Type string
+    Directory string
+    Type      string
+    Name      string
 
-    Platform string
+    Platform  string
     Framework string
-    Board string
+    Board     string
 
-
+    ConfigOnly bool
+    HeaderOnly bool
 }
 
 // get context for the command
@@ -65,75 +69,75 @@ func (create Create) Execute() {
 ///////////////////////////////////////////// Creation ////////////////////////////////////////////////////////
 
 // Creation of AVR projects
-func (create Create) handleCreation(directory string) {
-    platform := create.Context.String("platform")
-    framework := create.Context.String("framework")
-    board := create.Context.String("board")
-
-    onlyConfig := create.Context.Bool("only-config")
-    headerOnly := create.Context.Bool("header-only")
+func (create Create) handleCreation(dir string) {
+    info := createInfo{
+        Directory:  dir,
+        Type:       constants.PKG,
+        Name:       filepath.Base(dir),
+        Platform:   create.Context.String("platform"),
+        Framework:  create.Context.String("framework"),
+        Board:      create.Context.String("board"),
+        ConfigOnly: create.Context.Bool("only-config"),
+        HeaderOnly: create.Context.Bool("header-only"),
+    }
+    infoLowerCase(&info)
 
     // Generate project structure
     queue := log.GetQueue()
-    if !onlyConfig {
-        log.Write(log.INFO, color.New(color.FgCyan), "creating project structure ... ")
-        if err := create.createProjectStructure(queue, directory, platform, framework, board); err != nil {
-            log.Writeln(log.NONE, color.New(color.FgGreen), "failure")
-            log.PrintQueue(queue, log.TWO_SPACES)
+    if !info.ConfigOnly {
+        log.Info(log.Cyan, "creating project structure ... ")
+        if err := create.createProjectStructure(queue, &info); err != nil {
+            log.WriteFailure()
             log.WriteErrorlnExit(err)
         } else {
-            log.Writeln(log.NONE, color.New(color.FgGreen), "success")
-            log.PrintQueue(queue, log.TWO_SPACES)
+            log.WriteSuccess()
         }
+        log.PrintQueue(queue, log.TWO_SPACES)
     }
 
     // Fill configuration file
     queue = log.GetQueue()
-    log.Write(log.INFO, color.New(color.FgCyan), "configuring project files ... ")
-    if err := create.fillProjectConfig(queue, directory, platform, framework, board); err != nil {
-        log.Writeln(log.NONE, color.New(color.FgGreen), "failure")
-        log.PrintQueue(queue, log.TWO_SPACES)
+    log.Info(log.Cyan, "configuring project files ... ")
+    if err := create.fillProjectConfig(queue, &info); err != nil {
+        log.WriteFailure()
         log.WriteErrorlnExit(err)
     } else {
-        log.Writeln(log.NONE, color.New(color.FgGreen), "success")
-        log.PrintQueue(queue, log.TWO_SPACES)
+        log.WriteSuccess()
     }
+    log.PrintQueue(queue, log.TWO_SPACES)
 
     // print structure summary
-    log.Writeln(log.NONE, nil, "")
-    log.Writeln(log.INFO, color.New(color.FgYellow).Add(color.Underline), "Project structure summary")
-    if !headerOnly {
-        log.Write(log.INFO, color.New(color.FgCyan), "src              ")
-        log.Writeln(log.NONE, color.New(color.Reset), "source/non client files")
+    log.Writeln()
+    log.Info(log.Yellow.Add(color.Underline), "Project structure summary")
+    if !info.HeaderOnly {
+        log.Info(log.Cyan, "src              ")
+        log.Writeln("source/non client files")
     }
 
-    log.Write(log.INFO, color.New(color.FgCyan), "tests            ")
-    log.Writeln(log.NONE, color.New(color.Reset), "source files for test target")
+    log.Info(log.Cyan, "tests            ")
+    log.Writeln("source files for test target")
 
-    log.Write(log.INFO, color.New(color.FgCyan), "include          ")
-    log.Writeln(log.NONE, color.New(color.Reset), "public headers for the package")
+    log.Info(log.Cyan, "include          ")
+    log.Writeln("public headers for the package")
 
     // print project summary
-    log.Writeln(log.NONE, nil, "")
-    log.Writeln(log.INFO, color.New(color.FgYellow).Add(color.Underline), "Project creation summary")
-    log.Write(log.INFO, color.New(color.FgCyan), "path             ")
-    log.Writeln(log.NONE, color.New(color.Reset), directory)
-    log.Write(log.INFO, color.New(color.FgCyan), "project type     ")
-    log.Writeln(log.NONE, color.New(color.Reset), create.Type)
-    log.Write(log.INFO, color.New(color.FgCyan), "platform         ")
-    log.Writeln(log.NONE, color.New(color.Reset), platform)
-    log.Write(log.INFO, color.New(color.FgCyan), "framework        ")
-    log.Writeln(log.NONE, color.New(color.Reset), framework)
-    log.Write(log.INFO, color.New(color.FgCyan), "board            ")
-    log.Writeln(log.NONE, color.New(color.Reset), board)
+    log.Writeln()
+    log.Infoln(log.Yellow.Add(color.Underline), "Project creation summary")
+    log.Info(log.Cyan, "path             ")
+    log.Writeln(info.Directory)
+    log.Info(log.Cyan, "project type     ")
+    log.Writeln(create.Type)
+    log.Info(log.Cyan, "platform         ")
+    log.Writeln(info.Platform)
+    log.Info(log.Cyan, "framework        ")
+    log.Writeln(info.Framework)
+    log.Info(log.Cyan, "board            ")
+    log.Writeln(info.Board)
 }
 
 // AVR project structure creation
-func (create Create) createProjectStructure(
-    queue *log.Queue, directory string,
-    platform string, framework string, board string) error {
-
-    log.QueueWrite(queue, log.VERB, color.New(color.Reset), "reading paths.json file ... ")
+func (create Create) createProjectStructure(queue *log.Queue, info *createInfo) error {
+    log.QueueWrite(queue, log.VERB, log.Default, "reading paths.json file ... ")
     structureData := &StructureConfigData{}
 
     // read configurationsFile
@@ -163,7 +167,7 @@ func (create Create) createProjectStructure(
     fileConstrainsMap["example"] = create.Context.Bool("create-example")
     fileConstrainsMap["no-header-only"] = !create.Context.Bool("header-only")
 
-    log.QueueWrite(queue, log.VERB, color.New(color.Reset), "copying asset files ... ")
+    log.QueueWrite(queue, log.VERB, log.Default, "copying asset files ... ")
     subQueue := log.GetQueue()
 
     if err := copyProjectAssets(subQueue, directory, create.Update, structureTypeData, dirConstrainsMap, fileConstrainsMap); err != nil {
@@ -175,32 +179,10 @@ func (create Create) createProjectStructure(
         log.CopyQueue(subQueue, queue, log.FOUR_SPACES)
     }
 
-    log.QueueWrite(queue, log.VERB, color.New(color.Reset), "filling README file ... ")
-    if data, err := io.NormalIO.ReadFile(directory + io.Sep + "README.md"); err != nil {
-        log.QueueWriteln(queue, log.VERB_NONE, color.New(color.FgRed), "failure")
-        return errors.ReadFileError{
-            FileName: directory + io.Sep + "wio.yml",
-            Err:      err,
-        }
-    } else {
-        newReadmeString := strings.Replace(string(data), "{{PLATFORM}}", platform, -1)
-        newReadmeString = strings.Replace(newReadmeString, "{{FRAMEWORK}}", framework, -1)
-        newReadmeString = strings.Replace(newReadmeString, "{{BOARD}}", board, -1)
-        newReadmeString = strings.Replace(newReadmeString, "{{PROJECT_NAME}}", filepath.Base(directory), -1)
-        newReadmeString = strings.Replace(newReadmeString, "{{PROJECT_VERSION}}", "0.0.1", -1)
+    readmeFile := info.Directory + io.Sep + "README.md"
+    err := fillReadMe(queue, readmeFile, info)
 
-        if err := io.NormalIO.WriteFile(directory+io.Sep+"README.md", []byte(newReadmeString)); err != nil {
-            log.QueueWriteln(queue, log.VERB_NONE, color.New(color.FgRed), "failure")
-            return errors.WriteFileError{
-                FileName: directory + io.Sep + "README.md",
-                Err:      err,
-            }
-        }
-    }
-
-    log.QueueWriteln(queue, log.VERB_NONE, color.New(color.FgGreen), "success")
-
-    return nil
+    return err
 }
 
 // Create wio.yml file for AVR project
@@ -327,7 +309,7 @@ func (create Create) handleUpdate(directory string) {
 
     if platform == constants.AVR {
         // update AVR project files
-        log.Write(log.INFO, color.New(color.FgCyan), "updating files for AVR platform ... ")
+        log.Info(log.Cyan, "updating files for AVR platform ... ")
         queue := log.GetQueue()
 
         if err := create.updateAVRProjectFiles(queue, directory); err != nil {
@@ -341,7 +323,7 @@ func (create Create) handleUpdate(directory string) {
     }
 
     // update wio.yml file
-    log.Write(log.INFO, color.New(color.FgCyan), "updating wio.yml file ... ")
+    log.Info(log.Cyan, "updating wio.yml file ... ")
     queue := log.GetQueue()
 
     if err := create.updateConfig(queue, projectConfig, directory); err != nil {
@@ -356,14 +338,14 @@ func (create Create) handleUpdate(directory string) {
     // print update summary
     log.Writeln(log.NONE, nil, "")
     log.Writeln(log.INFO, color.New(color.FgYellow).Add(color.Underline), "Project update summary")
-    log.Write(log.INFO, color.New(color.FgCyan), "path             ")
-    log.Writeln(log.NONE, color.New(color.Reset), directory)
-    log.Write(log.INFO, color.New(color.FgCyan), "project type     ")
-    log.Writeln(log.NONE, color.New(color.Reset), create.Type)
-    log.Write(log.INFO, color.New(color.FgCyan), "platform         ")
-    log.Writeln(log.NONE, color.New(color.Reset), platform)
-    log.Write(log.INFO, color.New(color.FgCyan), "board            ")
-    log.Writeln(log.NONE, color.New(color.Reset), board)
+    log.Info(log.Cyan, "path             ")
+    log.Writeln(log.NONE, directory)
+    log.Info(log.Cyan, "project type     ")
+    log.Writeln(log.NONE, create.Type)
+    log.Info(log.Cyan, "platform         ")
+    log.Writeln(log.NONE, platform)
+    log.Info(log.Cyan, "board            ")
+    log.Writeln(log.NONE, board)
 }
 
 // Update wio.yml file
@@ -449,7 +431,7 @@ func (create Create) updateConfig(queue *log.Queue, projectConfig types.Config, 
 
 // Update AVR project files
 func (create Create) updateAVRProjectFiles(queue *log.Queue, directory string) error {
-    log.QueueWrite(queue, log.VERB, color.New(color.Reset), "reading paths.json file ... ")
+    log.QueueWrite(queue, log.VERB, log.Default, "reading paths.json file ... ")
 
     isApp, err := utils.IsAppType(directory + io.Sep + "wio.yml")
     if err != nil {
@@ -485,6 +467,28 @@ func (create Create) updateAVRProjectFiles(queue *log.Queue, directory string) e
     return nil
 }
 
+func fillReadMe(queue *log.Queue, readmeFile string, info *createInfo) error {
+    log.QueueWrite(queue, log.VERB, log.Default, "filling README file ... ")
+    if nil != template.IOReplace(readmeFile, map[string]string{
+        "PLATFORM":        info.Platform,
+        "FRAMEWORK":       info.Framework,
+        "BOARD":           info.Board,
+        "PROJECT_NAME":    info.Name,
+        "PROJECT_VERSION": "0.0.1",
+    }) {
+        log.WriteFailure(queue, log.VERB_NONE)
+    }
+    log.WriteSuccess(queue, log.VERB_NONE)
+    return nil
+}
+
+func infoLowerCase(info *createInfo) {
+    info.Type = strings.ToLower(info.Type)
+    info.Platform = strings.ToLower(info.Platform)
+    info.Framework = strings.ToLower(info.Framework)
+    info.Board = strings.ToLower(info.Board)
+}
+
 // Updates configurations for the project to specify supported platforms, frameworks, and boards
 func fillMainTagConfiguration(configurations *types.Configurations, boards []string, platform string, frameworks []string) {
     // supported boards, frameworks and platform and wio version
@@ -508,39 +512,33 @@ func fillMainTagConfiguration(configurations *types.Configurations, boards []str
 
 // This uses a structure.json file and creates a project structure based on that. It takes in consideration
 // all the constrains and copies files. This should be used for creating project for any type of app/pkg
-func copyProjectAssets(queue *log.Queue, directory string, update bool, structureTypeData StructureTypeData,
-    dirConstrainsMap map[string]bool, fileConstrainsMap map[string]bool) error {
+func copyProjectAssets(
+    queue *log.Queue, directory string, update bool, structureTypeData StructureTypeData,
+    dirConstraintMap map[string]bool, fileConstraintMap map[string]bool) error {
     for _, path := range structureTypeData.Paths {
-        moveOnDir := false
+        skipDir := false
 
         log.QueueWriteln(queue, log.VERB, nil, "copying assets to directory: "+directory+path.Entry)
 
         // handle directory constrains
-        for _, constrain := range path.Constrains {
-            constrainProvided := false
-
-            if _, exists := dirConstrainsMap[constrain]; exists {
-                if dirConstrainsMap[constrain] {
-                    constrainProvided = true
-                } else {
-                    constrainProvided = false
-                }
-            }
+        for _, constraint := range path.Constrains {
+            _, exists := dirConstraintMap[constraint]
+            constrainProvided := exists && dirConstraintMap[constraint]
 
             if !constrainProvided {
-                err := errors.ProjectStructureConstrainError{
-                    Constrain: constrain,
-                    Path:      directory + io.Sep + path.Entry,
-                    Err:       goerr.New("constrained not specified and hence skipping this directory"),
+                err := errors.ProjectStructureConstraintError{
+                    Constraint: constraint,
+                    Path:       directory + io.Sep + path.Entry,
+                    Err:        goerr.New("constrained not specified and hence skipping this directory"),
                 }
 
                 log.QueueWriteln(queue, log.VERB, nil, err.Error())
-                moveOnDir = true
+                skipDir = true
                 break
             }
         }
 
-        if moveOnDir {
+        if skipDir {
             continue
         }
 
@@ -550,8 +548,7 @@ func copyProjectAssets(queue *log.Queue, directory string, update bool, structur
             if err := os.MkdirAll(directoryPath, os.ModePerm); err != nil {
                 return err
             } else {
-                log.QueueWriteln(queue, log.VERB, nil,
-                    "created directory: %s", directoryPath)
+                log.QueueWriteln(queue, log.VERB, nil, "created directory: %s", directoryPath)
             }
         }
 
@@ -559,34 +556,27 @@ func copyProjectAssets(queue *log.Queue, directory string, update bool, structur
             log.QueueWriteln(queue, log.VERB, nil, "copying asset files for directory: %s", directoryPath)
 
             toPath := filepath.Clean(directoryPath + io.Sep + file.To)
-            moveOnFile := false
+            skipFile := false
 
             // handle file constrains
-            for _, constrain := range file.Constrains {
-                constrainProvided := false
+            for _, constraint := range file.Constraints {
+                _, exists := fileConstraintMap[constraint]
+                constraintProvided := exists && fileConstraintMap[constraint]
 
-                if _, exists := fileConstrainsMap[constrain]; exists {
-                    if fileConstrainsMap[constrain] {
-                        constrainProvided = true
-                    } else {
-                        constrainProvided = false
-                    }
-                }
-
-                if !constrainProvided {
-                    err := errors.ProjectStructureConstrainError{
-                        Constrain: constrain,
-                        Path:      file.From,
-                        Err:       goerr.New("constrained not specified and hence skipping this file"),
+                if !constraintProvided {
+                    err := errors.ProjectStructureConstraintError{
+                        Constraint: constraint,
+                        Path:       file.From,
+                        Err:        goerr.New("constraint not specified and hence skipping this file"),
                     }
 
                     log.QueueWriteln(queue, log.VERB, nil, err.Error())
-                    moveOnFile = true
+                    skipFile = true
                     break
                 }
             }
 
-            if moveOnFile {
+            if skipFile {
                 continue
             }
 

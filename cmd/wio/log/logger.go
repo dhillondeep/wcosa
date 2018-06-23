@@ -17,26 +17,39 @@ import (
     "strings"
 )
 
+type Indentation string
+
 const (
     NO_SPACES    = ""
     TWO_SPACES   = "  "
-    FOUR_SPACES  = "  "
-    SIX_SPACES   = "  "
-    EIGHT_SPACES = "  "
+    FOUR_SPACES  = "    "
+    SIX_SPACES   = "      "
+    EIGHT_SPACES = "        "
 )
+
+// Log type levels
+type Type string
 
 const (
-    VERB_NONE = "VERB_NONE" // Does not Show INFO tag in verbose mode (only activates in verbose mode)
-    INFO_NONE = "INFO_NONE" // Only Shows text in Verbose mode
-    NONE      = "NONE"      // Does not show INFO tag in regular mode
-    INFO      = "INFO"      // Shows like a normal text in regular mode and INFO tag in verbose mode
-    VERB      = "VERB"
-    ERR       = "ERR"
-    WARN      = "WARN"
+    VERB_NONE Type = "VERB_NONE" // Does not Show INFO tag in verbose mode (only activates in verbose mode)
+    INFO_NONE Type = "INFO_NONE" // Only Shows text in Verbose mode
+    NONE      Type = "NONE"      // Does not show INFO tag in regular mode
+    INFO      Type = "INFO"      // Shows like a normal text in regular mode and INFO tag in verbose mode
+    VERB      Type = "VERB"
+    ERR       Type = "ERR"
+    WARN      Type = "WARN"
 )
 
-var logTypeColors map[string]*color.Color
-var logTypeStream map[string]io.Writer
+// Colors
+var Cyan = color.New(color.FgCyan)
+var Green = color.New(color.FgGreen)
+var Yellow = color.New(color.FgYellow)
+var Red = color.New(color.FgRed)
+var Default = color.New(color.Reset)
+
+// Log colors and streams
+var logTypeColors map[Type]*color.Color
+var logTypeStream map[Type]io.Writer
 var createdWriter = writer{verbose: false, warnings: true}
 
 // user should not touch this
@@ -57,8 +70,8 @@ func DisableWarnings() {
 
 // This must be called at the beggining
 func Init() {
-    logTypeColors = make(map[string]*color.Color)
-    logTypeStream = make(map[string]io.Writer)
+    logTypeColors = make(map[Type]*color.Color)
+    logTypeStream = make(map[Type]io.Writer)
 
     logTypeColors[VERB_NONE] = color.New(color.FgWhite).Add(color.BgCyan)
     logTypeStream[VERB_NONE] = colorable.NewColorableStdout()
@@ -78,12 +91,12 @@ func GetQueue() *Queue {
 }
 
 // Write Queue
-func QueueWrite(queue *Queue, logType string, providedColor *color.Color, message string, a ...interface{}) {
+func QueueWrite(queue *Queue, logType Type, providedColor *color.Color, message string, a ...interface{}) {
     pushLog(queue, logType, providedColor, message, a...)
 }
 
 // Writeln Queue
-func QueueWriteln(queue *Queue, logType string, providedColor *color.Color, message string, a ...interface{}) {
+func QueueWriteln(queue *Queue, logType Type, providedColor *color.Color, message string, a ...interface{}) {
     QueueWrite(queue, logType, providedColor, message+"\n", a...)
 }
 
@@ -106,8 +119,8 @@ func CopyQueue(fromQueue *Queue, toQueue *Queue, spaces string) {
     }
 }
 
-// Print Queue on the console
-func PrintQueue(queue *Queue, spaces string) {
+// Print Queue on the console with a set indentation
+func PrintQueue(queue *Queue, spaces Indentation) {
     index := 0
 
     for {
@@ -116,34 +129,54 @@ func PrintQueue(queue *Queue, spaces string) {
         } else {
             value := popLog(queue)
 
-            value.text = spaces + value.text
+            value.text = string(spaces) + value.text
 
             pat := regexp.MustCompile(`\n[\s]+[a-zA-Z]`)
             findStr := strings.Trim(pat.FindString(value.text), "\n")
 
-            value.text = pat.ReplaceAllString(value.text, "\n"+spaces+findStr)
+            value.text = pat.ReplaceAllString(value.text, "\n"+string(spaces)+findStr)
             Write(value.logType, value.providedColor, value.text)
         }
     }
 }
 
 // Generic Writeln function
-func Writeln(logType string, providedColor *color.Color, message string, a ...interface{}) bool {
-    if !showWarnings() && logType == WARN {
-        return false
-    }
-
-    if Write(logType, providedColor, message, a...) {
-        fmt.Println("")
-    } else {
-        return false
-    }
-
-    return true
+func Writeln(args ...interface{}) bool {
+    return Write(args...) && Write("\n")
 }
 
 // Generic Write function
-func Write(logType string, providedColor *color.Color, message string, a ...interface{}) bool {
+func Write(args ...interface{}) bool {
+    var queue *Queue = nil
+    logType := NONE
+    logColor := Default
+    message := ""
+    printfArgs := make([]interface{}, 0, len(args))
+    for _, arg := range args {
+        switch val := arg.(type) {
+        case Type:
+            logType = val
+        case *color.Color:
+            logColor = val
+        case string:
+            if "" == message {
+                message = val
+            } else {
+                printfArgs = append(printfArgs, val)
+            }
+        case *Queue:
+            queue = val
+        default:
+        }
+    }
+    if nil != queue {
+        pushLog(queue, logType, logColor, message, printfArgs...)
+        return true
+    }
+    return write(logType, logColor, message, printfArgs...)
+}
+
+func write(logType Type, providedColor *color.Color, message string, a ...interface{}) bool {
     if logType == INFO_NONE && IsVerbose() {
         return false
     }
@@ -191,7 +224,7 @@ func Write(logType string, providedColor *color.Color, message string, a ...inte
 
     if logType != INFO || IsVerbose() {
         color.New(color.FgHiWhite).Fprintf(logTypeStream[logType], "%s ", "wio")
-        logTypeColors[logType].Fprintf(logTypeStream[logType], "%s", strings.ToUpper(logType))
+        logTypeColors[logType].Fprintf(logTypeStream[logType], "%s", strings.ToUpper(string(logType)))
         messageColor.Fprintf(logTypeStream[logType], " %s", str)
     } else if logType == INFO && !IsVerbose() {
         messageColor.Fprintf(logTypeStream[logType], "%s", str)
@@ -225,7 +258,7 @@ func WriteErrorln(err error, isWarning bool) {
 }
 
 // Record error/warning to stderr and prompts user for a choice and based on that decides to exists or not
-func WriteErrorAndPrompt(err error, logType string, promptRightAnswer string, caseSensitive bool) {
+func WriteErrorAndPrompt(err error, logType Type, promptRightAnswer string, caseSensitive bool) {
     if err == nil {
         return
     }
@@ -248,6 +281,23 @@ func WriteErrorAndPrompt(err error, logType string, promptRightAnswer string, ca
     } else {
         fmt.Fprint(colorable.NewColorableStderr(), "\n")
     }
+}
+
+// Shorthands
+func Info(args ...interface{}) {
+    Write(INFO, args)
+}
+
+func Infoln(args ...interface{}) {
+    Writeln(INFO, args)
+}
+
+func WriteSuccess(args ...interface{}) {
+    Writeln(Green, "success", args)
+}
+
+func WriteFailure(args ...interface{}) {
+    Writeln(Red, "failure", args)
 }
 
 // This returns true if verbose mode is on and false otherwise

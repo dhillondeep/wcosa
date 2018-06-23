@@ -8,11 +8,11 @@ package create
 
 // #################################### Type for project structure json ##################################
 type StructureFilesData struct {
-    Constrains []string
-    From       string
-    To         string
-    Override   bool
-    Update     bool
+    Constraints []string
+    From        string
+    To          string
+    Override    bool
+    Update      bool
 }
 
 type StructurePathData struct {

@@ -54,12 +54,12 @@ func (q *Queue) pop() *node {
 
 type queueBuffer struct {
     text          string
-    logType       string
+    logType       Type
     providedColor *color.Color
 }
 
 // creates a queue buffer from the logging information
-func pushLog(queue *Queue, logType string, providedColor *color.Color, message string, a ...interface{}) {
+func pushLog(queue *Queue, logType Type, providedColor *color.Color, message string, a ...interface{}) {
     text := message
 
     if a != nil {

@@ -167,14 +167,14 @@ func (err FrameworkNotSupportedError) Error() string {
     return str
 }
 
-type ProjectStructureConstrainError struct {
-    Constrain string
-    Path      string
-    Err       error
+type ProjectStructureConstraintError struct {
+    Constraint string
+    Path       string
+    Err        error
 }
 
-func (err ProjectStructureConstrainError) Error() string {
-    str := fmt.Sprintf(`"%s" constrain not specified for file/dir: %s`, err.Constrain, err.Path)
+func (err ProjectStructureConstraintError) Error() string {
+    str := fmt.Sprintf(`"%s" constrain not specified for file/dir: %s`, err.Constraint, err.Path)
 
     if err.Err != nil {
         str += fmt.Sprintf("\n%s%s", Spaces, err.Err.Error())
