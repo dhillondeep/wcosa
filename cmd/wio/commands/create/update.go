@@ -43,9 +43,13 @@ func (create Create) updatePackage(directory string, config *types.PkgConfig) er
     log.PrintQueue(queue, log.TWO_SPACES)
 
     log.Writeln()
-    log.Info(log.Yellow.Add(color.Underline), "Project update summary")
+    log.Infoln(log.Yellow.Add(color.Underline), "Project update summary")
     log.Info(log.Cyan, "path             ")
     log.Writeln(directory)
+    log.Info(log.Cyan, "project name     ")
+    log.Writeln(info.Name)
+    log.Info(log.Cyan, "wio version      ")
+    log.Writeln(config.GetMainTag().GetConfigurations().WioVersion)
     log.Info(log.Cyan, "project type     ")
     log.Writeln("pkg")
 
@@ -167,7 +171,7 @@ func (create Create) updateConfig(queue *log.Queue, projectConfig types.Config, 
     return nil
 }*/
 
-// Update project files
+// Update project `files
 func (create Create) updateProjectFiles(queue *log.Queue, info *createInfo) error {
     log.Verb(queue, "reading paths.json file ... ")
     structureData := &StructureConfigData{}

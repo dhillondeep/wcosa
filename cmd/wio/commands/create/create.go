@@ -140,6 +140,7 @@ func (create Create) fillPackageConfig(queue *log.Queue, info *createInfo) error
                 Platform:   info.Platform,
             },
             Config: types.Configurations{
+                WioVersion: config.ProjectMeta.Version,
                 SupportedPlatforms:  []string{info.Platform},
                 SupportedFrameworks: []string{info.Framework},
                 SupportedBoards:     []string{info.Board},
