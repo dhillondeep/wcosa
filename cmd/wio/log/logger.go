@@ -167,6 +167,9 @@ func Write(args ...interface{}) bool {
         case bool:
             newline = val
             break
+        case error:
+            message = val.Error()
+            break
         default:
             break
         }

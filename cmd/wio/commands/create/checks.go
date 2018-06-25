@@ -10,12 +10,10 @@ import (
     goerr "errors"
     "github.com/urfave/cli"
     "os"
-    "strings"
     "wio/cmd/wio/errors"
     "wio/cmd/wio/log"
     "wio/cmd/wio/utils"
     "wio/cmd/wio/utils/io"
-    "wio/cmd/wio/constants"
 )
 
 // Check directory
@@ -49,26 +47,7 @@ func performWioExistsCheck(directory string) {
 }
 
 // This performs various checks before update can be triggered
-func performPreUpdateCheck(directory string, create *Create) {
-    wioPath := directory + io.Sep + "wio.yml"
-
-    // check the platform
-    projectConfig, err := utils.ReadWioConfig(wioPath)
-    if err != nil {
-        log.WriteErrorlnExit(err)
-    } else {
-        platform := projectConfig.GetMainTag().GetCompileOptions().GetPlatform()
-
-        if strings.ToLower(platform) != constants.AVR {
-            err := errors.PlatformNotSupportedError{
-                Platform: platform,
-                Err:      goerr.New("update the platform tag before updating the project"),
-            }
-
-            log.WriteErrorlnExit(err)
-        }
-    }
-}
+func performPreUpdateCheck(directory string, create *Create) {}
 
 /// This method is a crucial piece of check to make sure people do not lose their work. It makes
 /// sure that if people are creating the project when there are files in the folder, they mean it
