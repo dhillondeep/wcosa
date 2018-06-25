@@ -138,8 +138,7 @@ func (pac Pac) handleInstall(directory string) {
             projectConfig.SetDependencies(dependencies)
 
             log.Write(log.INFO, color.New(color.FgCyan), "saving changes in wio.yml file ... ")
-            if err := utils.PrettyPrintConfig(projectConfig, directory+io.Sep+"wio.yml",
-                pac.Context.Bool("config-help")); err != nil {
+            if err := projectConfig.PrettyPrint(directory+io.Sep+"wio.yml"); err != nil {
                 log.Writeln(log.NONE, color.New(color.FgRed), "failure")
                 log.WriteErrorlnExit(errors.WriteFileError{
                     FileName: directory + io.Sep + "wio.yml",
@@ -254,7 +253,7 @@ func (pac Pac) handleUninstall(directory string) {
 
     remoteDirectory := directory + io.Sep + ".wio" + io.Sep + "node_modules"
 
-    var projectConfig types.Config
+    var projectConfig *types.Config
     var err error
     if pac.Context.IsSet("save") {
         projectConfig, err = utils.ReadWioConfig(directory + io.Sep + "wio.yml")
@@ -298,8 +297,7 @@ func (pac Pac) handleUninstall(directory string) {
 
     if dependencyDeleted {
         log.Write(log.INFO, color.New(color.FgCyan), "saving changes in wio.yml file ... ")
-        if err := utils.PrettyPrintConfig(projectConfig, directory+io.Sep+"wio.yml",
-            pac.Context.Bool("config-help")); err != nil {
+        if err := projectConfig.PrettyPrint(directory+io.Sep+"wio.yml"); err != nil {
             log.Writeln(log.NONE, color.New(color.FgRed), "failure")
             log.WriteErrorlnExit(errors.WriteFileError{
                 FileName: directory + io.Sep + "wio.yml",
@@ -318,7 +316,7 @@ func (pac Pac) handleCollect(directory string) {
 
     remoteDirectory := directory + io.Sep + ".wio" + io.Sep + "node_modules"
 
-    var projectConfig types.Config
+    var projectConfig *types.Config
     var err error
     if pac.Context.IsSet("save") {
         projectConfig, err = utils.ReadWioConfig(directory + io.Sep + "wio.yml")
@@ -381,8 +379,7 @@ func (pac Pac) handleCollect(directory string) {
 
     if modified {
         log.Write(log.INFO, color.New(color.FgCyan), "saving changes in wio.yml file ... ")
-        if err := utils.PrettyPrintConfig(projectConfig, directory+io.Sep+"wio.yml",
-            pac.Context.Bool("config-help")); err != nil {
+        if err := projectConfig.PrettyPrint(directory+io.Sep+"wio.yml"); err != nil {
             log.Writeln(log.NONE, color.New(color.FgRed), "failure")
             log.WriteErrorlnExit(errors.WriteFileError{
                 FileName: directory + io.Sep + "wio.yml",

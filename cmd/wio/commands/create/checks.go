@@ -52,21 +52,6 @@ func performWioExistsCheck(directory string) {
 func performPreUpdateCheck(directory string, create *Create) {
     wioPath := directory + io.Sep + "wio.yml"
 
-    isApp, err := utils.IsAppType(wioPath)
-    if err != nil {
-        configError := errors.ConfigParsingError{
-            Err: goerr.New("project type could not be parsed"),
-        }
-
-        log.WriteErrorlnExit(configError)
-    }
-
-    if isApp {
-        create.Type = constants.APP
-    } else {
-        create.Type = constants.PKG
-    }
-
     // check the platform
     projectConfig, err := utils.ReadWioConfig(wioPath)
     if err != nil {

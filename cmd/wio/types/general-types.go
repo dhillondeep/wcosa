@@ -7,7 +7,15 @@
 
 package types
 
-import "wio/cmd/wio/constants"
+import (
+    "wio/cmd/wio/constants"
+    "bufio"
+    "strings"
+    "wio/cmd/wio/utils/io"
+    "wio/cmd/wio/errors"
+    "gopkg.in/yaml.v2"
+    "regexp"
+)
 
 // ############################################### Targets ##################################################
 
@@ -165,6 +173,7 @@ func (pkgTargetDefinitions PkgTargetDefinitions) GetPkgDefinitions() []string {
 // Structure to handle individual target inside targets for project of pkg type
 type PkgAVRTarget struct {
     Src         string
+    Platform    string
     Framework   string
     Board       string
     Flags       PkgTargetFlags
@@ -368,7 +377,43 @@ func (pkgTag PkgTag) GetCompileOptions() CompileOptions {
     return pkgTag.CompileOptions
 }
 
-type Config interface {
+type Type int
+
+const (
+    App Type = 0
+    Pkg Type = 1
+)
+
+type Config struct {
+    Config IConfig
+    Type   Type
+}
+
+func (c Config) GetType() string {
+    return c.Config.GetType()
+}
+
+func (c Config) GetMainTag() MainTag {
+    return c.Config.GetMainTag()
+}
+
+func (c Config) GetTargets() Targets {
+    return c.Config.GetTargets()
+}
+
+func (c Config) GetDependencies() DependenciesTag {
+    return c.Config.GetDependencies()
+}
+
+func (c Config) SetDependencies(tag DependenciesTag) {
+    c.Config.SetDependencies(tag)
+}
+
+func (c Config) PrettyPrint(path string) error {
+    return prettyPrintConfig(c.Config, path)
+}
+
+type IConfig interface {
     GetType() string
     GetMainTag() MainTag
     GetTargets() Targets
@@ -453,4 +498,137 @@ type DConfig struct {
     Board     string
     Btarget   string
     Utarget   string
+}
+
+// Pretty print wio.yml
+func (pkgConfig *PkgConfig) PrettyPrint(path string) error {
+    return prettyPrintConfig(pkgConfig, path)
+}
+
+func (appConfig *AppConfig) PrettyPrint(path string) error {
+    return prettyPrintConfig(appConfig, path)
+}
+
+func prettyPrintConfig(config IConfig, path string) error {
+    data, err := yaml.Marshal(config)
+    if err != nil {
+        return err
+    }
+    return io.NormalIO.WriteFile(path, data)
+}
+
+// Write configuration with nice spacing and information
+func prettyPrintHelp(config IConfig, filePath string) error {
+    appInfoPath := "templates" + io.Sep + "config" + io.Sep + "app-helper.txt"
+    pkgInfoPath := "templates" + io.Sep + "config" + io.Sep + "pkg-helper.txt"
+    targetsInfoPath := "templates" + io.Sep + "config" + io.Sep + "targets-helper.txt"
+    dependenciesInfoPath := "templates" + io.Sep + "config" + io.Sep + "dependencies-helper.txt"
+
+    var ymlData []byte
+    var appInfoData []byte
+    var pkgInfoData []byte
+    var targetsInfoData []byte
+    var dependenciesInfoData []byte
+    var err error
+
+    if appInfoData, err = io.AssetIO.ReadFile(appInfoPath); err != nil {
+        return errors.ReadFileError{
+            FileName: appInfoPath,
+            Err:      err,
+        }
+    }
+    if pkgInfoData, err = io.AssetIO.ReadFile(pkgInfoPath); err != nil {
+        return errors.ReadFileError{
+            FileName: pkgInfoPath,
+            Err:      err,
+        }
+    }
+    if targetsInfoData, err = io.AssetIO.ReadFile(targetsInfoPath); err != nil {
+        return errors.ReadFileError{
+            FileName: targetsInfoPath,
+            Err:      err,
+        }
+    }
+    if dependenciesInfoData, err = io.AssetIO.ReadFile(dependenciesInfoPath); err != nil {
+        return errors.ReadFileError{
+            FileName: dependenciesInfoPath,
+            Err:      err,
+        }
+    }
+
+    // marshall yml data
+    if ymlData, err = yaml.Marshal(config); err != nil {
+        marshallError := errors.YamlMarshallError{
+            Err: err,
+        }
+        return marshallError
+    }
+
+    finalStr := ""
+
+    // configuration tags
+    appTagPat := regexp.MustCompile(`(^app:)|((\s| |^\w)app:(\s+|))`)
+    pkgTagPat := regexp.MustCompile(`(^pkg:)|((\s| |^\w)pkg:(\s+|))`)
+    targetsTagPat := regexp.MustCompile(`(^targets:)|((\s| |^\w)targets:(\s+|))`)
+    dependenciesTagPat := regexp.MustCompile(`(^dependencies:)|((\s| |^\w)dependencies:(\s+|))`)
+    configTagPat := regexp.MustCompile(`(^config:)|((\s| |^\w)config:(\s+|))`)
+    compileOptionsTagPat := regexp.MustCompile(`(^compile_options:)|((\s| |^\w)compile_options:(\s+|))`)
+    metaTagPat := regexp.MustCompile(`(^meta:)|((\s| |^\w)meta:(\s+|))`)
+
+    // empty array
+    emptyArrayPat := regexp.MustCompile(`:\s+\[]`)
+    // empty object
+    emptyMapPat := regexp.MustCompile(`:\s+{}`)
+    // empty tag
+    emptyTagPat := regexp.MustCompile(`:\s+\n+|:\s+"\s+"|:\s+""|:"\s+"|:""`)
+
+    scanner := bufio.NewScanner(strings.NewReader(string(ymlData)))
+    for scanner.Scan() {
+        line := scanner.Text()
+
+        // ignore empty arrays, objects and tags
+        if emptyArrayPat.MatchString(line) || emptyMapPat.MatchString(line) || emptyTagPat.MatchString(line) {
+            if !(strings.Contains(line, "global_flags: []") ||
+                strings.Contains(line, "target_flags: []") ||
+                strings.Contains(line, "pkg_flags: []") ||
+                strings.Contains(line, "global_definitions: []") ||
+                strings.Contains(line, "target_definitions: []") ||
+                strings.Contains(line, "pkg_definitions: []")) {
+                continue
+            }
+        }
+
+        if appTagPat.MatchString(line) {
+            finalStr += string(appInfoData) + "\n"
+            finalStr += line
+        } else if pkgTagPat.MatchString(line) {
+            finalStr += string(pkgInfoData) + "\n"
+            finalStr += line
+        } else if targetsTagPat.MatchString(line) {
+            finalStr += "\n"
+            finalStr += string(targetsInfoData) + "\n"
+            finalStr += line
+        } else if dependenciesTagPat.MatchString(line) {
+            finalStr += "\n"
+            finalStr += string(dependenciesInfoData) + "\n"
+            finalStr += line
+        } else if configTagPat.MatchString(line) || compileOptionsTagPat.MatchString(line) ||
+            metaTagPat.MatchString(line) {
+            finalStr += "\n"
+            finalStr += line
+        } else {
+            finalStr += line
+        }
+
+        finalStr += "\n"
+    }
+
+    if err = io.NormalIO.WriteFile(filePath, []byte(finalStr)); err != nil {
+        return errors.WriteFileError{
+            FileName: filePath,
+            Err:      err,
+        }
+    }
+
+    return nil
 }

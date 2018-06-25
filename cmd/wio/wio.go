@@ -20,7 +20,6 @@ import (
     "wio/cmd/wio/log"
     "wio/cmd/wio/utils/io"
     "wio/cmd/wio/errors"
-    "wio/cmd/wio/constants"
 )
 
 var packageFlags = []cli.Flag{
@@ -109,7 +108,7 @@ func main() {
                     UsageText: "wio create pkg [command options]",
                     Flags:     packageFlags,
                     Action: func(c *cli.Context) {
-                        command = create.Create{Context: c, Type: constants.PKG, Update: false}
+                        command = create.Create{Context: c, Update: false}
                     },
                 },
                 cli.Command{
@@ -137,7 +136,7 @@ func main() {
                                     Usage: "Disables all the warning shown by wio."},
                             },
                             Action: func(c *cli.Context) {
-                                command = create.Create{Context: c, Type: constants.APP, Update: false}
+                                command = create.Create{Context: c, Update: false}
                             },
                         },
                     },

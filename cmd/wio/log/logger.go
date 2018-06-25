@@ -11,7 +11,6 @@ import (
     "fmt"
     "github.com/fatih/color"
     "github.com/mattn/go-colorable"
-    "io"
     "os"
     "regexp"
     "strings"
@@ -20,27 +19,27 @@ import (
 type Indentation string
 
 const (
-    NO_SPACES    = ""
-    TWO_SPACES   = "  "
-    FOUR_SPACES  = "    "
-    SIX_SPACES   = "      "
-    EIGHT_SPACES = "        "
+    NO_SPACES   Indentation = ""
+    TWO_SPACES  Indentation = "  "
+    FOUR_SPACES Indentation = "    "
 )
 
 // Log type levels
-type Type string
+type Type int
 
 const (
-    VERB_NONE Type = "VERB_NONE" // Does not Show INFO tag in verbose mode (only activates in verbose mode)
-    INFO_NONE Type = "INFO_NONE" // Only Shows text in Verbose mode
-    NONE      Type = "NONE"      // Does not show INFO tag in regular mode
-    INFO      Type = "INFO"      // Shows like a normal text in regular mode and INFO tag in verbose mode
-    VERB      Type = "VERB"
-    ERR       Type = "ERR"
-    WARN      Type = "WARN"
+    NONE      Type = 0
+    INFO      Type = 1
+    INFO_NONE Type = 1
+    VERB      Type = 2
+    VERB_NONE Type = 2
+    WARN      Type = 3
+    ERR       Type = 4
+    NUM_TYPES      = 5
 )
 
 // Colors
+var White = color.New(color.FgWhite)
 var Cyan = color.New(color.FgCyan)
 var Green = color.New(color.FgGreen)
 var Yellow = color.New(color.FgYellow)
@@ -48,9 +47,17 @@ var Red = color.New(color.FgRed)
 var Default = color.New(color.Reset)
 
 // Log colors and streams
-var logTypeColors map[Type]*color.Color
-var logTypeStream map[Type]io.Writer
+var logTypeColors = [NUM_TYPES]*color.Color{
+    White.Add(color.BgCyan),
+    White.Add(color.BgCyan),
+    White.Add(color.BgCyan),
+    White.Add(color.BgYellow),
+    White.Add(color.BgRed),
+}
+var logTypeTags = [NUM_TYPES]string{"NONE", "INFO", "VERB", "WARN", "ERR"}
 var createdWriter = writer{verbose: false, warnings: true}
+var logOut = colorable.NewColorableStdout()
+var logErr = colorable.NewColorableStderr()
 
 // user should not touch this
 type writer struct {
@@ -69,25 +76,11 @@ func DisableWarnings() {
 }
 
 // This must be called at the beggining
-func Init() {
-    logTypeColors = make(map[Type]*color.Color)
-    logTypeStream = make(map[Type]io.Writer)
-
-    logTypeColors[VERB_NONE] = color.New(color.FgWhite).Add(color.BgCyan)
-    logTypeStream[VERB_NONE] = colorable.NewColorableStdout()
-    logTypeColors[NONE] = color.New(color.FgWhite).Add(color.BgCyan)
-    logTypeStream[NONE] = colorable.NewColorableStdout()
-    logTypeColors[INFO] = color.New(color.FgWhite).Add(color.BgCyan)
-    logTypeStream[INFO] = colorable.NewColorableStdout()
-    logTypeColors[ERR] = color.New(color.FgWhite).Add(color.BgRed)
-    logTypeStream[ERR] = colorable.NewColorableStderr()
-    logTypeColors[WARN] = color.New(color.FgWhite).Add(color.BgYellow)
-    logTypeStream[WARN] = colorable.NewColorableStderr()
-}
+func Init() {}
 
 // This provides a queue that can be used to log at different levels
 func GetQueue() *Queue {
-    return NewQueue(1)
+    return NewQueue(5)
 }
 
 // Write Queue
@@ -101,19 +94,19 @@ func QueueWriteln(queue *Queue, logType Type, providedColor *color.Color, messag
 }
 
 // Copy one queue to another
-func CopyQueue(fromQueue *Queue, toQueue *Queue, spaces string) {
+func CopyQueue(fromQueue *Queue, toQueue *Queue, spaces Indentation) {
     for {
         if fromQueue.count <= 0 {
             break
         } else {
             value := popLog(fromQueue)
 
-            value.text = spaces + value.text
+            value.text = string(spaces) + value.text
 
             pat := regexp.MustCompile(`\n[\s]+[a-zA-Z]`)
             findStr := strings.Trim(pat.FindString(value.text), "\n")
 
-            value.text = pat.ReplaceAllString(value.text, "\n"+spaces+findStr)
+            value.text = pat.ReplaceAllString(value.text, "\n"+string(spaces)+findStr)
             pushLog(toQueue, value.logType, value.providedColor, value.text)
         }
     }
@@ -142,7 +135,7 @@ func PrintQueue(queue *Queue, spaces Indentation) {
 
 // Generic Writeln function
 func Writeln(args ...interface{}) bool {
-    return Write(args...) && Write("\n")
+    return Write(append(args, true)...)
 }
 
 // Generic Write function
@@ -151,23 +144,35 @@ func Write(args ...interface{}) bool {
     logType := NONE
     logColor := Default
     message := ""
+    newline := false
     printfArgs := make([]interface{}, 0, len(args))
     for _, arg := range args {
         switch val := arg.(type) {
         case Type:
             logType = val
+            break
         case *color.Color:
             logColor = val
+            break
         case string:
             if "" == message {
                 message = val
             } else {
                 printfArgs = append(printfArgs, val)
             }
+            break
         case *Queue:
             queue = val
+            break
+        case bool:
+            newline = val
+            break
         default:
+            break
         }
+    }
+    if newline {
+        message = message + "\n"
     }
     if nil != queue {
         pushLog(queue, logType, logColor, message, printfArgs...)
@@ -177,22 +182,11 @@ func Write(args ...interface{}) bool {
 }
 
 func write(logType Type, providedColor *color.Color, message string, a ...interface{}) bool {
-    if logType == INFO_NONE && IsVerbose() {
+    if (logType == VERB && !IsVerbose()) || (logType == WARN && !showWarnings()) {
         return false
     }
-
     if providedColor == nil {
-        providedColor = color.New(color.Reset)
-    }
-
-    // they only apply in verbose mode
-    if (logType == VERB_NONE || logType == VERB) && !IsVerbose() {
-        return false
-    }
-
-    // only applies when show warnings is enabled
-    if !showWarnings() && logType == WARN {
-        return false
+        providedColor = Default
     }
 
     // verbose is INFO behind the screen
@@ -200,36 +194,19 @@ func write(logType Type, providedColor *color.Color, message string, a ...interf
         logType = INFO
     }
 
-    if _, ok := logTypeColors[logType]; !ok {
-        logType = INFO
+    // invalid log type defaults to NONE
+    if logType >= NUM_TYPES {
+        logType = NONE
     }
 
-    messageColor := color.New(color.Reset)
+    str := fmt.Sprintf(message, a...)
 
-    if providedColor != nil {
-        messageColor = providedColor
+    outStream := logOut
+    if logType == WARN || logType == ERR {
+        logTypeColors[logType].Fprintf(logOut, "%s ", logTypeTags[logType])
+        outStream = logErr
     }
-
-    var str string
-    if len(a) <= 0 {
-        str = fmt.Sprint(message)
-    } else {
-        str = fmt.Sprintf(message, a...)
-    }
-
-    if logType == NONE || logType == VERB_NONE {
-        messageColor.Fprintf(logTypeStream[logType], "%s", str)
-        return true
-    }
-
-    if logType != INFO || IsVerbose() {
-        color.New(color.FgHiWhite).Fprintf(logTypeStream[logType], "%s ", "wio")
-        logTypeColors[logType].Fprintf(logTypeStream[logType], "%s", strings.ToUpper(string(logType)))
-        messageColor.Fprintf(logTypeStream[logType], " %s", str)
-    } else if logType == INFO && !IsVerbose() {
-        messageColor.Fprintf(logTypeStream[logType], "%s", str)
-    }
-
+    providedColor.Fprintf(outStream, "%s", str)
     return true
 }
 
@@ -285,19 +262,53 @@ func WriteErrorAndPrompt(err error, logType Type, promptRightAnswer string, case
 
 // Shorthands
 func Info(args ...interface{}) {
-    Write(INFO, args)
+    Write(append(args, INFO)...)
 }
 
 func Infoln(args ...interface{}) {
-    Writeln(INFO, args)
+    Writeln(append(args, INFO)...)
+}
+
+func Verb(args ...interface{}) {
+    Write(append(args, VERB)...)
+}
+
+func Verbln(args ...interface{}) {
+    Writeln(append(args, VERB)...)
+}
+
+func Warn(args ...interface{}) {
+    Write(append(args, WARN, Yellow))
+}
+
+func Warnln(args ...interface{}) {
+    Writeln(append(args, WARN, Yellow)...)
+}
+
+func Err(args ...interface{}) {
+    Write(append(args, ERR, Red)...)
+}
+
+func Errln(args ...interface{}) {
+    Writeln(append(args, ERR, Red)...)
+}
+
+func ErrExit(args ...interface{}) {
+    Err(args...)
+    os.Exit(1)
+}
+
+func ErrlnExit(args ...interface{}) {
+    Errln(args...)
+    os.Exit(1)
 }
 
 func WriteSuccess(args ...interface{}) {
-    Writeln(Green, "success", args)
+    Writeln(append(args, Green, "success")...)
 }
 
 func WriteFailure(args ...interface{}) {
-    Writeln(Red, "failure", args)
+    Writeln(append(args, Red, "failure")...)
 }
 
 // This returns true if verbose mode is on and false otherwise

@@ -16,9 +16,9 @@ type StructureFilesData struct {
 }
 
 type StructurePathData struct {
-    Constrains []string
-    Entry      string
-    Files      []StructureFilesData
+    Constraints []string
+    Entry       string
+    Files       []StructureFilesData
 }
 
 type StructureTypeData struct {

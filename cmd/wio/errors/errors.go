@@ -13,6 +13,19 @@ const (
     Spaces = "         "
 )
 
+
+type Generic struct {
+    message string
+}
+
+func (err Generic) Error() string {
+    return err.message
+}
+
+func String(message string) error {
+    return Generic{message}
+}
+
 type ProgramArgumentsError struct {
     CommandName  string
     ArgumentName string
@@ -153,8 +166,8 @@ func (err PlatformNotSupportedError) Error() string {
 
 type FrameworkNotSupportedError struct {
     Framework string
-    Platform string
-    Err      error
+    Platform  string
+    Err       error
 }
 
 func (err FrameworkNotSupportedError) Error() string {
@@ -530,8 +543,8 @@ func (err ActionNotSupportedByPlatform) Error() string {
 }
 
 type FatalError struct {
-    Log         interface{}
-    Err         error
+    Log interface{}
+    Err error
 }
 
 func (err FatalError) Error() string {

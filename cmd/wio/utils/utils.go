@@ -218,7 +218,7 @@ func Difference(a, b []string) []string {
 }
 
 // Read config file and return config object
-func ReadWioConfig(path string) (types.Config, error) {
+func ReadWioConfig(path string) (*types.Config, error) {
     defer func() {
         if r := recover(); r != nil {
             configError := errors.ConfigParsingError{
@@ -246,7 +246,7 @@ func ReadWioConfig(path string) (types.Config, error) {
             return nil, configError
         }
 
-        return pkgConfig, nil
+        return &types.Config{Config: pkgConfig, Type: types.Pkg}, nil
     } else {
         appConfig := &types.AppConfig{}
 
@@ -259,7 +259,7 @@ func ReadWioConfig(path string) (types.Config, error) {
             return nil, configError
         }
 
-        return appConfig, nil
+        return &types.Config{Config: appConfig, Type: types.App}, nil
     }
 }
 
