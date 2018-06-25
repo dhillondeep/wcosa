@@ -357,7 +357,7 @@ func (create Create) copyProjectAssets(queue *log.Queue, info *createInfo, data 
         // handle directory constraints
         for _, constraint := range path.Constraints {
             _, exists := dirConstraints[constraint]
-            if !exists || !dirConstraints[constraint] {
+            if exists && !dirConstraints[constraint] {
                 log.Verbln(queue, "constraint not specified and hence skipping this directory")
                 skipDir = true
                 break
@@ -381,7 +381,7 @@ func (create Create) copyProjectAssets(queue *log.Queue, info *createInfo, data 
             // handle file constraints
             for _, constraint := range file.Constraints {
                 _, exists := fileConstraints[constraint]
-                if !exists || !fileConstraints[constraint] {
+                if exists && !fileConstraints[constraint] {
                     log.Verbln(queue, "constraint not specified and hence skipping this file")
                     skipFile = true
                     break
