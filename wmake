@@ -49,6 +49,10 @@ _linux_setup() {
         exit 1;
     fi
 
+    printf "Retrieving dependencies... "
+    make get
+    printf "Done!\n"
+
     printf "Installing system library... "
     go get golang.org/x/sys/unix
     printf "Done!\n"

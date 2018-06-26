@@ -74,7 +74,7 @@ func (create Create) handleUpdate(directory string) error {
 }
 
 func updatePackageConfig(queue *log.Queue, config *types.PkgConfig, info *createInfo) error {
-    // Ensure a minimim wio version is specified
+    // Ensure a minimum wio version is specified
     if strings.Trim(config.MainTag.Config.WioVersion, " ") == "" {
         return errors.String("wio.yml missing `minimum_wio_version`")
     }

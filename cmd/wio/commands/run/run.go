@@ -7,23 +7,23 @@
 package run
 
 import (
-    "bufio"
     goerr "errors"
     "github.com/fatih/color"
     "github.com/urfave/cli"
     "os"
+    sysio "io"
     "os/exec"
-    "strings"
     "wio/cmd/wio/commands/run/cmake"
     "wio/cmd/wio/commands/run/dependencies"
     "wio/cmd/wio/config"
+    "wio/cmd/wio/constants"
     "wio/cmd/wio/errors"
     "wio/cmd/wio/log"
     "wio/cmd/wio/toolchain"
     "wio/cmd/wio/types"
     "wio/cmd/wio/utils"
     "wio/cmd/wio/utils/io"
-    "wio/cmd/wio/constants"
+    "bytes"
 )
 
 type Run struct {
@@ -191,7 +191,7 @@ func (run Run) Execute() {
     log.Writeln(log.NONE, nil, "")
 
     // build targets cmake
-    if err := buildTargetCmake(targetDirectory); err != nil {
+    if err := configTarget(targetDirectory); err != nil {
         log.Writeln(log.INFO_NONE, color.New(color.FgRed), "failure")
         log.WriteErrorlnExit(err)
     } else {
@@ -199,7 +199,7 @@ func (run Run) Execute() {
     }
 
     // build targets make
-    if err := buildTargetMake(targetDirectory); err != nil {
+    if err := buildTarget(targetDirectory); err != nil {
         log.WriteErrorlnExit(err)
     }
 
@@ -216,183 +216,58 @@ func (run Run) Execute() {
     }
 }
 
-// This executes cmake command to generate build files
-func buildTargetCmake(buildDirectory string) error {
-    cmakeCommand := exec.Command("cmake", "../../", "-G", "Unix Makefiles")
-    cmakeCommand.Dir = buildDirectory
+func (run Run) build() {
 
-    cmakeStderrReader, err := cmakeCommand.StderrPipe()
-    if err != nil {
-        return err
-    }
-    cmakeStdoutReader, err := cmakeCommand.StdoutPipe()
-    if err != nil {
-        return err
-    }
-
-    cmakeStdoutScanner := bufio.NewScanner(cmakeStdoutReader)
-    go func() {
-        for cmakeStdoutScanner.Scan() {
-            log.Writeln(log.VERB, nil, cmakeStdoutScanner.Text())
-        }
-    }()
-
-    // we use deprecated feature so ignore the warning
-    cmakeWarning := `CMake Deprecation Warning at CMakeLists.txt:27 (cmake_policy):
-  The OLD behavior for policy CMP0023 will be removed from a future version
-  of CMake.
-
-  The cmake-policies(7) manual explains that the OLD behaviors of all
-  policies are deprecated and that a policy should be set to OLD only under
-  specific short-term circumstances.  Projects should be ported to the NEW
-  behavior and not rely on setting a policy to OLD.
-
-`
-    cmakeStderrScanner := bufio.NewScanner(cmakeStderrReader)
-    go func() {
-        for cmakeStderrScanner.Scan() {
-            line := cmakeStderrScanner.Text()
-
-            if strings.Contains(cmakeWarning, line) {
-                continue
-            } else {
-                log.Writeln(log.ERR, color.New(color.FgRed), line)
-            }
-        }
-    }()
-
-    err = cmakeCommand.Start()
-    if err != nil {
-        return errors.CommandStartError{
-            CommandName: "cmake",
-        }
-    }
-
-    err = cmakeCommand.Wait()
-    if err != nil {
-        return errors.CommandWaitError{
-            CommandName: "cmake",
-        }
-    }
-
-    return nil
 }
 
-// This executes make command to build the project
-func buildTargetMake(buildDirectory string) error {
-    makeCommand := exec.Command("make")
-    makeCommand.Dir = buildDirectory
-
-    if !log.IsVerbose() {
-        // this version is used if verbose mode is not on
-
-        makeCommand.Stdout = os.Stdout
-        makeCommand.Stderr = os.Stderr
-
-        if err := makeCommand.Run(); err != nil {
-            return errors.CommandWaitError{
-                CommandName: "make",
-            }
-        }
-
-        return nil
-    }
-
-    // this version is used if verbose mode is on
-
-    makeStderrReader, err := makeCommand.StderrPipe()
-    if err != nil {
-        return err
-    }
-    makeStdoutReader, err := makeCommand.StdoutPipe()
-    if err != nil {
-        return err
-    }
-
-    makeStdoutScanner := bufio.NewScanner(makeStdoutReader)
-    go func() {
-        for makeStdoutScanner.Scan() {
-            // add some colors for logging
-            if strings.Contains(makeStdoutScanner.Text(), "Scanning dependencies") {
-                log.Writeln(log.INFO, color.New(color.FgGreen), makeStdoutScanner.Text())
-            } else if strings.Contains(makeStdoutScanner.Text(), "Built target") {
-                log.Writeln(log.INFO, color.New(color.FgGreen), makeStdoutScanner.Text())
-            } else {
-                log.Writeln(log.INFO, color.New(color.Reset), makeStdoutScanner.Text())
-            }
-        }
-    }()
-
-    makeStderrScanner := bufio.NewScanner(makeStderrReader)
-    go func() {
-        for makeStderrScanner.Scan() {
-            log.Writeln(log.ERR, color.New(color.FgRed), makeStderrScanner.Text())
-        }
-    }()
-
-    err = makeCommand.Start()
-    if err != nil {
-        return errors.CommandStartError{
-            CommandName: "make",
-        }
-    }
-
-    err = makeCommand.Wait()
-    if err != nil {
-        return errors.CommandWaitError{
-            CommandName: "make",
-        }
-    }
-
-    return nil
+func configTarget(dir string) error {
+    return execute(dir, "cmake", "../../", "-G", "Unix Makefiles")
 }
 
-// This executes make upload command to upload the target
-func uploadTarget(targetDirectory string) error {
-    // execute make upload command
-    makeCommand := exec.Command("make", "upload")
-    makeCommand.Dir = targetDirectory
+func buildTarget(dir string) error {
+    return execute(dir, "make")
+}
 
-    makeStderrReader, err := makeCommand.StderrPipe()
+func uploadTarget(dir string) error {
+    return execute(dir, "make", "upload")
+}
+
+func cleanTarget(dir string) error {
+    return execute(dir, "make", "clean")
+}
+
+func execute(dir string, name string, args ...string) error {
+    cmd := exec.Command(name, args...)
+    cmd.Dir = dir
+    var stdoutBuf bytes.Buffer
+    var stderrBuf bytes.Buffer
+    stdoutIn, err := cmd.StdoutPipe()
     if err != nil {
         return err
     }
-    makeStdoutReader, err := makeCommand.StdoutPipe()
+    stderrIn, err := cmd.StderrPipe()
     if err != nil {
         return err
     }
-
-    makeStdoutScanner := bufio.NewScanner(makeStdoutReader)
-    go func() {
-        for makeStdoutScanner.Scan() {
-            log.Writeln(log.INFO, color.New(color.Reset), makeStdoutScanner.Text())
-        }
-    }()
-
-    makeStderrScanner := bufio.NewScanner(makeStderrReader)
-    go func() {
-        for makeStderrScanner.Scan() {
-            if !log.IsVerbose() {
-                log.Writeln(log.INFO, color.New(color.FgGreen), makeStderrScanner.Text())
-            } else {
-                log.Writeln(log.ERR, color.New(color.FgRed), makeStderrScanner.Text())
-            }
-        }
-    }()
-
-    err = makeCommand.Start()
+    var errStdout error
+    var errStderr error
+    stdout := sysio.MultiWriter(os.Stdout, &stdoutBuf)
+    stderr := sysio.MultiWriter(os.Stderr, &stderrBuf)
+    err = cmd.Start()
     if err != nil {
-        return errors.CommandStartError{
-            CommandName: "make",
-        }
+        return err
     }
-
-    err = makeCommand.Wait()
+    go func() { _, errStdout = sysio.Copy(stdout, stdoutIn) }()
+    go func() { _, errStderr = sysio.Copy(stderr, stderrIn) }()
+    err = cmd.Wait()
     if err != nil {
-        return errors.CommandWaitError{
-            CommandName: "make",
-        }
+        return err
     }
-
+    if errStdout != nil {
+        return errStdout
+    }
+    if errStderr != nil {
+        return errStderr
+    }
     return nil
 }
