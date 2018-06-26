@@ -1,5 +1,3 @@
-# .goreleaser.yml
-# Build customization
 builds:
   - main: cmd/wio/wio.go
     binary: wio
@@ -7,20 +5,22 @@ builds:
       - windows
       - darwin
       - linux
+      - freebsd
+      - openbsd
+      - solaris
     goarch:
       - 386
       - amd64
-# Archive customization
+      - arm
+      - arm64
+
 archive:
   format: tar.gz
 
   replacements:
-    amd64: 64-bit
-    386: 32-bit
+    386: i386
+    amd64: x86_64
 
-  # Can be used to change the archive formats for specific GOOSs.
-  # Most common use case is to archive as zip on Windows.
-  # Default is empty.
   format_overrides:
     - goos: windows
       format: zip
@@ -29,136 +29,54 @@ archive:
     - toolchain/**/*/
 
 nfpm:
-  # You can change the name of the package.
-  # This is parsed with the Go template engine and the following variables
-  # are available:
-  # - ProjectName
-  # - Tag
-  # - Version (Git tag without `v` prefix)
-  # - Os
-  # - Arch
-  # - Arm (ARM version)
-  # - Env (environment variables)
-  # Default: `{{ .ProjectName }}_{{ .Version }}_{{ .Os }}_{{ .Arch }}{{ if .Arm }}v{{ .Arm }}{{ end }}`
-  name_template: "{{ .ProjectName }}_{{ .Version }}_{{ .Os }}_{{ .Arch }}"
-
-  # Replacements for GOOS and GOARCH in the package name.
-  # Keys should be valid GOOSs or GOARCHs.
-  # Values are the respective replacements.
-  # Default is empty.
-  replacements:
-    amd64: 64-bit
-    386: 32-bit
-    windows: windows
-    darwin: darwin
-    linux: linux
-
-  # Your app's vendor.
-  # Default is empty.
+  name_template: '{{ .ProjectName }}_{{ .Os }}_{{ .Arch }}'
   vendor: Wio
-  # Your app's homepage.
-  # Default is empty.
-  homepage: https://github.com/waterloop/wio
-
-  # Your app's maintainer (probably you).
-  # Default is empty.
+  homepage: https://github.com/wio/wio
   maintainer: Deep Dhillon <deep@deepdhillon.com>
-
-  # Your app's description.
-  # Default is empty.
-  description: An Embedded Development Environment
-
-  # Your app's license.
-  # Default is empty.
+  description: An Iot Development Environment
   license: MIT
-
-  # Formats to be generated.
   formats:
   - deb
   - rpm
-
-  # Packages your package depends on.
   dependencies:
   - cmake
   - make
-
-  # Packages your package suggests installing.
-  # For RPM packages rpmbuild >= 4.13 is required
   suggests:
   - git
   - node
-
-  # Files or directories to add to your package (beyond the binary).
-  # Keys are source paths/globs to get the files from.
-  # Values are the destination locations of the files in the package.
   files:
     "toolchain/**/*": "/usr/share/wio/toolchain"
 
 brew:
-  # Name of the recipe
-  # Default to project name
   name: wio
 
-  # Reporitory to push the tap to.
   github:
     owner: dhillondeep
     name: homebrew-wio
 
-  # Git author used to commit to the repository.
-  # Defaults are shown.
   commit_author:
     name: dhillondeep
     email: deep@deepdhillon.ca
 
-  # Folder inside the repository to put the formula.
-  # Default is the root folder.
   folder: Formula
 
-  # Your app's homepage.
-  # Default is empty.
-  homepage: "https://github.com/dhillondeep/wio"
-
-  # Your app's description.
-  # Default is empty.
-  description: "Embedded development environment"
-
-  # Setting this will prevent goreleaser to actually try to commit the updated
-  # formula - instead, the formula file will be stored on the dist folder only,
-  # leaving the responsibility of publishing it to the user.
-  # Default is false.
-  skip_upload: false
-
-  # So you can `brew test` your formula.
-  # Default is empty.
+  homepage: "https://github.com/wio/wio"
+  description: "An Iot Development Environment"
   test: |
     system "#{bin}/wio --version"
-
-  # Custom install script for brew.
-  # Default is 'bin.install "program"'.
   install: |
     prefix.install Dir["toolchain"]
     bin.install "wio"
 
 scoop:
-  # Repository to push the app manifest to.
   bucket:
     owner: dhillondeep
     name: wio-bucket
 
-  # Git author used to commit to the repository.
-  # Defaults are shown.
   commit_author:
     name: Deep Dhillon
     email: deep@deepdhillon.ca
 
-  # Your app's homepage.
-  # Default is empty.
-  homepage: "https://github.com/waterloop/wio"
-
-  # Your app's description.
-  # Default is empty.
-  description: "An Embedded Development Environment"
-
-  # Your app's license
-  # Default is empty.
+  homepage: "https://github.com/wio/wio"
+  description: "An Iot Development Environment"
   license: MIT
