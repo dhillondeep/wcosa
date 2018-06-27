@@ -40,12 +40,12 @@ _get() {
 _linux_setup() {
     # Check go version
     command -v go > /dev/null 2>&1 || {
-        echo '\`go\` is not installed';
+        echo 'go is not installed';
         exit 1;
     }
     go version | grep ${GO_VERSION} &> /dev/null
     if [ $? != 0 ] ; then
-        echo '\`go\` version 1.10.2 is required';
+        echo 'go version 1.10.2 is required';
         exit 1;
     fi
 
@@ -57,7 +57,7 @@ _linux_setup() {
     go get golang.org/x/sys/unix
     printf "Done!\n"
 
-    printf "Linking \`toolchain\`... "
+    printf "Linking toolchain... "
     mkdir -p ./bin
     ln -s -f $(pwd)/toolchain $(pwd)/bin/toolchain
     printf "Done!\n"
