@@ -18,9 +18,9 @@ func (create Create) updateApp(directory string, config *types.AppConfig) error 
 
 func (create Create) updatePackage(directory string, config *types.PkgConfig) error {
     info := &createInfo{
-        Directory: directory,
-        Type:      constants.PKG,
-        Name:      config.MainTag.GetName(),
+        directory:   directory,
+        projectType: constants.PKG,
+        name:        config.MainTag.GetName(),
     }
 
     log.Info(log.Cyan, "updating package files ... ")
@@ -47,7 +47,7 @@ func (create Create) updatePackage(directory string, config *types.PkgConfig) er
     log.Info(log.Cyan, "path             ")
     log.Writeln(directory)
     log.Info(log.Cyan, "project name     ")
-    log.Writeln(info.Name)
+    log.Writeln(info.name)
     log.Info(log.Cyan, "wio version      ")
     log.Writeln(config.GetMainTag().GetConfigurations().WioVersion)
     log.Info(log.Cyan, "project type     ")
@@ -78,7 +78,7 @@ func updatePackageConfig(queue *log.Queue, config *types.PkgConfig, info *create
     if strings.Trim(config.MainTag.Config.WioVersion, " ") == "" {
         return errors.String("wio.yml missing `minimum_wio_version`")
     }
-    if config.MainTag.GetName() != filepath.Base(info.Directory) {
+    if config.MainTag.GetName() != filepath.Base(info.directory) {
         log.Warnln(queue, "Base directory different from project name")
     }
     if config.MainTag.CompileOptions.HeaderOnly {
@@ -91,7 +91,7 @@ func updatePackageConfig(queue *log.Queue, config *types.PkgConfig, info *create
     if strings.Trim(config.MainTag.Meta.Version, " ") == "" {
         config.MainTag.Meta.Version = "0.0.1"
     }
-    configPath := info.Directory + io.Sep + "wio.yml"
+    configPath := info.directory + io.Sep + "wio.yml"
     return config.PrettyPrint(configPath)
 }
 
@@ -107,7 +107,7 @@ func (create Create) updateConfig(queue *log.Queue, projectConfig types.Config, 
     if isApp {
         appConfig := projectConfig.(*types.AppConfig)
 
-        appConfig.MainTag.Name = filepath.Base(directory)
+        appConfig.MainTag.name = filepath.Base(directory)
 
         updateAVRAppTargets(&appConfig.TargetsTag, directory)
 
@@ -118,10 +118,10 @@ func (create Create) updateConfig(queue *log.Queue, projectConfig types.Config, 
     } else {
     pkgConfig := projectConfig.(*types.PkgConfig)
 
-    pkgConfig.MainTag.Meta.Name = filepath.Base(directory)
+    pkgConfig.MainTag.Meta.name = filepath.Base(directory)
 
     // make sure framework is AVR
-    pkgConfig.MainTag.CompileOptions.Platform = constants.AVR
+    pkgConfig.MainTag.CompileOptions.platform = constants.AVR
 
     // make current wio version as the default version if no version is provided
     if strings.Trim(pkgConfig.MainTag.Config.WioVersion, " ") == "" {
@@ -140,7 +140,7 @@ func (create Create) updateConfig(queue *log.Queue, projectConfig types.Config, 
 
     // flags
     if strings.Trim(pkgConfig.MainTag.Flags.Visibility, " ") == "" {
-        if pkgConfig.MainTag.CompileOptions.HeaderOnly {
+        if pkgConfig.MainTag.CompileOptions.headerOnly {
             pkgConfig.MainTag.Flags.Visibility = "INTERFACE"
         } else {
             pkgConfig.MainTag.Flags.Visibility = "PRIVATE"
@@ -149,7 +149,7 @@ func (create Create) updateConfig(queue *log.Queue, projectConfig types.Config, 
 
     // definitions
     if strings.Trim(pkgConfig.MainTag.Definitions.Visibility, " ") == "" {
-        if pkgConfig.MainTag.CompileOptions.HeaderOnly {
+        if pkgConfig.MainTag.CompileOptions.headerOnly {
             pkgConfig.MainTag.Definitions.Visibility = "INTERFACE"
         } else {
             pkgConfig.MainTag.Definitions.Visibility = "PRIVATE"

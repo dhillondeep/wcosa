@@ -9,16 +9,16 @@ type Create struct {
 }
 
 type createInfo struct {
-    Directory string
-    Type      string
-    Name      string
+    directory   string
+    projectType string
+    name        string
 
-    Platform  string
-    Framework string
-    Board     string
+    platform  string
+    framework string
+    board     string
 
-    ConfigOnly bool
-    HeaderOnly bool
+    configOnly bool
+    headerOnly bool
 }
 
 // get context for the command

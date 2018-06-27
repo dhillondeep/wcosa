@@ -6,7 +6,7 @@
 // Types for all the things being used in this package
 package create
 
-// #################################### Type for project structure json ##################################
+// #################################### projectType for project structure json ##################################
 type StructureFilesData struct {
     Constraints []string
     From        string

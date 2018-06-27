@@ -15,23 +15,24 @@ import (
     "wio/cmd/wio/utils/io"
     "wio/cmd/wio/constants"
 )
+
 // Creation of AVR projects
 func (create Create) createPackageProject(dir string) {
     info := createInfo{
-        Directory:  dir,
-        Type:       constants.PKG,
-        Name:       filepath.Base(dir),
-        Platform:   create.Context.String("platform"),
-        Framework:  create.Context.String("framework"),
-        Board:      create.Context.String("board"),
-        ConfigOnly: create.Context.Bool("only-config"),
-        HeaderOnly: create.Context.Bool("header-only"),
+        directory:   dir,
+        projectType: constants.PKG,
+        name:        filepath.Base(dir),
+        platform:    create.Context.String("platform"),
+        framework:   create.Context.String("framework"),
+        board:       create.Context.String("board"),
+        configOnly:  create.Context.Bool("only-config"),
+        headerOnly:  create.Context.Bool("header-only"),
     }
     info.toLowerCase()
 
     // Generate project structure
     queue := log.GetQueue()
-    if !info.ConfigOnly {
+    if !info.configOnly {
         log.Info(log.Cyan, "creating project structure ... ")
         if err := create.createPackageStructure(queue, &info); err != nil {
             log.WriteFailure()
@@ -83,7 +84,7 @@ func (create Create) createPackageStructure(queue *log.Queue, info *createInfo) 
         log.CopyQueue(subQueue, queue, log.FOUR_SPACES)
     }
 
-    readmeFile := info.Directory + io.Sep + "README.md"
+    readmeFile := info.directory + io.Sep + "README.md"
     err := info.fillReadMe(queue, readmeFile)
 
     return err
@@ -92,25 +93,25 @@ func (create Create) createPackageStructure(queue *log.Queue, info *createInfo) 
 // Generate wio.yml for package project
 func (create Create) fillPackageConfig(queue *log.Queue, info *createInfo) error {
     /*// handle app
-    if create.Type == constants.APP {
+    if create.projectType == constants.APP {
         log.QueueWrite(queue, log.INFO, nil, "creating config file for application ... ")
 
         appConfig := &types.AppConfig{}
-        appConfig.MainTag.Name = filepath.Base(directory)
+        appConfig.MainTag.name = filepath.Base(directory)
         appConfig.MainTag.Ide = config.ProjectDefaults.Ide
 
         // supported board, framework and platform and wio version
         fillMainTagConfiguration(&appConfig.MainTag.Config, []string{board}, constants.AVR, []string{framework})
 
-        appConfig.MainTag.CompileOptions.Platform = constants.AVR
+        appConfig.MainTag.CompileOptions.platform = constants.AVR
 
         // create app target
         appConfig.TargetsTag.DefaultTarget = config.ProjectDefaults.AppTargetName
         appConfig.TargetsTag.Targets = map[string]types.AppAVRTarget{
             config.ProjectDefaults.AppTargetName: {
                 Src:       "src",
-                Framework: framework,
-                Board:     board,
+                framework: framework,
+                board:     board,
                 Flags: types.AppTargetFlags{
                     GlobalFlags: []string{},
                     TargetFlags: []string{},
@@ -122,7 +123,7 @@ func (create Create) fillPackageConfig(queue *log.Queue, info *createInfo) error
     } else {*/
     log.Verb(queue, "creating config file for package ... ")
     visibility := "PRIVATE"
-    if info.HeaderOnly {
+    if info.headerOnly {
         visibility = "INTERFACE"
     }
     target := config.ProjectDefaults.PkgTargetName
@@ -130,20 +131,20 @@ func (create Create) fillPackageConfig(queue *log.Queue, info *createInfo) error
         MainTag: types.PkgTag{
             Ide: config.ProjectDefaults.Ide,
             Meta: types.PackageMeta{
-                Name:     info.Name,
+                Name:     info.name,
                 Version:  "0.0.1",
                 License:  "MIT",
-                Keywords: []string{info.Platform, info.Framework, "wio"},
+                Keywords: []string{info.platform, info.framework, "wio"},
             },
             CompileOptions: types.PkgCompileOptions{
-                HeaderOnly: info.HeaderOnly,
-                Platform:   info.Platform,
+                HeaderOnly: info.headerOnly,
+                Platform:   info.platform,
             },
             Config: types.Configurations{
                 WioVersion: config.ProjectMeta.Version,
-                SupportedPlatforms:  []string{info.Platform},
-                SupportedFrameworks: []string{info.Framework},
-                SupportedBoards:     []string{info.Board},
+                SupportedPlatforms:  []string{info.platform},
+                SupportedFrameworks: []string{info.framework},
+                SupportedBoards:     []string{info.board},
             },
             Flags:       types.Flags{Visibility: visibility},
             Definitions: types.Definitions{Visibility: visibility},
@@ -153,16 +154,16 @@ func (create Create) fillPackageConfig(queue *log.Queue, info *createInfo) error
             Targets: map[string]types.PkgAVRTarget{
                 target: {
                     Src:       target,
-                    Platform:  info.Platform,
-                    Framework: info.Framework,
-                    Board:     info.Board,
+                    Platform:  info.platform,
+                    Framework: info.framework,
+                    Board:     info.board,
                 },
             },
         },
     }
     log.WriteSuccess(queue, log.VERB)
     log.Verb(queue, "pretty printing wio.yml file ... ")
-    wioYmlPath := info.Directory + io.Sep + "wio.yml"
+    wioYmlPath := info.directory + io.Sep + "wio.yml"
     if err := projectConfig.PrettyPrint(wioYmlPath); err != nil {
         log.WriteFailure(queue, log.VERB)
         return err
@@ -175,7 +176,7 @@ func (create Create) fillPackageConfig(queue *log.Queue, info *createInfo) error
 func (info createInfo) printPackageCreateSummary() {
     log.Writeln()
     log.Infoln(log.Yellow.Add(color.Underline), "Project structure summary")
-    if !info.HeaderOnly {
+    if !info.headerOnly {
         log.Info(log.Cyan, "src              ")
         log.Writeln("source/non client files")
     }
@@ -188,13 +189,13 @@ func (info createInfo) printPackageCreateSummary() {
     log.Writeln()
     log.Infoln(log.Yellow.Add(color.Underline), "Project creation summary")
     log.Info(log.Cyan, "path             ")
-    log.Writeln(info.Directory)
+    log.Writeln(info.directory)
     log.Info(log.Cyan, "project type     ")
     log.Writeln("pkg")
     log.Info(log.Cyan, "platform         ")
-    log.Writeln(info.Platform)
+    log.Writeln(info.platform)
     log.Info(log.Cyan, "framework        ")
-    log.Writeln(info.Framework)
+    log.Writeln(info.framework)
     log.Info(log.Cyan, "board            ")
-    log.Writeln(info.Board)
+    log.Writeln(info.board)
 }

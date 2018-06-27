@@ -15,7 +15,7 @@ import (
     "os/exec"
     "wio/cmd/wio/commands/run/cmake"
     "wio/cmd/wio/commands/run/dependencies"
-    "wio/cmd/wio/config"
+    cfg "wio/cmd/wio/config"
     "wio/cmd/wio/constants"
     "wio/cmd/wio/errors"
     "wio/cmd/wio/log"
@@ -31,6 +31,14 @@ type Run struct {
     error
 }
 
+type runInfo struct {
+    context *cli.Context
+    config  *types.Config
+
+    directory string
+    targets   []string
+}
+
 // get context for the command
 func (run Run) GetContext() *cli.Context {
     return run.Context
@@ -38,22 +46,23 @@ func (run Run) GetContext() *cli.Context {
 
 // Runs the build, upload command (acts as one in all command)
 func (run Run) Execute() {
-    // perform argument check
-    directory := performArgumentCheck(run.Context.Args())
-
-    projectConfig, err := utils.ReadWioConfig(directory + io.Sep + "wio.yml")
+    directory, err := readDirectory(run.Context.Args())
+    if err != nil {
+        log.WriteErrorlnExit(err)
+    }
+    config, err := utils.ReadWioConfig(directory + io.Sep + "wio.yml")
     if err != nil {
         log.WriteErrorlnExit(err)
     }
 
     targetName := run.Context.String("target")
-    if targetName == config.ProjectDefaults.DefaultTarget {
-        targetName = projectConfig.GetTargets().GetDefaultTarget()
+    if targetName == cfg.ProjectDefaults.DefaultTarget {
+        targetName = config.GetTargets().GetDefaultTarget()
     }
 
     var target types.Target
 
-    if val, exists := projectConfig.GetTargets().GetTargets()[targetName]; exists {
+    if val, exists := config.GetTargets().GetTargets()[targetName]; exists {
         target = val
     } else {
         log.WriteErrorlnExit(errors.TargetDoesNotExistError{
@@ -65,7 +74,7 @@ func (run Run) Execute() {
 
     // show information about the whole run process
     log.Write(log.INFO, color.New(color.FgYellow), "Platform:             ")
-    log.Writeln(log.NONE, nil, projectConfig.GetMainTag().GetCompileOptions().GetPlatform())
+    log.Writeln(log.NONE, nil, config.GetMainTag().GetCompileOptions().GetPlatform())
     log.Write(log.INFO, color.New(color.FgYellow), "Framework:            ")
     log.Writeln(log.NONE, nil, target.GetFramework())
     log.Write(log.INFO, color.New(color.FgYellow), "Target Name:          ")
@@ -77,7 +86,7 @@ func (run Run) Execute() {
     performUpload := false
 
     // check if we can perform upload and if we can, choose port
-    if projectConfig.GetMainTag().GetCompileOptions().GetPlatform() == constants.AVR {
+    if config.GetMainTag().GetCompileOptions().GetPlatform() == constants.AVR {
         log.Write(log.INFO, color.New(color.FgYellow), "Board:                ")
         log.Writeln(log.NONE, nil, target.GetBoard())
 
@@ -110,7 +119,7 @@ func (run Run) Execute() {
     } else {
         log.Writeln(log.NONE, nil, "\n")
         log.WriteErrorln(errors.ActionNotSupportedByPlatform{
-            Platform:    projectConfig.GetMainTag().GetCompileOptions().GetPlatform(),
+            Platform:    config.GetMainTag().GetCompileOptions().GetPlatform(),
             CommandName: "upload",
             Err:         goerr.New("skipping upload"),
         }, true)
@@ -124,8 +133,8 @@ func (run Run) Execute() {
     queue := log.GetQueue()
 
     // create CMakeLists.txt file
-    if projectConfig.GetMainTag().GetCompileOptions().GetPlatform() == constants.AVR {
-        if err := cmake.GenerateAvrMainCMakeLists(projectConfig.GetMainTag().GetName(), directory,
+    if config.GetMainTag().GetCompileOptions().GetPlatform() == constants.AVR {
+        if err := cmake.GenerateAvrMainCMakeLists(config.GetMainTag().GetName(), directory,
             target.GetBoard(), portToUse, target.GetFramework(),
             targetName, target.GetSrc(), target.GetFlags(), target.GetDefinitions()); err != nil {
             log.Writeln(log.NONE, color.New(color.FgRed), "failure")
@@ -137,7 +146,7 @@ func (run Run) Execute() {
         }
     } else {
         err = errors.PlatformNotSupportedError{
-            Platform: projectConfig.GetMainTag().GetCompileOptions().GetPlatform(),
+            Platform: config.GetMainTag().GetCompileOptions().GetPlatform(),
         }
 
         log.WriteErrorlnExit(err)
@@ -147,13 +156,13 @@ func (run Run) Execute() {
 
     log.Write(log.INFO, color.New(color.FgCyan), "scanning dependencies and creating build files ... ")
 
-    projectConfig.GetMainTag().GetName()
+    config.GetMainTag().GetName()
 
     // scan dependencies and create dependencies.cmake file
-    if err := dependencies.CreateCMakeDependencyTargets(queue, projectConfig.GetMainTag().GetName(), directory,
-        projectConfig.GetType(), target.GetFlags(), target.GetDefinitions(),
-        projectConfig.GetDependencies(), projectConfig.GetMainTag().GetCompileOptions().GetPlatform(),
-        projectConfig.GetMainTag().GetVersion()); err != nil {
+    if err := dependencies.CreateCMakeDependencyTargets(queue, config.GetMainTag().GetName(), directory,
+        config.GetType(), target.GetFlags(), target.GetDefinitions(),
+        config.GetDependencies(), config.GetMainTag().GetCompileOptions().GetPlatform(),
+        config.GetMainTag().GetVersion()); err != nil {
         log.Writeln(log.NONE, color.New(color.FgRed), "failure")
         log.PrintQueue(queue, log.TWO_SPACES)
         log.WriteErrorlnExit(err)
@@ -216,7 +225,24 @@ func (run Run) Execute() {
     }
 }
 
-func (run Run) build() {
+func (info runInfo) build() error {
+    targets := make([]types.Target, 0, len(info.targets))
+    projectTargets := info.config.GetTargets().GetTargets()
+    for _, targetName := range info.targets {
+        if _, exist := projectTargets[targetName]; exist {
+            targets = append(targets, projectTargets[targetName])
+        } else {
+            log.Warnln("Unrecognized target name: %s", targetName)
+        }
+    }
+    if len(info.targets) <= 0 {
+        defaultName := info.config.GetTargets().GetDefaultTarget()
+        targets = append(targets, projectTargets[defaultName])
+    }
+    
+}
+
+func (run Run) configure(dir string) error {
 
 }
 

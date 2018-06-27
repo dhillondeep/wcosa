@@ -38,7 +38,6 @@ var packageFlags = []cli.Flag{
         Usage: "Target boards: e.g. 'uno', 'mega2560', or 'all'",
         Value: "all",
     },
-
     cli.BoolFlag{
         Name:  "only-config",
         Usage: "Creates only the configuration file (wio.yml).",
@@ -47,12 +46,6 @@ var packageFlags = []cli.Flag{
         Name:  "header-only",
         Usage: "Specify a header-only package.",
     },
-
-    cli.BoolFlag{
-        Name:  "no-extras",
-        Usage: "This will restrict wio from creating .gitignore, README.md, etc files.",
-    },
-
     cli.BoolFlag{
         Name:  "disable-warnings",
         Usage: "Disables all the warning shown by wio.",
@@ -61,11 +54,48 @@ var packageFlags = []cli.Flag{
         Name:  "verbose",
         Usage: "Turns verbose mode on to show detailed errors and commands being executed.",
     },
-
     /*cli.BoolFlag{
+        Name:  "no-extras",
+        Usage: "This will restrict wio from creating .gitignore, README.md, etc files.",
+    },
+    cli.BoolFlag{
         Name:  "create-example",
         Usage: "This will create an example project that user can build and upload.",
     },*/
+}
+
+var updateFlags = []cli.Flag{
+    cli.BoolFlag{
+        Name:  "verbose",
+        Usage: "Turns verbose mode on to show detailed errors and commands being executed.",
+    },
+    cli.BoolFlag{
+        Name:  "disable-warnings",
+        Usage: "Disables all the warning shown by wio",
+    },
+    /*cli.BoolFlag{
+        Name:  "no-extras",
+        Usage: "This will restrict wio from creating .gitignore, README.md, etc files.",
+    },
+    /*cli.BoolFlag{
+        Name:  "config-help",
+        Usage: "Prints help text in the config file.",
+    },*/
+}
+
+var buildFlags = []cli.Flag{
+    cli.BoolFlag{
+        Name: "all",
+        Usage: "Build all available targets",
+    },
+    cli.BoolFlag{
+        Name:  "verbose",
+        Usage: "Turns verbose mode on to show detailed errors and commands being executed.",
+    },
+    cli.BoolFlag{
+        Name:  "disable-warnings",
+        Usage: "Disables all the warning shown by wio",
+    },
 }
 
 func main() {
@@ -102,7 +132,8 @@ func main() {
             Name:  "create",
             Usage: "Creates and initializes a wio project.",
             Subcommands: cli.Commands{
-                cli.Command{
+
+                {
                     Name:      "pkg",
                     Usage:     "Creates a wio package.",
                     UsageText: "wio create pkg [command options]",
@@ -111,9 +142,10 @@ func main() {
                         command = create.Create{Context: c, Update: false}
                     },
                 },
-                cli.Command{
+
+                {
                     Name:      "app",
-                    Usage:     "Creates a wio application, intended to be compiled and uploaded to a device.",
+                    Usage:     "Creates a wio application.",
                     UsageText: "wio create app [command options]",
                     Subcommands: cli.Commands{
                         cli.Command{
@@ -141,24 +173,36 @@ func main() {
                         },
                     },
                 },
+
             },
         },
+
         {
             Name:      "update",
             Usage:     "Updates the current project and fixes any issues.",
             UsageText: "wio update [directory] [command options]",
-            Flags: []cli.Flag{
-                cli.BoolFlag{Name: "verbose",
-                    Usage: "Turns verbose mode on to show detailed errors and commands being executed."},
-                cli.BoolFlag{Name: "disable-warnings",
-                    Usage: "Disables all the warning shown by wio"},
-                cli.BoolFlag{Name: "no-extras",
-                    Usage: "This will restrict wio from creating .gitignore, README.md, etc files."},
-                cli.BoolFlag{Name: "config-help",
-                    Usage: "Prints help text in the config file."},
-            },
+            Flags:     updateFlags,
             Action: func(c *cli.Context) {
                 command = create.Create{Context: c, Update: true}
+            },
+        },
+
+        {
+            Name: "build",
+            Usage: "Configure and build the project.",
+            UsageText: "wio build [target] [command options]",
+            Flags: buildFlags,
+            Action: func(c *cli.Context) {
+                command = run.Run{Context: c}
+            },
+        },
+
+        {
+            Name: "clean",
+            Usage: "Clean project targets",
+            Flags: buildFlags,
+            Action: func(c *cli.Context) {
+                command = run.Run{Context: c}
             },
         },
 
@@ -171,18 +215,12 @@ func main() {
                     Usage: "Builds, Runs and/or uploads a specified target instead of the main/default target.",
                     Value: config.ProjectDefaults.DefaultTarget,
                 },
-                cli.BoolFlag{Name: "clean",
-                    Usage: "Clean the project build files before new build is triggered.",
-                },
                 cli.BoolFlag{Name: "upload",
                     Usage: "Uploads the built target to a device (automatically selected).",
                 },
                 cli.StringFlag{Name: "port",
                     Usage: "Port to upload the project to, (default: automatically select).",
                     Value: config.ProjectDefaults.Port,
-                },
-                cli.BoolFlag{Name: "build-all",
-                    Usage: "Build all the targets specified in wio.yml file.",
                 },
                 cli.BoolFlag{Name: "verbose",
                     Usage: "Turns verbose mode on to show detailed errors and commands being executed.",
@@ -326,232 +364,15 @@ func main() {
                 command = pac.Pac{Context: c, Type: pac.LIST}
             },
         },
-
-        /*
-           {
-               Name:      "test",
-               Usage:     "Runs unit tests available in the project.",
-               UsageText: "wio test",
-               Flags: []cli.Flag{
-                   cli.BoolFlag{Name: "clean",
-                       Usage: "Clean the project before building it",
-                   },
-                   cli.StringFlag{Name: "port",
-                       Usage: "Port to upload the project to, (default: automatically select)",
-                       Value: defaults.Port,
-                   },
-                   cli.StringFlag{Name: "target",
-                       Usage: "Builds, and uploads a specified target instead of the main/default target",
-                       Value: defaults.Utarget,
-                   },
-                   cli.BoolFlag{Name: "verbose",
-                       Usage: "Turns verbose mode on to show detailed errors and commands being executed",
-                   },
-               },
-               Action: func(c *cli.Context) error {
-                   return nil
-               },
-           },
-           {
-               Name:      "doctor",
-               Usage:     "Guide development tooling and system configurations.",
-               UsageText: "wio doctor",
-               Action: func(c *cli.Context) error {
-                   return nil
-               },
-           },
-           {
-               Name:      "analyze",
-               Usage:     "Analyzes C/C++ code statically.",
-               UsageText: "wio analyze",
-               Action: func(c *cli.Context) error {
-                   return nil
-               },
-           },
-           {
-               Name:      "doxygen",
-               Usage:     "Runs doxygen tool to create documentation for the code.",
-               UsageText: "wio doxygen",
-               Action: func(c *cli.Context) error {
-                   return nil
-               },
-           },
-        */
-        /*
-           {
-               Name:  "pac",
-               Usage: "Package manager for Wio projects.",
-               Subcommands: cli.Commands{
-                   cli.Command{
-                       Name:      "add",
-                       Usage:     "Add/Update dependencies.",
-                       UsageText: "wio pac add [command options]",
-                       Flags: []cli.Flag{
-                           cli.BoolFlag{Name: "vendor",
-                               Usage: "Adds the dependency as vendor",
-                           },
-                           cli.StringFlag{Name: "dir",
-                               Usage: "Directory for the project (default: current working directory)",
-                               Value: getCurrDir(),
-                           },
-                           cli.BoolFlag{Name: "verbose",
-                               Usage: "Turns verbose mode on to show detailed errors and commands being executed.",
-                           },
-                       },
-                       Action: func(c *cli.Context) {
-                           validateWioProject(c.String("dir"))
-                           command = pac.Pac{Context: c, Type: pac.ADD}
-                       },
-                   },
-                   cli.Command{
-                       Name:      "rm",
-                       Usage:     "Remove dependencies.",
-                       UsageText: "wio pac rm [command options]",
-                       Flags: []cli.Flag{
-                           cli.BoolFlag{Name: "A",
-                               Usage: "Delete all the dependencies",
-                           },
-                           cli.StringFlag{Name: "dir",
-                               Usage: "Directory for the project (default: current working directory)",
-                               Value: getCurrDir(),
-                           },
-                           cli.BoolFlag{Name: "verbose",
-                               Usage: "Turns verbose mode on to show detailed errors and commands being executed.",
-                           },
-                       },
-                       Action: func(c *cli.Context) {
-                           validateWioProject(c.String("dir"))
-                           command = pac.Pac{Context: c, Type: pac.RM}
-                       },
-                   },
-                   cli.Command{
-                       Name:      "list",
-                       Usage:     "List all the dependencies",
-                       UsageText: "wio pac list [command options]",
-                       Flags: []cli.Flag{
-                           cli.StringFlag{Name: "dir",
-                               Usage: "Directory for the project (default: current working directory)",
-                               Value: getCurrDir(),
-                           },
-                           cli.BoolFlag{Name: "verbose",
-                               Usage: "Turns verbose mode on to show detailed errors and commands being executed.",
-                           },
-                       },
-                       Action: func(c *cli.Context) {
-                           validateWioProject(c.String("dir"))
-                           command = pac.Pac{Context: c, Type: pac.LIST}
-                       },
-                   },
-                   cli.Command{
-                       Name:      "info",
-                       Usage:     "Get information about a dependency being used",
-                       UsageText: "wio pac info [command options]",
-                       Flags: []cli.Flag{
-                           cli.StringFlag{Name: "dir",
-                               Usage: "Directory for the project (default: current working directory)",
-                               Value: getCurrDir(),
-                           },
-                           cli.BoolFlag{Name: "verbose",
-                               Usage: "Turns verbose mode on to show detailed errors and commands being executed.",
-                           },
-                       },
-                       Action: func(c *cli.Context) {
-                           validateWioProject(c.String("dir"))
-                           command = pac.Pac{Context: c, Type: pac.INFO}
-                       },
-                   },
-                   cli.Command{
-                       Name:      "publish",
-                       Usage:     "Publish the wio package to the package manager site (npm site)",
-                       UsageText: "wio pac publish [command options]",
-                       Flags: []cli.Flag{
-                           cli.StringFlag{Name: "dir",
-                               Usage: "Directory for the project (default: current working directory)",
-                               Value: getCurrDir(),
-                           },
-                           cli.BoolFlag{Name: "verbose",
-                               Usage: "Turns verbose mode on to show detailed errors and commands being executed.",
-                           },
-                       },
-                       Action: func(c *cli.Context) {
-                           validateWioProject(c.String("dir"))
-                           command = pac.Pac{Context: c, Type: pac.PUBLISH}
-                       },
-                   },
-                   cli.Command{
-                       Name:      "get",
-                       Usage:     "Gets all the packages mentioned in wio.yml file and vendor folder.",
-                       UsageText: "wio pac get [command options]",
-                       Flags: []cli.Flag{
-                           cli.StringFlag{Name: "dir",
-                               Usage: "Directory for the project (default: current working directory)",
-                               Value: getCurrDir(),
-                           },
-                           cli.BoolFlag{Name: "clean",
-                               Usage: "Cleans all the current packages and re get all of them.",
-                           },
-                           cli.BoolFlag{Name: "verbose",
-                               Usage: "Turns verbose mode on to show detailed errors and commands being executed.",
-                           },
-                       },
-                       Action: func(c *cli.Context) {
-                           validateWioProject(c.String("dir"))
-                           command = pac.Pac{Context: c, Type: pac.GET}
-                       },
-                   },
-                   /*
-                      cli.Command{
-                          Name:      "update",
-                          Usage:     "Updates all the packages mentioned in wio.yml file and vendor folder.",
-                          UsageText: "wio pac update [command options]",
-                          Flags: []cli.Flag{
-                              cli.StringFlag{Name: "dir",
-                                  Usage: "Directory for the project (default: current working directory)",
-                                  Value: getCurrDir(),
-                              },
-                              cli.BoolFlag{Name: "verbose",
-                                  Usage: "Turns verbose mode on to show detailed errors and commands being executed.",
-                              },
-                          },
-                          Action: func(c *cli.Context) {
-                              command = pac.Pac{Context: c, Type: pac.UPDATE}
-                          },
-                      },
-                      cli.Command{
-                          Name:      "collect",
-                          Usage:     "Creates vendor folder and puts all the packages in that folder.",
-                          UsageText: "wio pac collect [command options]",
-                          Flags: []cli.Flag{
-                              cli.StringFlag{Name: "dir",
-                                  Usage: "Directory for the project (default: current working directory)",
-                                  Value: getCurrDir(),
-                              },
-                              cli.StringFlag{Name: "pkg",
-                                  Usage: "Packages to collect instead of collecting all of the packages.",
-                                  Value: "none",
-                              },
-                              cli.BoolFlag{Name: "verbose",
-                                  Usage: "Turns verbose mode on to show detailed errors and commands being executed.",
-                              },
-                          },
-                          Action: func(c *cli.Context) {
-                              command = pac.Pac{Context: c, Type: pac.COLLECT}
-                          },
-                      },*/
-        /*},
-          },
-        */
     }
 
     app.Action = func(c *cli.Context) error {
         app.Command("help").Run(c)
         return nil
     }
-
     if err = app.Run(os.Args); err != nil {
         log.WriteErrorlnExit(err)
     }
-
     defer func() {
         if r := recover(); r != nil {
             fatalError := errors.FatalError{
@@ -561,18 +382,15 @@ func main() {
             log.WriteErrorlnExit(fatalError)
         }
     }()
-
     // execute the command
     if command != nil {
         // check if verbose flag is true
         if command.GetContext().Bool("verbose") {
             log.SetVerbose()
         }
-
         if command.GetContext().Bool("disable-warnings") {
             log.DisableWarnings()
         }
-
         command.Execute()
     }
 }

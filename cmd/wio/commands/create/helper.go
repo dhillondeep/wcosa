@@ -13,10 +13,10 @@ import (
 func (info createInfo) fillReadMe(queue *log.Queue, readmeFile string) error {
     log.Verb(queue, "filling README file ... ")
     if err := template.IOReplace(readmeFile, map[string]string{
-        "PLATFORM":        info.Platform,
-        "FRAMEWORK":       info.Framework,
-        "BOARD":           info.Board,
-        "PROJECT_NAME":    info.Name,
+        "PLATFORM":        info.platform,
+        "FRAMEWORK":       info.framework,
+        "BOARD":           info.board,
+        "PROJECT_NAME":    info.name,
         "PROJECT_VERSION": "0.0.1",
     }); err != nil {
         log.WriteFailure(queue, log.VERB)
@@ -27,10 +27,10 @@ func (info createInfo) fillReadMe(queue *log.Queue, readmeFile string) error {
 }
 
 func (info createInfo) toLowerCase() {
-    info.Type = strings.ToLower(info.Type)
-    info.Platform = strings.ToLower(info.Platform)
-    info.Framework = strings.ToLower(info.Framework)
-    info.Board = strings.ToLower(info.Board)
+    info.projectType = strings.ToLower(info.projectType)
+    info.platform = strings.ToLower(info.platform)
+    info.framework = strings.ToLower(info.framework)
+    info.board = strings.ToLower(info.board)
 }
 
 func (create Create) generateConstraints() (map[string]bool, map[string]bool) {
@@ -53,7 +53,7 @@ func (create Create) generateConstraints() (map[string]bool, map[string]bool) {
 func (create Create) copyProjectAssets(queue *log.Queue, info *createInfo, data StructureTypeData) error {
     dirConstraints, fileConstraints := create.generateConstraints()
     for _, path := range data.Paths {
-        directoryPath := filepath.Clean(info.Directory + io.Sep + path.Entry)
+        directoryPath := filepath.Clean(info.directory + io.Sep + path.Entry)
         skipDir := false
         log.Verbln(queue, "copying assets to directory: %s", directoryPath)
         // handle directory constraints

@@ -21,7 +21,7 @@ func performDirectoryCheck(context *cli.Context) string {
     var directory string
     var err error
 
-    // Directory is always the first argument
+    // directory is always the first argument
     if len(context.Args()) <= 0 {
         directory, err = os.Getwd()
         log.WriteErrorlnExit(err)
@@ -60,7 +60,7 @@ func performPreCreateCheck(directory string, onlyConfig bool) {
             err := errors.OverridePossibilityError{
                 Path: directory,
                 Err: goerr.New("wio.yml file will be replaced with new config.\n" + errors.Spaces +
-                    "Type (y) to indicate creation or anything else otherwise: "),
+                    "projectType (y) to indicate creation or anything else otherwise: "),
             }
 
             log.WriteErrorAndPrompt(err, log.INFO, "y", true)
@@ -70,11 +70,11 @@ func performPreCreateCheck(directory string, onlyConfig bool) {
         if isEmpty, err := utils.IsEmpty(directory); err != nil {
             log.WriteErrorlnExit(err)
         } else if !isEmpty {
-            // Directory is not empty
+            // directory is not empty
             err := errors.OverridePossibilityError{
                 Path: directory,
                 Err: goerr.New("files will be replaced with new project files.\n" + errors.Spaces +
-                    "Type (y) to indicate creation or anything else otherwise: "),
+                    "projectType (y) to indicate creation or anything else otherwise: "),
             }
 
             log.WriteErrorAndPrompt(err, log.INFO, "y", true)
