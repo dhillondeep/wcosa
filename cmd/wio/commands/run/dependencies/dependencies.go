@@ -22,10 +22,10 @@ const (
     PKG_REMOTE_NAME = "pkg_module"
 )
 
-var packageVersions = map[string]string{}          /* Keeps track of versions for the packages */
-var cmakeTargets = map[string]*cmake.CMakeTarget{} /* CMake Target that will be built */
-var cmakeTargetsLink []cmake.CMakeTargetLink       /* CMake Target to Link to and from */
-var cmakeTargetNames = map[string]bool{}           /* CMake Target Names. Used to check for unique names */
+var packageVersions = map[string]string{}     /* Keeps track of versions for the packages */
+var cmakeTargets = map[string]*cmake.Target{} /* CMake Target that will be built */
+var cmakeTargetsLink []cmake.TargetLink       /* CMake Target to Link to and from */
+var cmakeTargetNames = map[string]bool{}      /* CMake Target Names. Used to check for unique names */
 
 // Stores information about every package that is scanned
 type DependencyScanStructure struct {

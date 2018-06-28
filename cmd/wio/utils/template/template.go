@@ -11,7 +11,7 @@ func IOReplace(path string, values map[string]string) error {
     if nil != err {
         return errors.ReadFileError{FileName: path, Err: err}
     }
-    result := Replace(data, values)
+    result := Replace(string(data), values)
     err = io.NormalIO.WriteFile(path, []byte(result))
     if nil != err {
         return errors.WriteFileError{FileName: path, Err: err}
@@ -19,8 +19,7 @@ func IOReplace(path string, values map[string]string) error {
     return nil
 }
 
-func Replace(data []byte, values map[string]string) string {
-    template := string(data)
+func Replace(template string, values map[string]string) string {
     for match, replace := range values {
         template = strings.Replace(template, "{{"+match+"}}", replace, -1)
     }

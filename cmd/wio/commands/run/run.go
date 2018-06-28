@@ -55,6 +55,7 @@ func (run Run) Execute() {
         log.WriteErrorlnExit(err)
     }
 
+
     targetName := run.Context.String("target")
     if targetName == cfg.ProjectDefaults.DefaultTarget {
         targetName = config.GetTargets().GetDefaultTarget()
@@ -134,7 +135,7 @@ func (run Run) Execute() {
 
     // create CMakeLists.txt file
     if config.GetMainTag().GetCompileOptions().GetPlatform() == constants.AVR {
-        if err := cmake.GenerateAvrMainCMakeLists(config.GetMainTag().GetName(), directory,
+        if err := cmake.GenerateAvrCmakeLists(config.GetMainTag().GetName(), directory,
             target.GetBoard(), portToUse, target.GetFramework(),
             targetName, target.GetSrc(), target.GetFlags(), target.GetDefinitions()); err != nil {
             log.Writeln(log.NONE, color.New(color.FgRed), "failure")

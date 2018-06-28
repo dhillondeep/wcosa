@@ -233,7 +233,7 @@ func CreateCMakeTargets(queue *log.Queue, parentTargetName string, parentTargetH
 
     if val, exists := cmakeTargets[hash]; exists {
         linkVisibility = linkVisibilityVerify(queue, parentTargetName, val.TargetName, linkVisibility, parentTargetHeaderOnly)
-        cmakeTargetsLink = append(cmakeTargetsLink, cmake.CMakeTargetLink{From: parentTargetName, To: val.TargetName, LinkVisibility: linkVisibility})
+        cmakeTargetsLink = append(cmakeTargetsLink, cmake.TargetLink{From: parentTargetName, To: val.TargetName, Visibility: linkVisibility})
     } else {
         dependencyNameToUse := dependencyTargetName
         counter := 2
@@ -256,12 +256,12 @@ func CreateCMakeTargets(queue *log.Queue, parentTargetName string, parentTargetH
         // verify linker visibility
         linkVisibility = linkVisibilityVerify(queue, parentTargetName, dependencyNameToUse, linkVisibility, parentTargetHeaderOnly)
 
-        cmakeTargets[hash] = &cmake.CMakeTarget{TargetName: dependencyNameToUse,
+        cmakeTargets[hash] = &cmake.Target{TargetName: dependencyNameToUse,
             Path: dependencyTarget.Directory, Flags: allFlags, Definitions: allDefinitions,
             HeaderOnly: dependencyTarget.MainTag.CompileOptions.HeaderOnly}
 
-        cmakeTargetsLink = append(cmakeTargetsLink, cmake.CMakeTargetLink{From: parentTargetName, To: dependencyNameToUse,
-            LinkVisibility: linkVisibility})
+        cmakeTargetsLink = append(cmakeTargetsLink, cmake.TargetLink{From: parentTargetName, To: dependencyNameToUse,
+            Visibility: linkVisibility})
 
         cmakeTargetNames[dependencyNameToUse] = true
     }

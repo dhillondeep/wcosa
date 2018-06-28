@@ -1,0 +1,58 @@
+package cmake
+
+import (
+    "wio/cmd/wio/utils/template"
+    "strings"
+)
+
+type Target struct {
+    TargetName            string
+    Path                  string
+    Flags                 []string
+    Definitions           []string
+    FlagsVisibility       string
+    DefinitionsVisibility string
+    HeaderOnly            bool
+}
+
+// CMake Target Link information
+type TargetLink struct {
+    From       string
+    To         string
+    Visibility string
+}
+
+// This creates CMake library string that will be used to link libraries
+func GenerateAvrDependencyCMakeString(targets map[string]*Target, links []TargetLink) []string {
+    cmakeStrings := make([]string, 0, 256)
+
+    for _, target := range targets {
+        finalString := avrNonHeaderOnlyString
+        if target.HeaderOnly {
+            finalString = avrHeaderOnlyString
+        }
+
+        template.Replace(finalString, map[string]string{
+            "DEPENDENCY_NAME":        target.TargetName,
+            "DEPENDENCY_PATH":        target.Path,
+            "DEPENDENCY_FLAGS":       strings.Join(target.Flags, " "),
+            "DEPENDENCY_DEFINITIONS": strings.Join(target.Definitions, " "),
+            "FLAGS_VISIBILITY":       target.FlagsVisibility,
+            "DEFINITIONS_VISIBILITY": target.DefinitionsVisibility,
+        })
+        cmakeStrings = append(cmakeStrings, finalString+"\n")
+    }
+
+    for _, link := range links {
+        finalString := template.Replace(linkString, map[string]string{
+            "LINKER_NAME":     link.From,
+            "DEPENDENCY_NAME": link.To,
+            "LINK_VISIBILITY": link.Visibility,
+        })
+        cmakeStrings = append(cmakeStrings, finalString)
+    }
+
+    cmakeStrings = append(cmakeStrings, "")
+
+    return cmakeStrings
+}

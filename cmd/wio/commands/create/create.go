@@ -107,7 +107,7 @@ func (create Create) fillPackageConfig(queue *log.Queue, info *createInfo) error
 
         // create app target
         appConfig.TargetsTag.DefaultTarget = config.ProjectDefaults.AppTargetName
-        appConfig.TargetsTag.Targets = map[string]types.AppAVRTarget{
+        appConfig.TargetsTag.Targets = map[string]types.AppTarget{
             config.ProjectDefaults.AppTargetName: {
                 Src:       "src",
                 framework: framework,
@@ -151,7 +151,7 @@ func (create Create) fillPackageConfig(queue *log.Queue, info *createInfo) error
         },
         TargetsTag: types.PkgAVRTargets{
             DefaultTarget: target,
-            Targets: map[string]types.PkgAVRTarget{
+            Targets: map[string]types.PkgTarget{
                 target: {
                     Src:       target,
                     Platform:  info.platform,

@@ -30,15 +30,26 @@ cmake_minimum_required(VERSION ${CMAKE_VERSION})
 project(${PROJECT_NAME} C CXX ASM)
 cmake_policy(SET CMP0023 OLD)
 
-file(GLOB_RECURSE SRC_FILES "${PROJECT_PATH}/${ENTRY}/*.cpp" "${PROJECT_PATH}/${ENTRY}/*.cc" "${PROJECT_PATH}/${ENTRY}/*.c")
+file(GLOB_RECURSE SRC_FILES
+    "${PROJECT_PATH}/${ENTRY}/*.cpp"
+    "${PROJECT_PATH}/${ENTRY}/*.cc"
+    "${PROJECT_PATH}/${ENTRY}/*.c")
+
 generate_arduino_firmware(${TARGET_NAME}
     SRCS ${SRC_FILES}
     BOARD ${BOARD}
     PORT {{PORT}})
-target_compile_definitions(${TARGET_NAME} PRIVATE 
-    WIO_FRAMEWORK_${FRAMEWORK} 
+
+target_compile_definitions(
+    ${TARGET_NAME}
+    PRIVATE
+    WIO_PLATFORM_${PLATFORM}
+    WIO_FRAMEWORK_${FRAMEWORK}
+    WIO_BOARD_${BOARD}
     {{TARGET_COMPILE_DEFINITIONS}})
-target_compile_options(${TARGET_NAME} PRIVATE 
+
+target_compile_options(${TARGET_NAME}
+    PRIVATE
     {{TARGET_COMPILE_FLAGS}})
 
 include(${DEPENDENCY_FILE})

@@ -10,7 +10,6 @@ set(DEPENDENCY_FILE dependencies)
 
 # Properties
 set(TARGET_NAME {{TARGET_NAME}})
-set(FRAMEWORK {{FRAMEWORK}})
 set(ENTRY {{ENTRY}})
 
 # CMAKE
@@ -21,11 +20,20 @@ file(GLOB_RECURSE ${TARGET_NAME}_files
     ${PROJECT_FILES}/${ENTRY}/*.cpp
     ${PROJECT_FILES}/${ENTRY}/*.cc
     ${PROJECT_FILES}/${ENTRY}/*.c)
+
 add_executable(${TARGET_NAME} ${${TARGET_NAME}_files})
-target_compile_definitions(${TARGET_NAME} PRIVATE 
+
+target_compile_definitions(
+    ${TARGET_NAME}
+    PRIVATE
+    WIO_PLATFORM_${PLATFORM}
     WIO_FRAMEWORK_${FRAMEWORK}
+    WIO_BOARD_${BOARD}
     {{TARGET_COMPILE_DEFINITIONS}})
-target_compile_options(${TARGET_NAME} PRIVATE
+
+target_compile_options(
+    ${TARGET_NAME}
+    PRIVATE
     {{TARGET_COMPILE_FLAGS}})
 
 include(${DEPENDENCY_FILE})

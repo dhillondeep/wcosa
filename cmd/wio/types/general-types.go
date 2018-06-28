@@ -22,8 +22,10 @@ import (
 // Abstraction of a Target
 type Target interface {
     GetSrc() string
+    GetName() string
     GetBoard() string
     GetFramework() string
+    GetPlatform() string
     GetFlags() TargetFlags
     GetDefinitions() TargetDefinitions
 }
@@ -84,45 +86,55 @@ func (appTargetDefinitions AppTargetDefinitions) GetPkgDefinitions() []string {
 }
 
 // Structure to handle individual target inside targets for project of app AVR type
-type AppAVRTarget struct {
+type AppTarget struct {
     Src         string
+    Name        string
+    Platform    string
     Framework   string
     Board       string
     Flags       AppTargetFlags
     Definitions AppTargetDefinitions
 }
 
-func (appTargetTag AppAVRTarget) GetSrc() string {
-    return appTargetTag.Src
+func (target AppTarget) GetSrc() string {
+    return target.Src
 }
 
-func (appTargetTag AppAVRTarget) GetBoard() string {
-    return appTargetTag.Board
+func (target AppTarget) GetName() string {
+    return target.Name
 }
 
-func (appTargetTag AppAVRTarget) GetFramework() string {
-    return appTargetTag.Framework
+func (target AppTarget) GetBoard() string {
+    return target.Board
 }
 
-func (appTargetTag AppAVRTarget) GetFlags() TargetFlags {
-    return appTargetTag.Flags
+func (target AppTarget) GetFramework() string {
+    return target.Framework
 }
 
-func (appTargetTag AppAVRTarget) GetDefinitions() TargetDefinitions {
-    return appTargetTag.Definitions
+func (target AppTarget) GetPlatform() string {
+    return target.Platform
+}
+
+func (target AppTarget) GetFlags() TargetFlags {
+    return target.Flags
+}
+
+func (target AppTarget) GetDefinitions() TargetDefinitions {
+    return target.Definitions
 }
 
 // type for the targets tag in the configuration file for project of app AVR type
-type AppAVRTargets struct {
-    DefaultTarget string                  `yaml:"default"`
-    Targets       map[string]AppAVRTarget `yaml:"create"`
+type AppTargets struct {
+    DefaultTarget string               `yaml:"default"`
+    Targets       map[string]AppTarget `yaml:"create"`
 }
 
-func (appTargetsTag AppAVRTargets) GetDefaultTarget() string {
+func (appTargetsTag AppTargets) GetDefaultTarget() string {
     return appTargetsTag.DefaultTarget
 }
 
-func (appTargetsTag AppAVRTargets) GetTargets() map[string]Target {
+func (appTargetsTag AppTargets) GetTargets() map[string]Target {
     targets := make(map[string]Target)
 
     for key, val := range appTargetsTag.Targets {
@@ -171,8 +183,9 @@ func (pkgTargetDefinitions PkgTargetDefinitions) GetPkgDefinitions() []string {
 }
 
 // Structure to handle individual target inside targets for project of pkg type
-type PkgAVRTarget struct {
+type PkgTarget struct {
     Src         string
+    Name        string
     Platform    string
     Framework   string
     Board       string
@@ -180,30 +193,38 @@ type PkgAVRTarget struct {
     Definitions PkgTargetDefinitions
 }
 
-func (pkgAVRTarget PkgAVRTarget) GetSrc() string {
-    return pkgAVRTarget.Src
+func (target PkgTarget) GetSrc() string {
+    return target.Src
 }
 
-func (pkgAVRTarget PkgAVRTarget) GetBoard() string {
-    return pkgAVRTarget.Board
+func (target PkgTarget) GetName() string {
+    return target.Name
 }
 
-func (pkgAVRTarget PkgAVRTarget) GetFlags() TargetFlags {
-    return pkgAVRTarget.Flags
+func (target PkgTarget) GetBoard() string {
+    return target.Board
 }
 
-func (pkgAVRTarget PkgAVRTarget) GetFramework() string {
-    return pkgAVRTarget.Framework
+func (target PkgTarget) GetFlags() TargetFlags {
+    return target.Flags
 }
 
-func (pkgAVRTarget PkgAVRTarget) GetDefinitions() TargetDefinitions {
-    return pkgAVRTarget.Definitions
+func (target PkgTarget) GetPlatform() string {
+    return target.Platform
+}
+
+func (target PkgTarget) GetFramework() string {
+    return target.Framework
+}
+
+func (target PkgTarget) GetDefinitions() TargetDefinitions {
+    return target.Definitions
 }
 
 // type for the targets tag in the configuration file for project of pkg type
 type PkgAVRTargets struct {
-    DefaultTarget string                  `yaml:"default"`
-    Targets       map[string]PkgAVRTarget `yaml:"create"`
+    DefaultTarget string               `yaml:"default"`
+    Targets       map[string]PkgTarget `yaml:"create"`
 }
 
 func (pkgAVRTargets PkgAVRTargets) GetDefaultTarget() string {
@@ -423,7 +444,7 @@ type IConfig interface {
 
 type AppConfig struct {
     MainTag         AppTag          `yaml:"app"`
-    TargetsTag      AppAVRTargets   `yaml:"targets"`
+    TargetsTag      AppTargets      `yaml:"targets"`
     DependenciesTag DependenciesTag `yaml:"dependencies"`
 }
 
