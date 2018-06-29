@@ -250,10 +250,10 @@ func WriteErrorAndPrompt(err error, logType Type, promptRightAnswer string, case
     text, err := reader.ReadString('\n')
     WriteErrorlnExit(err)
 
-    text = strings.TrimSuffix(text, "\n")
+    text = strings.Trim(strings.Trim(strings.Trim(text, "\n"), "\r"), " ")
 
     if caseSensitive {
-        promptRightAnswer = strings.ToLower(promptRightAnswer)
+        promptRightAnswer = strings.Trim(strings.ToLower(promptRightAnswer), " ")
         text = strings.ToLower(text)
     }
 
@@ -262,6 +262,7 @@ func WriteErrorAndPrompt(err error, logType Type, promptRightAnswer string, case
     } else {
         fmt.Fprint(colorable.NewColorableStderr(), "\n")
     }
+
 }
 
 // Shorthands

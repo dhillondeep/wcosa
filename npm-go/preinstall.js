@@ -11,9 +11,10 @@ const fs = require('fs')
 
 // Mapping from Node's `process.arch` to Golang's `$GOARCH`
 const ARCH_MAPPING = {
-    "ia32": "32-bit",
-    "x64": "64-bit",
-    "arm": "arm"
+    "ia32": "i386",
+    "x64": "x86_64",
+    "arm": "arm6",
+    "arm64": "arm64"
 };
 
 // Mapping between Node's `process.platform` to Golang's 
@@ -21,7 +22,8 @@ const PLATFORM_MAPPING = {
     "darwin": "darwin",
     "linux": "linux",
     "win32": "windows",
-    "freebsd": "freebsd"
+    "freebsd": "freebsd",
+    "openbsd": "openbsd"
 };
 
 function validateConfiguration(packageJson) {
@@ -113,7 +115,7 @@ function install(callback) {
 
     var req = request({ uri: opts.url });
 
-    if (process.platform == "win32") {
+    if (process.platform === "win32") {
         console.log("Downloading and unziping build files")
 
         mkdirp.sync(opts.binPath);

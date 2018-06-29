@@ -1,6 +1,6 @@
 {
   "name": "wio",
-  "version": "0.3.0",
+  "version": "0.3.2",
   "description": "An Iot Development Environment",
   "main": "index.js",
   "scripts": {
@@ -28,13 +28,13 @@
   ],
   "license": "MIT",
   "bugs": {
-    "url": "https://github.com/wio/wio-core/issues"
+    "url": "https://github.com/wio/wio/issues"
   },
-  "homepage": "https://github.com/wio/wio-core#readme",
+  "homepage": "https://github.com/wio/wio#readme",
   "goBinary": {
     "name": "wio",
     "path": "./bin",
-    "url": "https://github.com/wio/wio-core/releases/download/v{{version}}/wio_{{version}}_{{platform}}_{{arch}}.{{format}}"
+    "url": "https://github.com/wio/wio/releases/download/v{{version}}/wio_{{platform}}_{{arch}}.{{format}}"
   },
   "dependencies": {
     "decompress": "^4.2.0",

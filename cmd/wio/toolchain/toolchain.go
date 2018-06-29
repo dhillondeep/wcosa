@@ -4,6 +4,8 @@ import (
     "errors"
     "os/exec"
     "wio/cmd/wio/utils/io"
+    "path/filepath"
+    "wio/cmd/wio/utils"
 )
 
 const (
@@ -22,6 +24,14 @@ func GetToolchainPath() (string, error) {
     }
 
     toolchainPath := executablePath + io.Sep + "toolchain"
+
+    if !utils.PathExists(toolchainPath) {
+        toolchainPath, err = filepath.Abs(executablePath + io.Sep + ".." + io.Sep + "toolchain")
+        if err != nil {
+            return "", err
+        }
+    }
+
     return toolchainPath, nil
 }
 

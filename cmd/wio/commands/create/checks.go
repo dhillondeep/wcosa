@@ -80,13 +80,10 @@ func performPreCreateCheck(directory string, onlyConfig bool) {
             log.WriteErrorAndPrompt(err, log.INFO, "y", true)
 
             // delete all the files
-            if err := os.RemoveAll(directory); err != nil {
-                deleteError := errors.DeleteDirectoryError{
-                    DirName: directory,
-                    Err:     err,
-                }
-
-                log.WriteErrorlnExit(deleteError)
+            if err := utils.RemoveContents(directory); err != nil {
+                log.WriteErrorlnExit(err)
+            } else {
+                log.Writeln(log.VERB, nil, "deleted all the files from: %s", directory)
             }
         }
     }

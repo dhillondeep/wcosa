@@ -61,10 +61,12 @@ func handlePorts(basic bool, showAll bool) {
 
     numOpenPorts := 0
     for _, port := range ports.Ports {
+        if port.Product != "None" {
+            numOpenPorts++
+        }
+
         if port.Product == "None" && !showAll {
             continue
-        } else {
-            numOpenPorts++
         }
 
         log.Writeln(log.INFO, color.New(color.FgYellow), port.Port)
