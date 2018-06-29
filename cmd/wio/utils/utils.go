@@ -13,6 +13,7 @@ import (
     "wio/cmd/wio/log"
     "wio/cmd/wio/types"
     wio "wio/cmd/wio/utils/io"
+    "strings"
 )
 
 // Checks if path exists and returns true and false based on that
@@ -83,18 +84,19 @@ func AppendIfMissing(slice []string, slice2 []string) []string {
 // the copied data is synced/flushed to stable storage.
 func CopyFile(src, dst string) (err error) {
     if !PathExists(src) {
-        return
+        msg := fmt.Sprintf("Path [%s] does not exist", src)
+        return errors.String(msg)
     }
 
     in, err := os.Open(src)
     if err != nil {
-        return
+        return err
     }
     defer in.Close()
 
     out, err := os.Create(dst)
     if err != nil {
-        return
+        return err
     }
     defer func() {
         if e := out.Close(); e != nil {
@@ -104,24 +106,24 @@ func CopyFile(src, dst string) (err error) {
 
     _, err = io.Copy(out, in)
     if err != nil {
-        return
+        return err
     }
 
     err = out.Sync()
     if err != nil {
-        return
+        return err
     }
 
     si, err := os.Stat(src)
     if err != nil {
-        return
+        return err
     }
     err = os.Chmod(dst, si.Mode())
     if err != nil {
-        return
+        return err
     }
 
-    return
+    return nil
 }
 
 // CopyDir recursively copies a directory tree, attempting to preserve permissions.
@@ -217,7 +219,7 @@ func Difference(a, b []string) []string {
 }
 
 // Read config file and return config object
-func ReadWioConfig(path string) (types.Config, error) {
+func ReadWioConfig(path string) (*types.Config, error) {
     defer func() {
         if r := recover(); r != nil {
             configError := errors.ConfigParsingError{
@@ -245,7 +247,7 @@ func ReadWioConfig(path string) (types.Config, error) {
             return nil, configError
         }
 
-        return pkgConfig, nil
+        return &types.Config{Config: pkgConfig, Type: types.Pkg}, nil
     } else {
         appConfig := &types.AppConfig{}
 
@@ -258,8 +260,26 @@ func ReadWioConfig(path string) (types.Config, error) {
             return nil, configError
         }
 
-        return appConfig, nil
+        return &types.Config{Config: appConfig, Type: types.App}, nil
     }
+}
+
+func Contains(slice []string, value string) bool {
+    for _, element := range slice {
+        if element == value {
+            return true
+        }
+    }
+    return false
+}
+
+func ContainsNoCase(slice []string, value string) bool {
+    for _, element := range slice {
+        if strings.ToLower(element) == strings.ToLower(value) {
+            return true
+        }
+    }
+    return false
 }
 
 // Deletes all the files from the directory

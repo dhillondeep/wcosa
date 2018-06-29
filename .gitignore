@@ -11,3 +11,12 @@ dist/
 node_modules/
 package-lock.json
 cmd/wio/utils/io/bindata.go
+
+# Toolchain symlink
+toolchain/toolchain
+
+# Test folders
+test/
+tests/
+wio-test/
+

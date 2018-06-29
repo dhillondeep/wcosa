@@ -1,6 +1,6 @@
 package config
 
-type defaults struct {
+type avrDefaults struct {
     Ide           string
     Framework     string
     Port          string
@@ -11,7 +11,7 @@ type defaults struct {
     PkgTargetName string
 }
 
-var ProjectDefaults = defaults{
+var ProjectDefaults = avrDefaults{
     Ide:           "none",
     Framework:     "cosa",
     Port:          "none",

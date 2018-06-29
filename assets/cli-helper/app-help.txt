@@ -3,8 +3,8 @@ Create, Build, and Upload AVR projects from Commandline.
 
 Common Commands:
 
-    wio create <platform> <project type> [options]
-        Create a new Wio project
+    wio create <project_type> [options]
+        Create a new Wio project where <project_type> is `app` or `pkg`
 
     wio run [options]
         Build the Wio project based on all the configurations defined
