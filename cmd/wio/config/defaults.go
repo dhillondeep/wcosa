@@ -19,5 +19,5 @@ var ProjectDefaults = avrDefaults{
     Baud:          9600,
     DefaultTarget: "default",
     AppTargetName: "main",
-    PkgTargetName: "test",
+    PkgTargetName: "tests",
 }

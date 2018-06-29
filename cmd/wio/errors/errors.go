@@ -26,6 +26,11 @@ func String(message string) error {
     return Generic{message}
 }
 
+func Stringf(format string, a ...interface{}) error {
+    msg := fmt.Sprintf(format, a...)
+    return String(msg)
+}
+
 type ProgramArgumentsError struct {
     CommandName  string
     ArgumentName string
@@ -164,13 +169,13 @@ func (err PlatformNotSupportedError) Error() string {
     return str
 }
 
-type FrameworkNotSupportedError struct {
+type UnknownFramework struct {
     Framework string
     Platform  string
     Err       error
 }
 
-func (err FrameworkNotSupportedError) Error() string {
+func (err UnknownFramework) Error() string {
     str := fmt.Sprintf(`"%s" framework is not supported for %s platform by wio`, err.Framework, err.Platform)
 
     if err.Err != nil {

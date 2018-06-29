@@ -19,7 +19,7 @@ func updateAVRAppTargets(targets *types.AppTargets, directory string) {
         // check if default target does not exist
         if _, exists := targets.Targets[targets.DefaultTarget]; !exists {
             // create a default target
-            targets.Targets[targets.DefaultTarget] = types.AppTarget{
+            targets.Targets[targets.DefaultTarget] = &types.AppTarget{
                 Src:       "src",
                 Framework: config.ProjectDefaults.Framework,
                 Board:     config.ProjectDefaults.AVRBoard,
@@ -34,7 +34,7 @@ func updateAVRAppTargets(targets *types.AppTargets, directory string) {
         if len(targets.Targets) <= 0 {
             targets.DefaultTarget = config.ProjectDefaults.AppTargetName
             // create a default target
-            targets.Targets = map[string]types.AppTarget{
+            targets.Targets = map[string]*types.AppTarget{
                 config.ProjectDefaults.AppTargetName: {
                     Src:       "src",
                     Framework: config.ProjectDefaults.Framework,

@@ -19,7 +19,6 @@ import (
     "wio/cmd/wio/config"
     "wio/cmd/wio/log"
     "wio/cmd/wio/utils/io"
-    "wio/cmd/wio/errors"
 )
 
 var packageFlags = []cli.Flag{
@@ -190,7 +189,7 @@ func main() {
         {
             Name: "build",
             Usage: "Configure and build the project.",
-            UsageText: "wio build [target] [command options]",
+            UsageText: "wio build [targets] [command options]",
             Flags: buildFlags,
             Action: func(c *cli.Context) {
                 command = run.Run{Context: c}
@@ -373,15 +372,15 @@ func main() {
     if err = app.Run(os.Args); err != nil {
         log.WriteErrorlnExit(err)
     }
-    defer func() {
-        if r := recover(); r != nil {
-            fatalError := errors.FatalError{
-                Log: r,
-            }
+    //defer func() {
+    //    if r := recover(); r != nil {
+    //        fatalError := errors.FatalError{
+    //            Log: r,
+    //        }
 
-            log.WriteErrorlnExit(fatalError)
-        }
-    }()
+    //        log.WriteErrorlnExit(fatalError)
+    //    }
+    //}()
     // execute the command
     if command != nil {
         // check if verbose flag is true

@@ -151,7 +151,7 @@ func (create Create) fillPackageConfig(queue *log.Queue, info *createInfo) error
         },
         TargetsTag: types.PkgAVRTargets{
             DefaultTarget: target,
-            Targets: map[string]types.PkgTarget{
+            Targets: map[string]*types.PkgTarget{
                 target: {
                     Src:       target,
                     Platform:  info.platform,

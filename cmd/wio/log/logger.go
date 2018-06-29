@@ -96,7 +96,7 @@ func QueueWriteln(queue *Queue, logType Type, providedColor *color.Color, messag
 // Copy one queue to another
 func CopyQueue(fromQueue *Queue, toQueue *Queue, spaces Indentation) {
     for {
-        if fromQueue.count <= 0 {
+        if len(*fromQueue) <= 0 {
             break
         } else {
             value := popLog(fromQueue)
@@ -117,7 +117,7 @@ func PrintQueue(queue *Queue, spaces Indentation) {
     index := 0
 
     for {
-        if index >= queue.count {
+        if index >= len(*queue) {
             break
         } else {
             value := popLog(queue)
@@ -206,7 +206,8 @@ func write(logType Type, providedColor *color.Color, message string, a ...interf
 
     outStream := logOut
     if logType == WARN || logType == ERR {
-        logTypeColors[logType].Fprintf(logOut, "%s ", logTypeTags[logType])
+        logTypeColors[logType].Fprintf(logOut, "%s", logTypeTags[logType])
+        str = " " + str
         outStream = logErr
     }
     providedColor.Fprintf(outStream, "%s", str)

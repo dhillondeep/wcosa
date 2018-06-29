@@ -177,9 +177,19 @@ func convertPkgToDependency(packageDependencyPath string, projectName string, pr
     return nil
 }
 
-func CreateCMakeDependencyTargets(queue *log.Queue, projectName string, projectDirectory string, projectType string,
-    projectFlags types.TargetFlags, projectDefinitions types.TargetDefinitions, projectDependencies types.DependenciesTag,
-    platform string, pkgVersion string) error {
+func CreateCMakeDependencyTargets(
+    config *types.Config,
+    target *types.Target,
+    projectDirectory string,
+    queue *log.Queue) error {
+
+    projectName := config.GetMainTag().GetName()
+    projectType := config.GetType()
+    projectDependencies := config.GetDependencies()
+    pkgVersion := config.GetMainTag().GetVersion()
+    projectFlags := (*target).GetFlags()
+    projectDefinitions := (*target).GetDefinitions()
+
     remotePackagesPath := projectDirectory + io.Sep + ".wio" + io.Sep + REMOTE_NAME
     vendorPackagesPath := projectDirectory + io.Sep + VENDOR_NAME
 
@@ -289,7 +299,7 @@ func CreateCMakeDependencyTargets(queue *log.Queue, projectName string, projectD
         log.QueueWrite(queue, log.VERB, nil, "recursively creating cmake targets for %s dependencies ... ", dependencyNameToUseForLogs)
         subQueue = log.GetQueue()
 
-        if err := recursivelyGoThroughTransDependencies(subQueue, dependencyTargetName,
+        if err := traverseDependencies(subQueue, dependencyTargetName,
             dependencyTarget.MainTag.GetCompileOptions().IsHeaderOnly(), scannedDependencies,
             dependencyTarget.Dependencies, projectFlags.GetGlobalFlags(), requiredFlags,
             projectDefinitions.GetGlobalDefinitions(), requiredDefinitions,
@@ -305,14 +315,7 @@ func CreateCMakeDependencyTargets(queue *log.Queue, projectName string, projectD
 
     cmakePath := projectDirectory + io.Sep + ".wio" + io.Sep + "build" + io.Sep + "dependencies.cmake"
 
-    if platform == constants.AVR {
-        avrCmake := cmake.GenerateAvrDependencyCMakeString(cmakeTargets, cmakeTargetsLink)
-
-        return io.NormalIO.WriteFile(cmakePath, []byte(strings.Join(avrCmake, "\n")))
-    } else {
-        return errors.PlatformNotSupportedError{
-            Platform: platform,
-            Err:      goerr.New("platform not valid for cmake target creation"),
-        }
-    }
+    platform := (*target).GetPlatform()
+    avrCmake := cmake.GenerateDependencies(platform, cmakeTargets, cmakeTargetsLink)
+    return io.NormalIO.WriteFile(cmakePath, []byte(strings.Join(avrCmake, "\n")))
 }

@@ -5,12 +5,29 @@ import (
     "strings"
     "wio/cmd/wio/types"
     "wio/cmd/wio/utils/io"
-    "wio/cmd/wio/utils"
     "os"
-    "wio/cmd/wio/constants"
-    "wio/cmd/wio/errors"
     "wio/cmd/wio/utils/template"
 )
+
+func BuildPath(projectPath string) string {
+    return projectPath + io.Sep + ".wio" + io.Sep + "build"
+}
+
+func generateCmakeLists(
+    templateFile string,
+    buildPath string,
+    values map[string]string) error {
+
+    templatePath := "templates/cmake/" + templateFile + ".txt.tpl"
+    cmakeListsPath := buildPath + io.Sep + "CMakeLists.txt"
+    if err := os.MkdirAll(buildPath, os.ModePerm); err != nil {
+        return err
+    }
+    if err := io.AssetIO.CopyFile(templatePath, cmakeListsPath, true); err != nil {
+        return err
+    }
+    return template.IOReplace(cmakeListsPath, values)
+}
 
 // This creates the main CMakeLists.txt file for AVR app type project
 func GenerateAvrCmakeLists(
@@ -22,34 +39,17 @@ func GenerateAvrCmakeLists(
     flags := (*target).GetFlags().GetTargetFlags()
     definitions := (*target).GetDefinitions().GetTargetDefinitions()
     framework := (*target).GetFramework()
-
+    buildPath := BuildPath(projectPath)
+    templateFile := "CMakeListsAVR"
+    toolchainPath := "toolchain/cmake/CosaToolchain.cmake"
     executablePath, err := io.NormalIO.GetRoot()
     if err != nil {
         return err
     }
 
-    var toolChainPath string
-    if framework == constants.COSA {
-        toolChainPath = "toolchain/cmake/CosaToolchain.cmake"
-    } else {
-        return errors.FrameworkNotSupportedError{
-            Platform:  constants.AVR,
-            Framework: framework,
-        }
-    }
-
-    buildPath := projectPath + io.Sep + ".wio" + io.Sep + "build"
-    templatePath := "templates/cmake/CMakeListsAVR.txt.tpl"
-    cmakeListsPath := buildPath + io.Sep + "CMakeLists.txt"
-    if err := os.MkdirAll(buildPath, os.ModePerm); err != nil {
-        return err
-    }
-    if err := utils.CopyFile(templatePath, cmakeListsPath); err != nil {
-        return err
-    }
-    return template.IOReplace(cmakeListsPath, map[string]string{
+    return generateCmakeLists(templateFile, buildPath, map[string]string{
         "TOOLCHAIN_PATH":             filepath.ToSlash(executablePath),
-        "TOOLCHAIN_FILE_REL":         filepath.ToSlash(toolChainPath),
+        "TOOLCHAIN_FILE_REL":         filepath.ToSlash(toolchainPath),
         "PROJECT_PATH":               filepath.ToSlash(projectPath),
         "PROJECT_NAME":               projectName,
         "FRAMEWORK":                  framework,
@@ -70,17 +70,10 @@ func GenerateNativeCmakeLists(
 
     flags := (*target).GetFlags().GetTargetFlags()
     definitions := (*target).GetDefinitions().GetTargetDefinitions()
+    buildPath := BuildPath(projectPath)
+    templateFile := "CMakeListsNative"
 
-    buildPath := projectPath + io.Sep + ".wio" + io.Sep + "build"
-    templatePath := "templates/cmake/CMakeListsNative.txt.tpl"
-    cmakeListsPath := buildPath + io.Sep + "CMakeLists.txt"
-    if err := os.MkdirAll(buildPath, os.ModePerm); err != nil {
-        return err
-    }
-    if err := utils.CopyFile(templatePath, cmakeListsPath); err != nil {
-        return err
-    }
-    return template.IOReplace(cmakeListsPath, map[string]string{
+    return generateCmakeLists(templateFile, buildPath, map[string]string{
         "PROJECT_PATH":               filepath.ToSlash(projectPath),
         "PROJECT_NAME":               projectName,
         "TARGET_NAME":                (*target).GetName(),

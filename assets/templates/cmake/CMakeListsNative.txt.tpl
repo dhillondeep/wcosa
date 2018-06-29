@@ -17,9 +17,9 @@ cmake_minimum_required(VERSION ${CMAKE_VERSION})
 project(${PROJECT_NAME} C CXX ASM)
 
 file(GLOB_RECURSE ${TARGET_NAME}_files
-    ${PROJECT_FILES}/${ENTRY}/*.cpp
-    ${PROJECT_FILES}/${ENTRY}/*.cc
-    ${PROJECT_FILES}/${ENTRY}/*.c)
+    ${PROJECT_PATH}/${ENTRY}/*.cpp
+    ${PROJECT_PATH}/${ENTRY}/*.cc
+    ${PROJECT_PATH}/${ENTRY}/*.c)
 
 add_executable(${TARGET_NAME} ${${TARGET_NAME}_files})
 

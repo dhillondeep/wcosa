@@ -14,7 +14,7 @@ import (
 )
 
 // recursively goes through dependencies and creates CMake target and CMake Link
-func recursivelyGoThroughTransDependencies(queue *log.Queue, parentName string, parentHeaderOnly bool,
+func traverseDependencies(queue *log.Queue, parentName string, parentHeaderOnly bool,
     dependencyPackages map[string]*DependencyScanStructure, dependencies types.DependenciesTag,
     globalFlags []string, requiredFlags []string, globalDefinitions []string, requiredDefinitions []string,
     projectDependency *types.DependencyTag) error {
@@ -71,7 +71,7 @@ func recursivelyGoThroughTransDependencies(queue *log.Queue, parentName string, 
         log.QueueWrite(queue, log.VERB, nil, "recursively creating cmake targets for %s dependencies ...", dependencyNameToUseForLogs)
         subQueue = log.GetQueue()
 
-        if err := recursivelyGoThroughTransDependencies(queue, dependencyTargetName,
+        if err := traverseDependencies(queue, dependencyTargetName,
             dependencyTarget.MainTag.GetCompileOptions().IsHeaderOnly(), dependencyPackages,
             dependencyTarget.Dependencies, globalFlags, globalDefinitions, requiredFlags, requiredDefinitions,
             projectDependency); err != nil {
@@ -87,7 +87,7 @@ func recursivelyGoThroughTransDependencies(queue *log.Queue, parentName string, 
     return nil
 }
 
-// Recursively calls recursivelyGoThroughTransDependencies function and creates CMake targets
+// Recursively calls traverseDependencies function and creates CMake targets
 func CreateCMakeTargets(queue *log.Queue, parentTargetName string, parentTargetHeaderOnly bool,
     dependencyNameToUseForLogs string, dependencyTargetName string, dependencyTarget *DependencyScanStructure,
     globalFlags []string, globalDefinitions []string, configDependency *types.DependencyTag,

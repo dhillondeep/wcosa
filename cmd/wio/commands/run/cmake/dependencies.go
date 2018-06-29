@@ -22,17 +22,19 @@ type TargetLink struct {
     Visibility string
 }
 
+var libraryStrings = map[string]map[bool]string{
+    "avr": {false: avrLibrary, true: avrHeader},
+    "native": {false: desktopLibrary, true: desktopHeader},
+}
+
 // This creates CMake library string that will be used to link libraries
-func GenerateAvrDependencyCMakeString(targets map[string]*Target, links []TargetLink) []string {
+func GenerateDependencies(platform string, targets map[string]*Target, links []TargetLink) []string {
     cmakeStrings := make([]string, 0, 256)
 
     for _, target := range targets {
-        finalString := avrNonHeaderOnlyString
-        if target.HeaderOnly {
-            finalString = avrHeaderOnlyString
-        }
+        finalString := libraryStrings[platform][target.HeaderOnly]
 
-        template.Replace(finalString, map[string]string{
+        finalString = template.Replace(finalString, map[string]string{
             "DEPENDENCY_NAME":        target.TargetName,
             "DEPENDENCY_PATH":        target.Path,
             "DEPENDENCY_FLAGS":       strings.Join(target.Flags, " "),

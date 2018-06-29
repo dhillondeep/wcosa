@@ -84,18 +84,19 @@ func AppendIfMissing(slice []string, slice2 []string) []string {
 // the copied data is synced/flushed to stable storage.
 func CopyFile(src, dst string) (err error) {
     if !PathExists(src) {
-        return
+        msg := fmt.Sprintf("Path [%s] does not exist", src)
+        return errors.String(msg)
     }
 
     in, err := os.Open(src)
     if err != nil {
-        return
+        return err
     }
     defer in.Close()
 
     out, err := os.Create(dst)
     if err != nil {
-        return
+        return err
     }
     defer func() {
         if e := out.Close(); e != nil {
@@ -105,24 +106,24 @@ func CopyFile(src, dst string) (err error) {
 
     _, err = io.Copy(out, in)
     if err != nil {
-        return
+        return err
     }
 
     err = out.Sync()
     if err != nil {
-        return
+        return err
     }
 
     si, err := os.Stat(src)
     if err != nil {
-        return
+        return err
     }
     err = os.Chmod(dst, si.Mode())
     if err != nil {
-        return
+        return err
     }
 
-    return
+    return nil
 }
 
 // CopyDir recursively copies a directory tree, attempting to preserve permissions.
