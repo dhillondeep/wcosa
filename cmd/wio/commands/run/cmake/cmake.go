@@ -5,116 +5,83 @@ import (
     "strings"
     "wio/cmd/wio/types"
     "wio/cmd/wio/utils/io"
-    "wio/cmd/wio/utils"
     "os"
-    "wio/cmd/wio/constants"
-    "wio/cmd/wio/errors"
+    "wio/cmd/wio/utils/template"
 )
 
-// CMake Target information
-type CMakeTarget struct {
-    TargetName            string
-    Path                  string
-    Flags                 []string
-    Definitions           []string
-    FlagsVisibility       string
-    DefinitionsVisibility string
-    HeaderOnly            bool
+func BuildPath(projectPath string) string {
+    return projectPath + io.Sep + ".wio" + io.Sep + "build"
 }
 
-// CMake Target Link information
-type CMakeTargetLink struct {
-    From           string
-    To             string
-    LinkVisibility string
-}
+func generateCmakeLists(
+    templateFile string,
+    buildPath string,
+    values map[string]string) error {
 
-// This creates CMake library string that will be used to link libraries
-func GenerateAvrDependencyCMakeString(targets map[string]*CMakeTarget, links []CMakeTargetLink) []string {
-    cmakeStrings := make([]string, 0)
-
-    for _, target := range targets {
-        finalString := avrNonHeaderOnlyString
-
-        if target.HeaderOnly {
-            finalString = avrHeaderOnlyString
-        }
-
-        finalString = strings.Replace(finalString, "{{DEPENDENCY_NAME}}", target.TargetName, -1)
-        finalString = strings.Replace(finalString, "{{DEPENDENCY_PATH}}", filepath.ToSlash(target.Path), -1)
-        finalString = strings.Replace(finalString, "{{DEPENDENCY_FLAGS}}",
-            strings.Join(target.Flags, " "), -1)
-        finalString = strings.Replace(finalString, "{{DEPENDENCY_DEFINITIONS}}",
-            strings.Join(target.Definitions, " "), -1)
-        finalString = strings.Replace(finalString, "{{FLAGS_VISIBILITY}}", target.FlagsVisibility, -1)
-        finalString = strings.Replace(finalString, "{{DEFINITIONS_VISIBILITY}}", target.DefinitionsVisibility, -1)
-
-        cmakeStrings = append(cmakeStrings, finalString+"\n")
+    templatePath := "templates/cmake/" + templateFile + ".txt.tpl"
+    cmakeListsPath := buildPath + io.Sep + "CMakeLists.txt"
+    if err := os.MkdirAll(buildPath, os.ModePerm); err != nil {
+        return err
     }
-
-    for _, link := range links {
-        finalString := linkString
-        finalString = strings.Replace(finalString, "{{LINKER_NAME}}", link.From, -1)
-        finalString = strings.Replace(finalString, "{{DEPENDENCY_NAME}}", link.To, -1)
-
-        finalString = strings.Replace(finalString, "{{LINK_VISIBILITY}}", link.LinkVisibility, -1)
-
-        cmakeStrings = append(cmakeStrings, finalString)
+    if err := io.AssetIO.CopyFile(templatePath, cmakeListsPath, true); err != nil {
+        return err
     }
-
-    cmakeStrings = append(cmakeStrings, "")
-
-    return cmakeStrings
+    return template.IOReplace(cmakeListsPath, values)
 }
 
-// THis Creates the main CMakeLists.txt file for AVR app type project
-func GenerateAvrMainCMakeLists(appName string, appPath string, board string, port string, framework string,
-    targetName string, targetPath string, flags types.TargetFlags, definitions types.TargetDefinitions) error {
+// This creates the main CMakeLists.txt file for AVR app type project
+func GenerateAvrCmakeLists(
+    target *types.Target,
+    projectName string,
+    projectPath string,
+    port string) error {
 
+    flags := (*target).GetFlags().GetTargetFlags()
+    definitions := (*target).GetDefinitions().GetTargetDefinitions()
+    framework := (*target).GetFramework()
+    buildPath := BuildPath(projectPath)
+    templateFile := "CMakeListsAVR"
+    toolchainPath := "toolchain/cmake/CosaToolchain.cmake"
     executablePath, err := io.NormalIO.GetRoot()
     if err != nil {
         return err
     }
 
-    var toolChainPath string
-    if framework == constants.COSA {
-        toolChainPath = "toolchain/cmake/CosaToolchain.cmake"
-    } else {
-        return errors.FrameworkNotSupportedError{
-            Platform: constants.AVR,
-            Framework: framework,
-        }
-    }
+    return generateCmakeLists(templateFile, buildPath, map[string]string{
+        "TOOLCHAIN_PATH":             filepath.ToSlash(executablePath),
+        "TOOLCHAIN_FILE_REL":         filepath.ToSlash(toolchainPath),
+        "PROJECT_PATH":               filepath.ToSlash(projectPath),
+        "PROJECT_NAME":               projectName,
+        "FRAMEWORK":                  framework,
+        "PORT":                       port,
+        "PLATFORM":                   "avr",
+        "TARGET_NAME":                (*target).GetName(),
+        "BOARD":                      (*target).GetBoard(),
+        "ENTRY":                      (*target).GetSrc(),
+        "TARGET_COMPILE_FLAGS":       strings.Join(flags, " "),
+        "TARGET_COMPILE_DEFINITIONS": strings.Join(definitions, " "),
+    })
+}
 
-    // read the CMakeLists.txt file template
-    templateData, err := io.AssetIO.ReadFile("templates/cmake/CMakeListsAVR.txt.tpl")
-    if err != nil {
-        return err
-    }
+func GenerateNativeCmakeLists(
+    target *types.Target,
+    projectName string,
+    projectPath string) error {
 
-    templateDataStr := strings.Replace(string(templateData), "{{TOOLCHAIN_PATH}}",
-        filepath.ToSlash(executablePath), -1)
-    templateDataStr = strings.Replace(templateDataStr, "{{TOOLCHAIN_FILE_REL}}",
-        filepath.ToSlash(toolChainPath), -1)
-    templateDataStr = strings.Replace(templateDataStr, "{{PROJECT_PATH}}", filepath.ToSlash(appPath), -1)
-    templateDataStr = strings.Replace(templateDataStr, "{{PROJECT_NAME}}", appName, -1)
-    templateDataStr = strings.Replace(templateDataStr, "{{TARGET_NAME}}", targetName, -1)
-    templateDataStr = strings.Replace(templateDataStr, "{{BOARD}}", board, -1)
-    templateDataStr = strings.Replace(templateDataStr, "{{PORT}}", port, -1)
-    templateDataStr = strings.Replace(templateDataStr, "{{FRAMEWORK}}", strings.Title(framework), -1)
-    templateDataStr = strings.Replace(templateDataStr, "{{ENTRY}}", targetPath, 1)
-    templateDataStr = strings.Replace(templateDataStr, "{{TARGET_COMPILE_FLAGS}}",
-        strings.Join(flags.GetTargetFlags(), " "), -1)
-    templateDataStr = strings.Replace(templateDataStr, "{{TARGET_COMPILE_DEFINITIONS}}",
-        strings.Join(definitions.GetTargetDefinitions(), " "), -1)
+    flags := (*target).GetFlags().GetTargetFlags()
+    definitions := (*target).GetDefinitions().GetTargetDefinitions()
+    buildPath := BuildPath(projectPath)
+    templateFile := "CMakeListsNative"
 
-    if !utils.PathExists(appPath+io.Sep+".wio"+io.Sep+"build") {
-        err := os.MkdirAll(appPath+io.Sep+".wio"+io.Sep+"build", os.ModePerm)
-        if err!= nil {
-            return err
-        }
-    }
-
-    return io.NormalIO.WriteFile(appPath+io.Sep+".wio"+io.Sep+"build"+io.Sep+"CMakeLists.txt",
-        []byte(templateDataStr))
+    return generateCmakeLists(templateFile, buildPath, map[string]string{
+        "PROJECT_PATH":               filepath.ToSlash(projectPath),
+        "PROJECT_NAME":               projectName,
+        "TARGET_NAME":                (*target).GetName(),
+        "FRAMEWORK":                  (*target).GetFramework(),
+        "BOARD":                      (*target).GetBoard(),
+        "ENTRY":                      (*target).GetSrc(),
+        "PLATFORM":                   "native",
+        "TARGET_COMPILE_FLAGS":       strings.Join(flags, " "),
+        "TARGET_COMPILE_DEFINITIONS": strings.Join(definitions, " "),
+    })
 }
