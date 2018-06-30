@@ -87,6 +87,10 @@ var buildFlags = []cli.Flag{
         Name:  "all",
         Usage: "Build all available targets",
     },
+    cli.StringFlag{
+        Name: "port",
+        Usage: "Specify upload port",
+    },
     cli.BoolFlag{
         Name:  "verbose",
         Usage: "Turns verbose mode on to show detailed errors and commands being executed.",
@@ -101,6 +105,21 @@ var cleanFlags = []cli.Flag{
     cli.BoolFlag{
         Name: "hard",
         Usage: "Removes build directories",
+    },
+}
+
+var runFlags = []cli.Flag{
+    cli.StringFlag{
+        Name: "port",
+        Usage: "Specify upload port",
+    },
+    cli.BoolFlag{
+        Name:  "verbose",
+        Usage: "Turns verbose mode on to show detailed errors and commands being executed.",
+    },
+    cli.BoolFlag{
+        Name:  "disable-warnings",
+        Usage: "Disables all the warning shown by wio",
     },
 }
 
@@ -215,29 +234,12 @@ func main() {
             Name:      "run",
             Usage:     "Builds, Runs and/or Uploads the project to a device.",
             UsageText: "wio run [directory] [command options]",
-            Flags: []cli.Flag{
-                cli.StringFlag{Name: "target",
-                    Usage: "Builds, Runs and/or uploads a specified target instead of the main/default target.",
-                    Value: config.ProjectDefaults.DefaultTarget,
-                },
-                cli.BoolFlag{Name: "upload",
-                    Usage: "Uploads the built target to a device (automatically selected).",
-                },
-                cli.StringFlag{Name: "port",
-                    Usage: "Port to upload the project to, (default: automatically select).",
-                    Value: config.ProjectDefaults.Port,
-                },
-                cli.BoolFlag{Name: "verbose",
-                    Usage: "Turns verbose mode on to show detailed errors and commands being executed.",
-                },
-                cli.BoolFlag{Name: "disable-warnings",
-                    Usage: "Disables all the warning shown by wio.",
-                },
-            },
+            Flags: runFlags,
             Action: func(c *cli.Context) {
-                command = run.Run{Context: c}
+                command = run.Run{Context: c, RunType: run.TypeRun}
             },
         },
+
         {
             Name:      "devices",
             Usage:     "Handles serial devices connected.",

@@ -9,7 +9,6 @@ package run
 import (
     "github.com/urfave/cli"
     "os"
-    "wio/cmd/wio/commands/run/cmake"
     "wio/cmd/wio/log"
     "wio/cmd/wio/types"
     "wio/cmd/wio/utils"
@@ -31,7 +30,6 @@ const (
     TypeBuild  Type = 0
     TypeClean  Type = 1
     TypeRun    Type = 2
-    TypeUpload Type = 3
 )
 
 type runInfo struct {
@@ -45,11 +43,12 @@ type runInfo struct {
     jobs    int
 }
 
-type runFunc func(runInfo) error
+type runExecuteFunc func(*runInfo, []types.Target) error
 
-var runFuncs = []runFunc{
-    runInfo.build,
-    runInfo.clean,
+var runFuncs = []runExecuteFunc{
+    (*runInfo).build,
+    (*runInfo).clean,
+    (*runInfo).run,
 }
 
 // get context for the command
@@ -74,27 +73,29 @@ func (run Run) Execute() {
         directory: directory,
         targets:   targets,
     }
-    if err := runFuncs[run.RunType](info); err != nil {
+    if err := info.execute(run.RunType); err != nil {
         log.WriteErrorlnExit(err)
     }
 }
 
-func (info runInfo) clean() error {
-    info.runType = TypeClean
+func (info *runInfo) execute(runType Type) error {
+    info.runType = runType
 
     log.Info(log.Cyan, "Reading targets ... ")
-    targets, err := getTargetArgs(&info)
+    targets, err := getTargetArgs(info)
     if err != nil {
         log.WriteFailure()
         return err
     }
     log.WriteSuccess()
 
+    return runFuncs[info.runType](info, targets)
+}
+
+func (info *runInfo) clean(targets []types.Target) error {
     targetDirs := make([]string, 0, len(targets))
     for _, target := range targets {
-        targetDir := cmake.BuildPath(info.directory)
-        targetDir += io.Sep + target.GetName()
-        targetDirs = append(targetDirs, targetDir)
+        targetDirs = append(targetDirs, targetPath(info, &target))
     }
 
     log.Infoln(log.Cyan.Add(color.Underline), "Cleaning targets")
@@ -107,19 +108,9 @@ func (info runInfo) clean() error {
     return nil
 }
 
-func (info runInfo) build() error {
-    info.runType = TypeBuild
-
-    log.Info(log.Cyan, "Reading targets ... ")
-    targets, err := getTargetArgs(&info)
-    if err != nil {
-        log.WriteFailure()
-        return err
-    }
-    log.WriteSuccess()
-
+func (info *runInfo) build(targets []types.Target) error {
     log.Info(log.Cyan, "Generating files ... ")
-    targetDirs, err := configureTargets(&info, targets)
+    targetDirs, err := configureTargets(info, targets)
     if err != nil {
         log.WriteFailure()
         return err
@@ -130,6 +121,18 @@ func (info runInfo) build() error {
     log.Infoln(log.Magenta, "Running with JOBS=%d", runtime.NumCPU()+2)
     errs := asyncBuildTargets(targetDirs)
     return awaitErrors(errs)
+}
+
+func (info *runInfo) run(targets []types.Target) error {
+    target := targets[0]
+    log.Info(log.Cyan, "Target: ")
+    log.Infoln(log.Magenta, target.GetName())
+    if !dispatchCanRunTarget(info, &target) {
+        if err := info.build(targets[:1]); err != nil {
+            return err
+        }
+    }
+    return dispatchRunTarget(info, &target)
 }
 
 func getTargetArgs(info *runInfo) ([]types.Target, error) {
@@ -171,8 +174,7 @@ func configureTargets(info *runInfo, targets []types.Target) ([]string, error) {
         if err := dispatchCmakeDependencies(info, &target); err != nil {
             return nil, err
         }
-        targetDir := cmake.BuildPath(info.directory)
-        targetDir += io.Sep + target.GetName()
+        targetDir := targetPath(info, &target)
         if err := os.MkdirAll(targetDir, os.ModePerm); err != nil {
             return nil, err
         }

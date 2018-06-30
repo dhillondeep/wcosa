@@ -53,5 +53,3 @@ target_compile_options(${TARGET_NAME}
     {{TARGET_COMPILE_FLAGS}})
 
 include(${DEPENDENCY_FILE})
-
-# Application libraries

@@ -24,6 +24,10 @@ func uploadTarget(dir string) error {
     return execute(dir, "make", "upload")
 }
 
+func runTarget(dir string, file string) error {
+    return execute(dir, file)
+}
+
 func cleanTarget(dir string) error {
     return execute(dir, "make", "clean")
 }

@@ -54,7 +54,7 @@ type TargetDefinitions interface {
 
 // ############################################# APP Targets ###############################################
 type AppTargetFlags struct {
-    GlobalFlags []string `yaml:"global_flags"`
+    GlobalFlags []string `yaml:"global_flags,omitempty"`
     TargetFlags []string `yaml:"target_flags"`
 }
 
@@ -71,7 +71,7 @@ func (flags *AppTargetFlags) GetPkgFlags() []string {
 }
 
 type AppTargetDefinitions struct {
-    GlobalFlags []string `yaml:"global_definitions"`
+    GlobalFlags []string `yaml:"global_definitions,omitempty"`
     TargetFlags []string `yaml:"target_definitions"`
 }
 
@@ -93,8 +93,8 @@ type AppTarget struct {
     Platform    string
     Framework   string
     Board       string
-    Flags       AppTargetFlags
-    Definitions AppTargetDefinitions
+    Flags       AppTargetFlags       `yaml:"flags,omitempty"`
+    Definitions AppTargetDefinitions `yaml:"flags,omitempty"`
 
     name string
 }
@@ -133,7 +133,7 @@ func (target *AppTarget) SetName(name string) {
 
 // type for the targets tag in the configuration file for project of app AVR type
 type AppTargets struct {
-    DefaultTarget string               `yaml:"default"`
+    DefaultTarget string                `yaml:"default"`
     Targets       map[string]*AppTarget `yaml:"create"`
 }
 
@@ -154,8 +154,8 @@ func (targets *AppTargets) GetTargets() map[string]Target {
 // ######################################### PKG Targets #######################################################
 
 type PkgTargetFlags struct {
-    GlobalFlags []string `yaml:"global_flags"`
-    TargetFlags []string `yaml:"target_flags"`
+    GlobalFlags []string `yaml:"global_flags,omitempty"`
+    TargetFlags []string `yaml:"target_flags,omitempty"`
     PkgFlags    []string `yaml:"pkg_flags"`
 }
 
@@ -172,8 +172,8 @@ func (flags *PkgTargetFlags) GetPkgFlags() []string {
 }
 
 type PkgTargetDefinitions struct {
-    GlobalDefinitions []string `yaml:"global_definitions"`
-    TargetDefinitions []string `yaml:"target_definitions"`
+    GlobalDefinitions []string `yaml:"global_definitions,omitempty"`
+    TargetDefinitions []string `yaml:"target_definitions,omitempty"`
     PkgDefinitions    []string `yaml:"pkg_definitions"`
 }
 
@@ -193,10 +193,10 @@ func (definitions *PkgTargetDefinitions) GetPkgDefinitions() []string {
 type PkgTarget struct {
     Src         string
     Platform    string
-    Framework   string
-    Board       string
-    Flags       PkgTargetFlags
-    Definitions PkgTargetDefinitions
+    Framework   string               `yaml:"framework,omitempty"`
+    Board       string               `yaml:"board,omitempty"`
+    Flags       PkgTargetFlags       `yaml:"flags,omitempty"`
+    Definitions PkgTargetDefinitions `yaml:"definitions,omitempty"`
 
     name string
 }
@@ -235,7 +235,7 @@ func (target *PkgTarget) SetName(name string) {
 
 // type for the targets tag in the configuration file for project of pkg type
 type PkgAVRTargets struct {
-    DefaultTarget string               `yaml:"default"`
+    DefaultTarget string                `yaml:"default"`
     Targets       map[string]*PkgTarget `yaml:"create"`
 }
 
@@ -260,9 +260,9 @@ type DependencyTag struct {
     Version               string
     Vendor                bool
     LinkVisibility        string              `yaml:"link_visibility"`
-    Flags                 []string            `yaml:"flags"`
+    Flags                 []string            `yaml:"flags,omitempty"`
     Definitions           []string            `yaml:"definitions"`
-    DependencyFlags       map[string][]string `yaml:"dependency_flags"`
+    DependencyFlags       map[string][]string `yaml:"dependency_flags,omitempty"`
     DependencyDefinitions map[string][]string `yaml:"dependency_definitions"`
 }
 
@@ -287,11 +287,11 @@ type CompileOptions interface {
 type Configurations struct {
     WioVersion            string   `yaml:"minimum_wio_version"`
     SupportedPlatforms    []string `yaml:"supported_platforms"`
-    UnSupportedPlatforms  []string `yaml:"unsupported_platforms"`
+    UnSupportedPlatforms  []string `yaml:"unsupported_platforms,omitempty"`
     SupportedFrameworks   []string `yaml:"supported_frameworks"`
-    UnSupportedFrameworks []string `yaml:"unsupported_frameworks"`
+    UnSupportedFrameworks []string `yaml:"unsupported_frameworks,omitempty"`
     SupportedBoards       []string `yaml:"supported_boards"`
-    UnSupportedBoards     []string `yaml:"unsupported_boards"`
+    UnSupportedBoards     []string `yaml:"unsupported_boards,omitempty"`
 }
 
 // ############################################# APP Project ###############################################
@@ -364,20 +364,20 @@ func (options *PkgCompileOptions) GetPlatform() string {
 }
 
 type Flags struct {
-    AllowOnlyGlobalFlags   bool     `yaml:"allow_only_global_flags"`
-    AllowOnlyRequiredFlags bool     `yaml:"allow_only_required_flags"`
-    GlobalFlags            []string `yaml:"global_flags"`
+    AllowOnlyGlobalFlags   bool     `yaml:"allow_only_global_flags,omitempty"`
+    AllowOnlyRequiredFlags bool     `yaml:"allow_only_required_flags,omitempty"`
+    GlobalFlags            []string `yaml:"global_flags,omitempty"`
     RequiredFlags          []string `yaml:"required_flags"`
-    IncludedFlags          []string `yaml:"included_flags"`
+    IncludedFlags          []string `yaml:"included_flags,omitempty"`
     Visibility             string
 }
 
 type Definitions struct {
-    AllowOnlyGlobalDefinitions   bool     `yaml:"allow_only_global_definitions"`
-    AllowOnlyRequiredDefinitions bool     `yaml:"allow_only_required_definitions"`
-    GlobalDefinitions            []string `yaml:"global_definitions"`
+    AllowOnlyGlobalDefinitions   bool     `yaml:"allow_only_global_definitions,omitempty"`
+    AllowOnlyRequiredDefinitions bool     `yaml:"allow_only_required_definitions,omitempty"`
+    GlobalDefinitions            []string `yaml:"global_definitions,omitempty"`
     RequiredDefinitions          []string `yaml:"required_definitions"`
-    IncludedDefinitions          []string `yaml:"included_definitions"`
+    IncludedDefinitions          []string `yaml:"included_definitions,omitempty"`
     Visibility                   string
 }
 

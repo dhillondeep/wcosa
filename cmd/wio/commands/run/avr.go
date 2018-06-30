@@ -3,6 +3,9 @@ package run
 import (
     "wio/cmd/wio/toolchain"
     "wio/cmd/wio/errors"
+    "wio/cmd/wio/types"
+    "wio/cmd/wio/utils/io"
+    "strings"
 )
 
 func getPort(info *runInfo) (string, error) {
@@ -18,4 +21,25 @@ func getPort(info *runInfo) (string, error) {
         return "", errors.String("Failed to find Arduino port")
     }
     return serialPort.Port, nil
+}
+
+func portReconfigure(info *runInfo, target *types.Target) error {
+    // Run check means that executable exists and target is configured
+    port, err := getPort(info)
+    if err != nil {
+        return err
+    }
+    targetDir := targetPath(info, target)
+    data, err := io.NormalIO.ReadFile(targetDir + io.Sep + "CMakeLists.txt")
+    if err != nil {
+        return err
+    }
+    if !strings.Contains(string(data), port) {
+        _, err := configureTargets(info, []types.Target{*target})
+        if err != nil {
+            return err
+        }
+        return configTarget(binaryPath(info, target))
+    }
+    return nil
 }
