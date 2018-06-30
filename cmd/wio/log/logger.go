@@ -44,6 +44,7 @@ var Cyan = color.New(color.FgCyan)
 var Green = color.New(color.FgGreen)
 var Yellow = color.New(color.FgYellow)
 var Red = color.New(color.FgRed)
+var Magenta = color.New(color.FgMagenta)
 var Default = color.New(color.Reset)
 
 // Log colors and streams
@@ -171,6 +172,7 @@ func Write(args ...interface{}) bool {
             message = val.Error()
             break
         default:
+            printfArgs = append(printfArgs, val)
             break
         }
     }

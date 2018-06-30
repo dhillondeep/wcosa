@@ -1,8 +1,10 @@
 package run
 
 import (
-    "os/exec"
     "os"
+    "os/exec"
+    "fmt"
+    "runtime"
     sysio "io"
     "wio/cmd/wio/utils/io"
 )
@@ -12,7 +14,9 @@ func configTarget(dir string) error {
 }
 
 func buildTarget(dir string) error {
-    return execute(dir, "make")
+    jobs := runtime.NumCPU() + 2
+    jobsFlag := fmt.Sprintf("-j%d", jobs)
+    return execute(dir, "make", jobsFlag)
 }
 
 func uploadTarget(dir string) error {
@@ -27,13 +31,23 @@ func configAndBuild(dir string, errchan chan error) {
     binDir := dir + io.Sep + "bin"
     if err := os.MkdirAll(binDir, os.ModePerm); err != nil {
         errchan <- err
-        return
-    }
-    if err := configTarget(binDir); err != nil {
+    } else if err := configTarget(binDir); err != nil {
         errchan <- err
-        return
+    } else {
+        errchan <- buildTarget(binDir)
     }
-    errchan <- buildTarget(binDir)
+}
+
+func cleanIfExists(dir string, errchan chan error) {
+    binDir := dir + io.Sep + "bin"
+    exists, err := io.Exists(binDir)
+    if err != nil {
+        errchan <- err
+    } else if exists {
+        errchan <- cleanTarget(dir)
+    } else {
+        errchan <- nil
+    }
 }
 
 func execute(dir string, name string, args ...string) error {

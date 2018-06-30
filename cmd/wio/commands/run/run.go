@@ -15,6 +15,8 @@ import (
     "wio/cmd/wio/utils"
     "wio/cmd/wio/utils/io"
     "wio/cmd/wio/errors"
+    "github.com/fatih/color"
+    "runtime"
 )
 
 type Run struct {
@@ -69,60 +71,99 @@ func (run Run) Execute() {
     }
 }
 
+func (info runInfo) clean() error {
+    return nil
+}
+
 func (info runInfo) build() error {
     info.rtype = type_build
+
+    log.Info(log.Cyan, "Reading targets ... ")
+    targets, err := getTargetArgs(&info)
+    if err != nil {
+        log.WriteFailure()
+        return err
+    }
+    log.WriteSuccess()
+
+    log.Info(log.Cyan, "Generating files ... ")
+    targetDirs, err := configureTargets(&info, targets)
+    if err != nil {
+        log.WriteFailure()
+        return err
+    }
+    log.WriteSuccess()
+
+    log.Infoln(log.Cyan.Add(color.Underline), "Building targets")
+    log.Infoln(log.Magenta, "Running with JOBS=%d", runtime.NumCPU() + 2)
+    errs := asyncBuildTargets(targetDirs, targets)
+    return awaitErrors(errs)
+}
+
+func getTargetArgs(info *runInfo) ([]types.Target, error) {
     targets := make([]types.Target, 0, len(info.targets))
     projectTargets := info.config.GetTargets().GetTargets()
 
-    for _, targetName := range info.targets {
-        if _, exists := projectTargets[targetName]; exists {
-            projectTargets[targetName].SetName(targetName)
-            targets = append(targets, projectTargets[targetName])
-        } else {
-            log.Warnln("Unrecognized target name: [%s]", targetName)
+    if info.context.Bool("all") {
+        for name, target := range projectTargets {
+            target.SetName(name)
+            targets = append(targets, target)
+        }
+    } else {
+        for _, targetName := range info.targets {
+            if _, exists := projectTargets[targetName]; exists {
+                projectTargets[targetName].SetName(targetName)
+                targets = append(targets, projectTargets[targetName])
+            } else {
+                log.Warnln("Unrecognized target name: [%s]", targetName)
+            }
+        }
+        if len(info.targets) <= 0 {
+            defaultName := info.config.GetTargets().GetDefaultTarget()
+            if _, exists := projectTargets[defaultName]; !exists {
+                return nil, errors.Stringf("Default target [%s] does not exist", defaultName)
+            }
+            projectTargets[defaultName].SetName(defaultName)
+            targets = append(targets, projectTargets[defaultName])
         }
     }
-    if len(info.targets) <= 0 {
-        defaultName := info.config.GetTargets().GetDefaultTarget()
-        if _, exists := projectTargets[defaultName]; !exists {
-            return errors.Stringf("Default target [%s] does not exist", defaultName)
-        }
-        projectTargets[defaultName].SetName(defaultName)
-        targets = append(targets, projectTargets[defaultName])
-    }
+    return targets, nil
+}
 
-    log.Info(log.Cyan, "Generating files ... ")
+func configureTargets(info *runInfo, targets []types.Target) ([]string, error) {
     targetDirs := make([]string, 0, len(targets))
     for _, target := range targets {
-        if err := dispatchCmake(&info, &target); err != nil {
-            return err
+        if err := dispatchCmake(info, &target); err != nil {
+            return nil, err
         }
-        if err := dispatchCmakeDependencies(&info, &target); err != nil {
-            return err
+        if err := dispatchCmakeDependencies(info, &target); err != nil {
+            return nil, err
         }
         targetDir := cmake.BuildPath(info.directory)
         targetDir += io.Sep + target.GetName()
         if err := os.MkdirAll(targetDir, os.ModePerm); err != nil {
-            return err
+            return nil, err
         }
         targetDirs = append(targetDirs, targetDir)
     }
-    log.WriteSuccess()
-    log.Infoln(log.Cyan, "Building targets ... ")
+    return targetDirs, nil
+}
+
+func asyncBuildTargets(targetDirs []string, targets []types.Target) []chan error {
     errs := make([]chan error, 0, len(targets))
     for _, targetDir := range targetDirs {
         err := make(chan error)
         go configAndBuild(targetDir, err)
         errs = append(errs, err)
     }
+    return errs
+}
+
+func awaitErrors(errs []chan error) error {
     for _, errchan := range errs {
         if err := <- errchan; err != nil {
             return err
         }
     }
-    return nil
-}
-
-func (run Run) configure(dir string) error {
     return nil
 }
