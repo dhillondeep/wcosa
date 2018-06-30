@@ -3,6 +3,7 @@ package errors
 import (
     "fmt"
     "strings"
+    goerr "errors"
 )
 
 type Error interface {
@@ -23,7 +24,7 @@ func (err Generic) Error() string {
 }
 
 func String(message string) error {
-    return Generic{message}
+    return goerr.New(message)
 }
 
 func Stringf(format string, a ...interface{}) error {

@@ -24,16 +24,11 @@ func installArgumentCheck(args []string) []string {
 }
 
 // Checks arguments to verify what to uninstall
-func uninstallArgumentCheck(args []string) []string {
+func uninstallArgumentCheck(args []string) ([]string, error) {
     if len(args) <= 0 {
-        log.WriteErrorlnExit(errors.ProgramArgumentsError{
-            CommandName:  "uninstall",
-            ArgumentName: "package name",
-            Err:          goerr.New("atleast one package must be provided"),
-        })
-        return nil
+        return nil, goerr.New("provide at least one package to uninstall")
     } else {
-        return args
+        return args, nil
     }
 }
 
@@ -47,15 +42,15 @@ func collectArgumentCheck(args []string) []string {
 }
 
 // checks arguments to verify what to publish
-func publishCheck(directory string) {
+func publishCheck(directory string) error {
     status, err := utils.IsAppType(directory + io.Sep + "wio.yml")
     if err != nil {
-        log.WriteErrorlnExit(err)
+        return err
     }
-
     if status {
-        log.WriteErrorlnExit(goerr.New("publish command is only supported for project of pkg type"))
+        return goerr.New("publish command is only supported for project of pkg type")
     }
+    return nil
 }
 
 // Checks if dependencies are valid wio packages and if they are already pushed

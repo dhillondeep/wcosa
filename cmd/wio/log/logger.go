@@ -14,6 +14,7 @@ import (
     "os"
     "regexp"
     "strings"
+    "wio/cmd/wio/utils"
 )
 
 type Indentation string
@@ -216,55 +217,22 @@ func write(logType Type, providedColor *color.Color, message string, a ...interf
     return true
 }
 
-// Record error to stderr and prints a new line. It also exists the program with an error code
-func WriteErrorlnExit(err error) {
-    if err == nil {
-        return
-    }
-
-    Writeln(ERR, color.New(color.Reset), err.Error())
-    os.Exit(1)
-}
-
-// Record error/warning to stderr and prints a new line
-func WriteErrorln(err error, isWarning bool) {
-    if err == nil {
-        return
-    }
-
-    logType := ERR
-    if isWarning {
-        logType = WARN
-    }
-
-    Writeln(logType, color.New(color.Reset), err.Error())
-}
-
 // Record error/warning to stderr and prompts user for a choice and based on that decides to exists or not
-func WriteErrorAndPrompt(err error, logType Type, promptRightAnswer string, caseSensitive bool) {
-    if err == nil {
-        return
-    }
+var yesValues = []string{"y", "ye", "yes", "oui"}
 
-    Write(logType, color.New(color.FgYellow), err.Error())
+func PromptYes(promptMsg string) (bool, error) {
+    Info(Yellow, promptMsg + " (y/N): ")
 
     reader := bufio.NewReader(os.Stdin)
     text, err := reader.ReadString('\n')
-    WriteErrorlnExit(err)
-
-    text = strings.Trim(strings.Trim(strings.Trim(text, "\n"), "\r"), " ")
-
-    if caseSensitive {
-        promptRightAnswer = strings.Trim(strings.ToLower(promptRightAnswer), " ")
-        text = strings.ToLower(text)
+    if err != nil {
+        return false, err
     }
-
-    if text != promptRightAnswer {
-        os.Exit(0)
-    } else {
-        fmt.Fprint(colorable.NewColorableStderr(), "\n")
-    }
-
+    text = strings.Trim(text, "\n")
+    text = strings.Trim(text, "\r")
+    text = strings.Trim(text, " ")
+    text = strings.ToLower(text)
+    return utils.ContainsNoCase(yesValues, text), nil
 }
 
 // Shorthands

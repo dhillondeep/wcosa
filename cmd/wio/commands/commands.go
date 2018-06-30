@@ -6,7 +6,7 @@ import (
 
 type Command interface {
     GetContext() *cli.Context
-    Execute()
+    Execute() error
 }
 
 type ExitError struct {

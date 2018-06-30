@@ -38,22 +38,22 @@ const (
 )
 
 // Runs the build command when cli build option is provided
-func (devices Devices) Execute() {
+func (devices Devices) Execute() error {
     switch devices.Type {
     case MONITOR:
-        HandleMonitor(devices.Context.Int("baud"), devices.Context.IsSet("port"), devices.Context.String("port"))
-        break
+        return HandleMonitor(devices.Context.Int("baud"), devices.Context.IsSet("port"), devices.Context.String("port"))
     case LIST:
-        handlePorts(devices.Context.Bool("basic"), devices.Context.Bool("show-all"))
-        break
+        return handlePorts(devices.Context.Bool("basic"), devices.Context.Bool("show-all"))
+    default:
+        return goerr.New("invalid device command")
     }
 }
 
 // Provides information abouts ports
-func handlePorts(basic bool, showAll bool) {
+func handlePorts(basic bool, showAll bool) error {
     ports, err := toolchain.GetPorts()
     if err != nil {
-        log.WriteErrorlnExit(goerr.New("port data could not be gathered from the operating system"))
+        return err
     }
 
     log.Write(log.INFO, color.New(color.FgCyan), "Num of total ports: ")
@@ -89,10 +89,11 @@ func handlePorts(basic bool, showAll bool) {
 
     log.Write(log.INFO, color.New(color.FgCyan), "Num of open ports: ")
     log.Writeln(log.NONE, nil, "%d", numOpenPorts)
+    return nil
 }
 
 // Opens monitor to see serial data
-func HandleMonitor(baud int, portDefined bool, portProvided string) {
+func HandleMonitor(baud int, portDefined bool, portProvided string) error {
     var port *toolchain.SerialPort
 
     ports, err := toolchain.GetPorts()
@@ -106,7 +107,7 @@ func HandleMonitor(baud int, portDefined bool, portProvided string) {
 
     if !portDefined {
         if port == nil {
-            log.WriteErrorlnExit(errors.AutomaticPortNotDetectedError{})
+            return errors.AutomaticPortNotDetectedError{}
         } else {
             portToUse = port.Port
         }
@@ -122,7 +123,7 @@ func HandleMonitor(baud int, portDefined bool, portProvided string) {
     serialPort, err := serial.Open(portToUse, mode)
     if err != nil {
         if strings.Contains(err.Error(), "Invalid serial port") {
-            log.WriteErrorlnExit(goerr.New("invalid baud rate"))
+            return goerr.New("invalid baud rate")
         }
     }
 
@@ -158,4 +159,5 @@ func HandleMonitor(baud int, portDefined bool, portProvided string) {
         }
         fmt.Printf("%v", string(buff[:n]))
     }
+    return nil
 }

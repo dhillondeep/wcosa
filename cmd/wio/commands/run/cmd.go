@@ -11,25 +11,25 @@ import (
 )
 
 func configTarget(dir string) error {
-    return execute(dir, "cmake", "../", "-G", "Unix Makefiles")
+    return Execute(dir, "cmake", "../", "-G", "Unix Makefiles")
 }
 
 func buildTarget(dir string) error {
     jobs := runtime.NumCPU() + 2
     jobsFlag := fmt.Sprintf("-j%d", jobs)
-    return execute(dir, "make", jobsFlag)
+    return Execute(dir, "make", jobsFlag)
 }
 
 func uploadTarget(dir string) error {
-    return execute(dir, "make", "upload")
+    return Execute(dir, "make", "upload")
 }
 
 func runTarget(dir string, file string) error {
-    return execute(dir, file)
+    return Execute(dir, file)
 }
 
 func cleanTarget(dir string) error {
-    return execute(dir, "make", "clean")
+    return Execute(dir, "make", "clean")
 }
 
 type targetFunc func(string, chan error)
@@ -64,7 +64,7 @@ func hardClean(dir string, errChan chan error) {
     errChan <- os.RemoveAll(dir)
 }
 
-func execute(dir string, name string, args ...string) error {
+func Execute(dir string, name string, args ...string) error {
     cmd := exec.Command(name, args...)
     cmd.Dir = dir
     stdoutIn, err := cmd.StdoutPipe()

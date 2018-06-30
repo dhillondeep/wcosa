@@ -17,74 +17,74 @@ import (
 )
 
 // Check directory
-func performDirectoryCheck(context *cli.Context) string {
+func performDirectoryCheck(context *cli.Context) (string, error) {
     var directory string
     var err error
 
     // directory is always the first argument
     if len(context.Args()) <= 0 {
         directory, err = os.Getwd()
-        log.WriteErrorlnExit(err)
+        if err != nil {
+            return "", err
+        }
     } else {
         directory = context.Args()[0]
     }
-    return directory
+    return directory, nil
 }
 
 // This check is used to see if wio.yml file exists and the directory is valid
-func performWioExistsCheck(directory string) {
+func performWioExistsCheck(directory string) error {
     if !utils.PathExists(directory) {
-        err := errors.PathDoesNotExist{
-            Path: directory,
-        }
-
-        log.WriteErrorlnExit(err)
+        return errors.PathDoesNotExist{Path: directory}
     } else if !utils.PathExists(directory + io.Sep + "wio.yml") {
-        err := errors.ConfigMissing{}
-
-        log.WriteErrorlnExit(err)
+        return errors.ConfigMissing{}
     }
+    return nil
 }
 
 // This performs various checks before update can be triggered
-func performPreUpdateCheck(directory string, create *Create) {}
+func performPreUpdateCheck(directory string, create *Create) error {
+    return nil
+}
 
 /// This method is a crucial piece of check to make sure people do not lose their work. It makes
 /// sure that if people are creating the project when there are files in the folder, they mean it
 /// and not doing it by mistake. It will warn them to update instead if they want
-func performPreCreateCheck(directory string, onlyConfig bool) {
+func performPreCreateCheck(directory string, onlyConfig bool) error {
     // Configure existing directory
     if onlyConfig {
         // Check if config exists
         if utils.PathExists(directory + io.Sep + "wio.yml") {
-            err := errors.OverridePossibilityError{
-                Path: directory,
-                Err: goerr.New("wio.yml file will be replaced with new config.\n" + errors.Spaces +
-                    "projectType (y) to indicate creation or anything else otherwise: "),
+            promptMsg := "Override existing wio.yml?"
+            yes, err := log.PromptYes(promptMsg)
+            if err != nil {
+                return err
             }
-
-            log.WriteErrorAndPrompt(err, log.INFO, "y", true)
+            if !yes {
+                return goerr.New("project config already exists")
+            }
         }
 
     } else if utils.PathExists(directory) {
         if isEmpty, err := utils.IsEmpty(directory); err != nil {
-            log.WriteErrorlnExit(err)
+            return err
         } else if !isEmpty {
             // directory is not empty
-            err := errors.OverridePossibilityError{
-                Path: directory,
-                Err: goerr.New("files will be replaced with new project files.\n" + errors.Spaces +
-                    "projectType (y) to indicate creation or anything else otherwise: "),
+            promptMsg := "Directory is not empty; erase contents?"
+            yes, err := log.PromptYes(promptMsg)
+            if err != nil {
+                return err
             }
-
-            log.WriteErrorAndPrompt(err, log.INFO, "y", true)
+            if !yes {
+                return goerr.New("working directory not empty")
+            }
 
             // delete all the files
             if err := utils.RemoveContents(directory); err != nil {
-                log.WriteErrorlnExit(err)
-            } else {
-                log.Writeln(log.VERB, nil, "deleted all the files from: %s", directory)
+                return err
             }
         }
     }
+    return nil
 }

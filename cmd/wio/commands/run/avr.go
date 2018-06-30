@@ -18,7 +18,7 @@ func getPort(info *runInfo) (string, error) {
     }
     serialPort := toolchain.GetArduinoPort(ports)
     if serialPort == nil {
-        return "", errors.String("Failed to find Arduino port")
+        return "", errors.String("failed to find Arduino port")
     }
     return serialPort.Port, nil
 }

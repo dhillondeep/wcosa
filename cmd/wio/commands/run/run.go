@@ -57,14 +57,14 @@ func (run Run) GetContext() *cli.Context {
 }
 
 // Runs the build, upload command (acts as one in all command)
-func (run Run) Execute() {
+func (run Run) Execute() error {
     directory, err := os.Getwd()
     if err != nil {
-        log.WriteErrorlnExit(err)
+        return err
     }
     config, err := utils.ReadWioConfig(directory + io.Sep + "wio.yml")
     if err != nil {
-        log.WriteErrorlnExit(err)
+        return err
     }
     targets := run.Context.Args()
     info := runInfo{
@@ -74,8 +74,9 @@ func (run Run) Execute() {
         targets:   targets,
     }
     if err := info.execute(run.RunType); err != nil {
-        log.WriteErrorlnExit(err)
+        return err
     }
+    return nil
 }
 
 func (info *runInfo) execute(runType Type) error {
@@ -156,7 +157,7 @@ func getTargetArgs(info *runInfo) ([]types.Target, error) {
         if len(info.targets) <= 0 {
             defaultName := info.config.GetTargets().GetDefaultTarget()
             if _, exists := projectTargets[defaultName]; !exists {
-                return nil, errors.Stringf("Default target [%s] does not exist", defaultName)
+                return nil, errors.Stringf("default target [%s] does not exist", defaultName)
             }
             projectTargets[defaultName].SetName(defaultName)
             targets = append(targets, projectTargets[defaultName])

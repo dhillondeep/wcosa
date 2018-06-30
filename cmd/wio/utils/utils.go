@@ -10,7 +10,6 @@ import (
 
     goerr "errors"
     "wio/cmd/wio/errors"
-    "wio/cmd/wio/log"
     "wio/cmd/wio/types"
     wio "wio/cmd/wio/utils/io"
     "strings"
@@ -220,14 +219,11 @@ func Difference(a, b []string) []string {
 
 // Read config file and return config object
 func ReadWioConfig(path string) (*types.Config, error) {
-    defer func() {
-        if r := recover(); r != nil {
-            configError := errors.ConfigParsingError{
-                Err: goerr.New("fatal error occurred while parsing wio.yml file"),
-            }
-
-            log.WriteErrorlnExit(configError)
+    defer func() error {
+        if recover() != nil {
+            return goerr.New("fatal error occurred while parsing wio.yml file")
         }
+        return nil
     }()
 
     isApp, err := IsAppType(path)

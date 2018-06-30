@@ -27,18 +27,29 @@ func (create Create) GetContext() *cli.Context {
 }
 
 // Executes the create command
-func (create Create) Execute() {
-    directory := performDirectoryCheck(create.Context)
+func (create Create) Execute() error {
+    directory, err := performDirectoryCheck(create.Context)
+    if err != nil {
+        return err
+    }
 
     if create.Update {
         // this checks if wio.yml file exists for it to update
-        performWioExistsCheck(directory)
+        if err := performWioExistsCheck(directory); err != nil {
+            return err
+        }
         // this checks if project is valid state to be updated
-        performPreUpdateCheck(directory, &create)
-        create.handleUpdate(directory)
+        if err := performPreUpdateCheck(directory, &create); err != nil {
+            return err
+        }
+        return create.handleUpdate(directory)
     } else {
         // this checks if directory is empty before create can be triggered
-        performPreCreateCheck(directory, create.Context.Bool("only-config"))
-        create.createPackageProject(directory)
+        onlyConfig := create.Context.Bool("only-config")
+        if err := performPreCreateCheck(directory, onlyConfig); err != nil {
+            return err
+        }
+        return create.createPackageProject(directory)
     }
+    return nil
 }

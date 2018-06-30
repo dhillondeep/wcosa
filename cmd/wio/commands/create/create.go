@@ -17,7 +17,7 @@ import (
 )
 
 // Creation of AVR projects
-func (create Create) createPackageProject(dir string) {
+func (create Create) createPackageProject(dir string) error {
     info := createInfo{
         directory:   dir,
         projectType: constants.PKG,
@@ -36,7 +36,7 @@ func (create Create) createPackageProject(dir string) {
         log.Info(log.Cyan, "creating project structure ... ")
         if err := create.createPackageStructure(queue, &info); err != nil {
             log.WriteFailure()
-            log.WriteErrorlnExit(err)
+            return err
         } else {
             log.WriteSuccess()
         }
@@ -48,7 +48,7 @@ func (create Create) createPackageProject(dir string) {
     log.Info(log.Cyan, "configuring project files ... ")
     if err := create.fillPackageConfig(queue, &info); err != nil {
         log.WriteFailure()
-        log.WriteErrorlnExit(err)
+        return err
     } else {
         log.WriteSuccess()
     }
@@ -56,6 +56,7 @@ func (create Create) createPackageProject(dir string) {
 
     // print structure summary
     info.printPackageCreateSummary()
+    return nil
 }
 
 
