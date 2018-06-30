@@ -400,7 +400,9 @@ func (pac Pac) handleList(directory string) error {
 
 // This handles the publish command and uses npm to publish packages
 func (pac Pac) handlePublish(directory string) error {
-    publishCheck(directory)
+    if err := publishCheck(directory); err != nil {
+        return err
+    }
 
     // read wio.yml file
     pkgConfig := &types.PkgConfig{}
