@@ -19,6 +19,7 @@ import (
     "wio/cmd/wio/config"
     "wio/cmd/wio/log"
     "wio/cmd/wio/utils/io"
+    "wio/cmd/wio/constants"
 )
 
 var createFlags = []cli.Flag{
@@ -113,45 +114,22 @@ var cmd = []cli.Command{
         Name:  "create",
         Usage: "Creates and initializes a wio project.",
         Subcommands: cli.Commands{
-
             {
                 Name:      "pkg",
                 Usage:     "Creates a wio package.",
                 UsageText: "wio create pkg [command options]",
                 Flags:     createFlags,
                 Action: func(c *cli.Context) {
-                    command = create.Create{Context: c, Update: false}
+                    command = create.Create{Context: c, Update: false, Type: constants.PKG}
                 },
             },
-
             {
                 Name:      "app",
-                Usage:     "Creates a wio application.",
+                Usage:     "Creates a wio app.",
                 UsageText: "wio create app [command options]",
-                Subcommands: cli.Commands{
-                    cli.Command{
-                        Name:      "avr",
-                        Usage:     "Creates an AVR application.",
-                        UsageText: "wio create app avr [directory] [board] [command options]",
-                        Flags: []cli.Flag{
-                            cli.StringFlag{Name: "framework",
-                                Usage: "Framework being used for this project. Framework contains the core libraries.",
-                                Value: config.ProjectDefaults.Framework},
-                            cli.BoolFlag{Name: "create-example",
-                                Usage: "This will create an example project that user can build and upload."},
-                            cli.BoolFlag{Name: "only-config",
-                                Usage: "Creates only the configuration file (wio.yml)."},
-                            cli.BoolFlag{Name: "no-extras",
-                                Usage: "This will restrict wio from creating .gitignore, README.md, etc files."},
-                            cli.BoolFlag{Name: "verbose",
-                                Usage: "Turns verbose mode on to show detailed errors and commands being executed."},
-                            cli.BoolFlag{Name: "disable-warnings",
-                                Usage: "Disables all the warning shown by wio."},
-                        },
-                        Action: func(c *cli.Context) {
-                            command = create.Create{Context: c, Update: false}
-                        },
-                    },
+                Flags:     createFlags,
+                Action: func(c *cli.Context) {
+                    command = create.Create{Context: c, Update: false, Type: constants.APP}
                 },
             },
         },
@@ -166,7 +144,6 @@ var cmd = []cli.Command{
             command = create.Create{Context: c, Update: true}
         },
     },
-
     {
         Name:      "build",
         Usage:     "Configure and build the project.",
@@ -176,7 +153,6 @@ var cmd = []cli.Command{
             command = run.Run{Context: c, RunType: run.TypeBuild}
         },
     },
-
     {
         Name:  "clean",
         Usage: "Clean project targets",
@@ -185,7 +161,6 @@ var cmd = []cli.Command{
             command = run.Run{Context: c, RunType: run.TypeClean}
         },
     },
-
     {
         Name:      "run",
         Usage:     "Builds, Runs and/or Uploads the project to a device.",
@@ -195,6 +170,7 @@ var cmd = []cli.Command{
             command = run.Run{Context: c, RunType: run.TypeRun}
         },
     },
+
 
     {
         Name:      "devices",

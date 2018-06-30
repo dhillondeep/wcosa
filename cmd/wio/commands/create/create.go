@@ -17,16 +17,18 @@ import (
 )
 
 // Creation of AVR projects
-func (create Create) createPackageProject(dir string) error {
+func (create Create) createProject(dir string) error {
     info := createInfo{
+        context:     create.Context,
         directory:   dir,
-        projectType: constants.PKG,
+        projectType: create.Type,
         name:        filepath.Base(dir),
         platform:    create.Context.String("platform"),
         framework:   create.Context.String("framework"),
         board:       create.Context.String("board"),
         configOnly:  create.Context.Bool("only-config"),
         headerOnly:  create.Context.Bool("header-only"),
+        updateOnly:  create.Update,
     }
     info.toLowerCase()
 
@@ -34,7 +36,7 @@ func (create Create) createPackageProject(dir string) error {
     queue := log.GetQueue()
     if !info.configOnly {
         log.Info(log.Cyan, "creating project structure ... ")
-        if err := create.createPackageStructure(queue, &info); err != nil {
+        if err :=createStructure(queue, &info); err != nil {
             log.WriteFailure()
             return err
         } else {
@@ -46,7 +48,7 @@ func (create Create) createPackageProject(dir string) error {
     // Fill configuration file
     queue = log.GetQueue()
     log.Info(log.Cyan, "configuring project files ... ")
-    if err := create.fillPackageConfig(queue, &info); err != nil {
+    if err := fillConfig(queue, &info); err != nil {
         log.WriteFailure()
         return err
     } else {
@@ -59,9 +61,8 @@ func (create Create) createPackageProject(dir string) error {
     return nil
 }
 
-
 // Copy and generate files for a package project
-func (create Create) createPackageStructure(queue *log.Queue, info *createInfo) error {
+func createStructure(queue *log.Queue, info *createInfo) error {
     log.Verb(queue, "reading paths.json file ... ")
     structureData := &StructureConfigData{}
 
@@ -76,7 +77,12 @@ func (create Create) createPackageStructure(queue *log.Queue, info *createInfo) 
     log.Verb(queue, "copying asset files ... ")
     subQueue := log.GetQueue()
 
-    if err := create.copyProjectAssets(subQueue, info, structureData.Pkg); err != nil {
+    dataType := &structureData.Pkg
+    if info.projectType == constants.APP {
+        dataType = &structureData.App
+    }
+
+    if err := copyProjectAssets(subQueue, info, dataType); err != nil {
         log.WriteFailure(queue, log.VERB)
         log.CopyQueue(subQueue, queue, log.FOUR_SPACES)
         return err
@@ -91,37 +97,60 @@ func (create Create) createPackageStructure(queue *log.Queue, info *createInfo) 
     return err
 }
 
-// Generate wio.yml for package project
-func (create Create) fillPackageConfig(queue *log.Queue, info *createInfo) error {
-    /*// handle app
-    if create.projectType == constants.APP {
-        log.QueueWrite(queue, log.INFO, nil, "creating config file for application ... ")
+// Generate wio.yml for app project
+func fillConfig(queue *log.Queue, info *createInfo) error {
+    switch info.projectType {
+    case constants.APP:
+        return fillAppConfig(queue, info)
+    case constants.PKG:
+        return fillPackageConfig(queue, info)
+    }
+    return nil
+}
 
-        appConfig := &types.AppConfig{}
-        appConfig.MainTag.name = filepath.Base(directory)
-        appConfig.MainTag.Ide = config.ProjectDefaults.Ide
-
-        // supported board, framework and platform and wio version
-        fillMainTagConfiguration(&appConfig.MainTag.Config, []string{board}, constants.AVR, []string{framework})
-
-        appConfig.MainTag.CompileOptions.platform = constants.AVR
-
-        // create app target
-        appConfig.TargetsTag.DefaultTarget = config.ProjectDefaults.AppTargetName
-        appConfig.TargetsTag.Targets = map[string]types.AppTarget{
-            config.ProjectDefaults.AppTargetName: {
-                Src:       "src",
-                framework: framework,
-                board:     board,
-                Flags: types.AppTargetFlags{
-                    GlobalFlags: []string{},
-                    TargetFlags: []string{},
+func fillAppConfig(queue *log.Queue, info *createInfo) error {
+    log.Verb(queue, "creating config files for app ... ")
+    appConfig := &types.AppConfig{
+        MainTag: types.AppTag{
+            Name: info.name,
+            Ide:  config.ProjectDefaults.Ide,
+            Config: types.Configurations{
+                WioVersion:          config.ProjectMeta.Version,
+                SupportedPlatforms:  []string{info.platform},
+                SupportedFrameworks: []string{info.framework},
+                SupportedBoards:     []string{info.board},
+            },
+            CompileOptions: types.AppCompileOptions{
+                Platform: info.platform,
+            },
+        },
+        TargetsTag: types.AppTargets{
+            DefaultTarget: config.ProjectDefaults.AppTargetName,
+            Targets: map[string]*types.AppTarget{
+                config.ProjectDefaults.AppTargetName: {
+                    Src:         "src",
+                    Platform:    info.platform,
+                    Framework:   info.framework,
+                    Board:       info.board,
+                    Flags:       types.AppTargetFlags{},
+                    Definitions: types.AppTargetDefinitions{},
                 },
             },
-        }
+        },
+    }
+    log.WriteSuccess(queue, log.VERB)
+    log.Verb(queue, "pretty printing wio.yml file ... ")
+    wioYmlPath := info.directory + io.Sep + "wio.yml"
+    if err := appConfig.PrettyPrint(wioYmlPath); err != nil {
+        log.WriteFailure(queue, log.VERB)
+        return err
+    }
+    log.WriteSuccess(queue, log.VERB)
+    return nil
+}
 
-        projectConfig = appConfig
-    } else {*/
+// Generate wio.yml for package project
+func fillPackageConfig(queue *log.Queue, info *createInfo) error {
     log.Verb(queue, "creating config file for package ... ")
     visibility := "PRIVATE"
     if info.headerOnly {
@@ -142,7 +171,7 @@ func (create Create) fillPackageConfig(queue *log.Queue, info *createInfo) error
                 Platform:   info.platform,
             },
             Config: types.Configurations{
-                WioVersion: config.ProjectMeta.Version,
+                WioVersion:          config.ProjectMeta.Version,
                 SupportedPlatforms:  []string{info.platform},
                 SupportedFrameworks: []string{info.framework},
                 SupportedBoards:     []string{info.board},

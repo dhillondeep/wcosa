@@ -19,6 +19,7 @@ toolchain/toolchain
 test/
 tests/
 wio-test/
+wio-app/
 
 # Editors
 *.swp

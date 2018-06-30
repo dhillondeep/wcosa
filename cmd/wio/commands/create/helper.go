@@ -33,8 +33,8 @@ func (info createInfo) toLowerCase() {
     info.board = strings.ToLower(info.board)
 }
 
-func (create Create) generateConstraints() (map[string]bool, map[string]bool) {
-    context := create.Context
+func (info *createInfo) generateConstraints() (map[string]bool, map[string]bool) {
+    context := info.context
     dirConstraints := map[string]bool{
         "tests":          false,
         "no-header-only": !context.Bool("header-only"),
@@ -50,8 +50,8 @@ func (create Create) generateConstraints() (map[string]bool, map[string]bool) {
 
 // This uses a structure.json file and creates a project structure based on that. It takes in consideration
 // all the constrains and copies files. This should be used for creating project for any type of app/pkg
-func (create Create) copyProjectAssets(queue *log.Queue, info *createInfo, data StructureTypeData) error {
-    dirConstraints, fileConstraints := create.generateConstraints()
+func copyProjectAssets(queue *log.Queue, info *createInfo, data *StructureTypeData) error {
+    dirConstraints, fileConstraints := info.generateConstraints()
     for _, path := range data.Paths {
         directoryPath := filepath.Clean(info.directory + io.Sep + path.Entry)
         skipDir := false
@@ -94,7 +94,7 @@ func (create Create) copyProjectAssets(queue *log.Queue, info *createInfo, data 
             }
 
             // handle updates
-            if !file.Update && create.Update {
+            if !file.Update && info.updateOnly {
                 log.Verbln(queue, "project is not updating, hence skipping update for path: %s", toPath)
                 continue
             }

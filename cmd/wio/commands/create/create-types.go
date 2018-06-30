@@ -5,9 +5,12 @@ import "github.com/urfave/cli"
 type Create struct {
     Context *cli.Context
     Update  bool
+    Type    string
 }
 
 type createInfo struct {
+    context *cli.Context
+
     directory   string
     projectType string
     name        string
@@ -18,6 +21,7 @@ type createInfo struct {
 
     configOnly bool
     headerOnly bool
+    updateOnly bool
 }
 
 // get context for the command
@@ -48,7 +52,7 @@ func (create Create) Execute() error {
         if err := performPreCreateCheck(directory, onlyConfig); err != nil {
             return err
         }
-        return create.createPackageProject(directory)
+        return create.createProject(directory)
     }
     return nil
 }

@@ -94,7 +94,7 @@ type AppTarget struct {
     Framework   string
     Board       string
     Flags       AppTargetFlags       `yaml:"flags,omitempty"`
-    Definitions AppTargetDefinitions `yaml:"flags,omitempty"`
+    Definitions AppTargetDefinitions `yaml:"definitions,omitempty"`
 
     name string
 }
