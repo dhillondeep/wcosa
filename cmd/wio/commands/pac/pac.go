@@ -34,7 +34,6 @@ const (
 type Pac struct {
     Context *cli.Context
     Type    string
-    error
 }
 
 // Get context for the command

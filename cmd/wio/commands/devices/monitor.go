@@ -24,7 +24,6 @@ import (
 type Devices struct {
     Context *cli.Context
     Type    byte
-    error
 }
 
 // get context for the command

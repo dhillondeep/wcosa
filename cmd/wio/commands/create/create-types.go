@@ -5,7 +5,6 @@ import "github.com/urfave/cli"
 type Create struct {
     Context *cli.Context
     Update  bool
-    error   error
 }
 
 type createInfo struct {

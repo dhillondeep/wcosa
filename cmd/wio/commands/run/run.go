@@ -23,7 +23,6 @@ type Type int
 type Run struct {
     Context *cli.Context
     RunType Type
-    error
 }
 
 const (
