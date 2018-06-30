@@ -9,7 +9,6 @@ add_library({{DEPENDENCY_NAME}} INTERFACE)
 target_compile_definitions(
     {{DEPENDENCY_NAME}}
     {{DEFINITIONS_VISIBILITY}}
-    WIO_FRAMEWORK_${FRAMEWORK} 
     {{DEPENDENCY_DEFINITIONS}})
 
 target_compile_options(
@@ -39,8 +38,14 @@ generate_arduino_library(
 target_compile_definitions(
     {{DEPENDENCY_NAME}}
     {{DEFINITIONS_VISIBILITY}} 
-    WIO_FRAMEWORK_${FRAMEWORK} 
     {{DEPENDENCY_DEFINITIONS}})
+
+target_compile_definitions(
+    {{DEPENDENCY_NAME}}
+    PRIVATE
+    WIO_PLATFORM_${PLATFORM}
+    WIO_FRAMEWORK_${FRAMEWORK}
+    WIO_BOARD_${BOARD})
 
 target_compile_options(
     {{DEPENDENCY_NAME}}
@@ -49,7 +54,17 @@ target_compile_options(
 
 target_include_directories(
     {{DEPENDENCY_NAME}}
+    PUBLIC
+    "{{DEPENDENCY_PATH}}/include")
+
+target_include_directories(
+    {{DEPENDENCY_NAME}}
     PRIVATE
+    "{{DEPENDENCY_PATH}}/src")
+
+target_include_directories(
+    {{DEPENDENCY_NAME}}
+    PUBLIC
     "{{DEPENDENCY_PATH}}/include")
 `
 
@@ -61,13 +76,6 @@ target_compile_definitions(
     {{DEPENDENCY_NAME}}
     {{DEFINITIONS_VISIBILITY}} 
     {{DEPENDENCY_DEFINITIONS}})
-
-target_compile_definitions(
-    {{DEPENDENCY_NAME}}
-    PRIVATE
-    WIO_PLATFORM_${PLATFORM}
-    WIO_FRAMEWORK_${FRAMEWORK}
-    WIO_BOARD_${BOARD})
 
 target_compile_options(
     {{DEPENDENCY_NAME}}
@@ -104,7 +112,7 @@ target_compile_definitions(
     WIO_PLATFORM_${PLATFORM}
     WIO_FRAMEWORK_${FRAMEWORK}
     WIO_BOARD_${BOARD})
-    
+
 target_compile_options(
     {{DEPENDENCY_NAME}}
     {{FLAGS_VISIBILITY}}
@@ -112,16 +120,19 @@ target_compile_options(
 
 target_include_directories(
     {{DEPENDENCY_NAME}}
-    PUBLIC
-    "{{DEPENDENCY_PATH}}/include")
+    PRIVATE
+    "{{DEPENDENCY_PATH}}/src")
 
 target_include_directories(
     {{DEPENDENCY_NAME}}
-    PRIVATE
-    "{{DEPENDENCY_PATH}}/src")
+    PUBLIC
+    "{{DEPENDENCY_PATH}}/include")
 `
 
 /////////////////////////////////////////////// Linking ////////////////////////////////////////////
 
 // This is for linking dependencies
-const linkString = `target_link_libraries({{LINKER_NAME}} {{LINK_VISIBILITY}} {{DEPENDENCY_NAME}})`
+const linkString = `
+target_link_libraries({{LINKER_NAME}} {{LINK_VISIBILITY}} {{DEPENDENCY_NAME}})
+
+`

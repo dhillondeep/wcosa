@@ -10,7 +10,7 @@ import (
 )
 
 func BuildPath(projectPath string) string {
-    return projectPath + io.Sep + ".wio" + io.Sep + "build"
+    return projectPath + io.Sep + ".wio" + io.Sep + "targets"
 }
 
 func generateCmakeLists(
@@ -39,7 +39,7 @@ func GenerateAvrCmakeLists(
     flags := (*target).GetFlags().GetTargetFlags()
     definitions := (*target).GetDefinitions().GetTargetDefinitions()
     framework := (*target).GetFramework()
-    buildPath := BuildPath(projectPath)
+    buildPath := BuildPath(projectPath) + io.Sep + (*target).GetName()
     templateFile := "CMakeListsAVR"
     toolchainPath := "toolchain/cmake/CosaToolchain.cmake"
     executablePath, err := io.NormalIO.GetRoot()
@@ -70,7 +70,7 @@ func GenerateNativeCmakeLists(
 
     flags := (*target).GetFlags().GetTargetFlags()
     definitions := (*target).GetDefinitions().GetTargetDefinitions()
-    buildPath := BuildPath(projectPath)
+    buildPath := BuildPath(projectPath) + io.Sep + (*target).GetName()
     templateFile := "CMakeListsNative"
 
     return generateCmakeLists(templateFile, buildPath, map[string]string{

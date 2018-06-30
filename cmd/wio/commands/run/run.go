@@ -101,7 +101,7 @@ func (info runInfo) build() error {
             return err
         }
         targetDir := cmake.BuildPath(info.directory)
-        targetDir += io.Sep + "targets" + io.Sep + target.GetName()
+        targetDir += io.Sep + target.GetName()
         if err := os.MkdirAll(targetDir, os.ModePerm); err != nil {
             return err
         }

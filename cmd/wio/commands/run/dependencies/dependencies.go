@@ -180,7 +180,7 @@ func convertPkgToDependency(packageDependencyPath string, projectName string, pr
 func CreateCMakeDependencyTargets(
     config *types.Config,
     target *types.Target,
-    projectDirectory string,
+    projectPath string,
     queue *log.Queue) error {
 
     projectName := config.GetMainTag().GetName()
@@ -190,8 +190,8 @@ func CreateCMakeDependencyTargets(
     projectFlags := (*target).GetFlags()
     projectDefinitions := (*target).GetDefinitions()
 
-    remotePackagesPath := projectDirectory + io.Sep + ".wio" + io.Sep + REMOTE_NAME
-    vendorPackagesPath := projectDirectory + io.Sep + VENDOR_NAME
+    remotePackagesPath := projectPath + io.Sep + ".wio" + io.Sep + REMOTE_NAME
+    vendorPackagesPath := projectPath + io.Sep + VENDOR_NAME
 
     scannedDependencies := map[string]*DependencyScanStructure{}
 
@@ -208,11 +208,11 @@ func CreateCMakeDependencyTargets(
             LinkVisibility: "PRIVATE",
         }
 
-        packageDependencyPath := projectDirectory + io.Sep + ".wio" + io.Sep + PKG_REMOTE_NAME
+        packageDependencyPath := projectPath + io.Sep + ".wio" + io.Sep + PKG_REMOTE_NAME
 
         log.QueueWrite(queue, log.VERB, nil, "converting project to a dependency to be used in tests ... ")
 
-        if err := convertPkgToDependency(packageDependencyPath, projectName, projectDirectory); err != nil {
+        if err := convertPkgToDependency(packageDependencyPath, projectName, projectPath); err != nil {
             log.QueueWriteln(queue, log.VERB_NONE, color.New(color.FgRed), "failure")
             return err
         } else {
@@ -313,7 +313,8 @@ func CreateCMakeDependencyTargets(
         }
     }
 
-    cmakePath := projectDirectory + io.Sep + ".wio" + io.Sep + "build" + io.Sep + "dependencies.cmake"
+    cmakePath := cmake.BuildPath(projectPath) + io.Sep + (*target).GetName()
+    cmakePath += io.Sep + "dependencies.cmake"
 
     platform := (*target).GetPlatform()
     avrCmake := cmake.GenerateDependencies(platform, cmakeTargets, cmakeTargetsLink)

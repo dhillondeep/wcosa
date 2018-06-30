@@ -3,11 +3,12 @@ package run
 import (
     "os/exec"
     "os"
-    "io"
+    sysio "io"
+    "wio/cmd/wio/utils/io"
 )
 
 func configTarget(dir string) error {
-    return execute(dir, "cmake", "../../", "-G", "Unix Makefiles")
+    return execute(dir, "cmake", "../", "-G", "Unix Makefiles")
 }
 
 func buildTarget(dir string) error {
@@ -23,10 +24,16 @@ func cleanTarget(dir string) error {
 }
 
 func configAndBuild(dir string, errchan chan error) {
-    if err := configTarget(dir); err != nil {
+    binDir := dir + io.Sep + "bin"
+    if err := os.MkdirAll(binDir, os.ModePerm); err != nil {
         errchan <- err
+        return
     }
-    errchan <- buildTarget(dir)
+    if err := configTarget(binDir); err != nil {
+        errchan <- err
+        return
+    }
+    errchan <- buildTarget(binDir)
 }
 
 func execute(dir string, name string, args ...string) error {
@@ -44,8 +51,8 @@ func execute(dir string, name string, args ...string) error {
     if err != nil {
         return err
     }
-    go func() { io.Copy(os.Stdout, stdoutIn) }()
-    go func() { io.Copy(os.Stderr, stderrIn) }()
+    go func() { sysio.Copy(os.Stdout, stdoutIn) }()
+    go func() { sysio.Copy(os.Stderr, stderrIn) }()
     err = cmd.Wait()
     if err != nil {
         return err

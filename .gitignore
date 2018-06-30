@@ -20,3 +20,7 @@ test/
 tests/
 wio-test/
 
+# Editors
+*.swp
+*.un~
+*~
