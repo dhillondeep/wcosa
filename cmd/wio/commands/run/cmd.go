@@ -7,6 +7,7 @@ import (
     "runtime"
     sysio "io"
     "wio/cmd/wio/utils/io"
+    "wio/cmd/wio/log"
 )
 
 func configTarget(dir string) error {
@@ -27,27 +28,36 @@ func cleanTarget(dir string) error {
     return execute(dir, "make", "clean")
 }
 
-func configAndBuild(dir string, errchan chan error) {
+type targetFunc func(string, chan error)
+
+func configAndBuild(dir string, errChan chan error) {
+    log.Verbln(log.Magenta, "Building directory: %s", dir)
     binDir := dir + io.Sep + "bin"
     if err := os.MkdirAll(binDir, os.ModePerm); err != nil {
-        errchan <- err
+        errChan <- err
     } else if err := configTarget(binDir); err != nil {
-        errchan <- err
+        errChan <- err
     } else {
-        errchan <- buildTarget(binDir)
+        errChan <- buildTarget(binDir)
     }
 }
 
-func cleanIfExists(dir string, errchan chan error) {
+func cleanIfExists(dir string, errChan chan error) {
+    log.Verbln(log.Magenta, "Cleaning directory: %s", dir)
     binDir := dir + io.Sep + "bin"
     exists, err := io.Exists(binDir)
     if err != nil {
-        errchan <- err
+        errChan <- err
     } else if exists {
-        errchan <- cleanTarget(dir)
+        errChan <- cleanTarget(binDir)
     } else {
-        errchan <- nil
+        errChan <- nil
     }
+}
+
+func hardClean(dir string, errChan chan error) {
+    log.Verbln(log.Magenta, "Removing directory: %s", dir)
+    errChan <- os.RemoveAll(dir)
 }
 
 func execute(dir string, name string, args ...string) error {

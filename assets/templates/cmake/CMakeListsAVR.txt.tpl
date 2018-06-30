@@ -17,7 +17,7 @@ elseif (EXISTS "${CMAKE_TOOLCHAIN_PATH}/../{{TOOLCHAIN_FILE_REL}}")
 elseif (EXISTS "/usr/share/wio/{{TOOLCHAIN_FILE_REL}}")
     set(CMAKE_TOOLCHAIN_FILE "/usr/share/wio/{{TOOLCHAIN_FILE_REL}}")
 else()
-    message(FATAL_ERROR "Toolchain cannot be found. Build Halted!")
+    message(FATAL_ERROR "Failed to find AVR toolchain files!")
 endif()
 
 # properties

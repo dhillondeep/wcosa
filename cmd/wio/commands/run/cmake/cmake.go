@@ -7,6 +7,7 @@ import (
     "wio/cmd/wio/utils/io"
     "os"
     "wio/cmd/wio/utils/template"
+    "wio/cmd/wio/constants"
 )
 
 func BuildPath(projectPath string) string {
@@ -54,7 +55,7 @@ func GenerateAvrCmakeLists(
         "PROJECT_NAME":               projectName,
         "FRAMEWORK":                  framework,
         "PORT":                       port,
-        "PLATFORM":                   "avr",
+        "PLATFORM":                   constants.AVR,
         "TARGET_NAME":                (*target).GetName(),
         "BOARD":                      (*target).GetBoard(),
         "ENTRY":                      (*target).GetSrc(),
@@ -80,7 +81,7 @@ func GenerateNativeCmakeLists(
         "FRAMEWORK":                  (*target).GetFramework(),
         "BOARD":                      (*target).GetBoard(),
         "ENTRY":                      (*target).GetSrc(),
-        "PLATFORM":                   "native",
+        "PLATFORM":                   constants.NATIVE,
         "TARGET_COMPILE_FLAGS":       strings.Join(flags, " "),
         "TARGET_COMPILE_DEFINITIONS": strings.Join(definitions, " "),
     })

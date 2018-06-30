@@ -47,7 +47,7 @@ func dispatchCmakeAvrGeneric(info *runInfo, target *types.Target) error {
     projectName := info.config.GetMainTag().GetName()
     projectPath := info.directory
     port, err := getPort(info)
-    if err != nil && info.rtype == type_upload {
+    if err != nil && info.runType == TypeUpload {
         return err
     }
     return cmake.GenerateAvrCmakeLists(target, projectName, projectPath, port)

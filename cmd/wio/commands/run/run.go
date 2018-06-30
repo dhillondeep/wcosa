@@ -19,18 +19,19 @@ import (
     "runtime"
 )
 
+type Type int
+
 type Run struct {
     Context *cli.Context
+    RunType Type
     error
 }
 
-type runType int
-
 const (
-    type_build  runType = 0
-    type_clean  runType = 1
-    type_run    runType = 2
-    type_upload runType = 3
+    TypeBuild  Type = 0
+    TypeClean  Type = 1
+    TypeRun    Type = 2
+    TypeUpload Type = 3
 )
 
 type runInfo struct {
@@ -40,8 +41,15 @@ type runInfo struct {
     directory string
     targets   []string
 
-    rtype runType
-    jobs  int
+    runType Type
+    jobs    int
+}
+
+type runFunc func(runInfo) error
+
+var runFuncs = []runFunc{
+    runInfo.build,
+    runInfo.clean,
 }
 
 // get context for the command
@@ -61,22 +69,46 @@ func (run Run) Execute() {
     }
     targets := run.Context.Args()
     info := runInfo{
-        context: run.Context,
-        config: config,
+        context:   run.Context,
+        config:    config,
         directory: directory,
-        targets: targets,
+        targets:   targets,
     }
-    if err := info.build(); err != nil {
+    if err := runFuncs[run.RunType](info); err != nil {
         log.WriteErrorlnExit(err)
     }
 }
 
 func (info runInfo) clean() error {
+    info.runType = TypeClean
+
+    log.Info(log.Cyan, "Reading targets ... ")
+    targets, err := getTargetArgs(&info)
+    if err != nil {
+        log.WriteFailure()
+        return err
+    }
+    log.WriteSuccess()
+
+    targetDirs := make([]string, 0, len(targets))
+    for _, target := range targets {
+        targetDir := cmake.BuildPath(info.directory)
+        targetDir += io.Sep + target.GetName()
+        targetDirs = append(targetDirs, targetDir)
+    }
+
+    log.Infoln(log.Cyan.Add(color.Underline), "Cleaning targets")
+    log.Infoln(log.Magenta, "Running with JOBS=%d", runtime.NumCPU()+2)
+    errs := asyncCleanTargets(targetDirs, info.context.Bool("hard"))
+    if err := awaitErrors(errs); err != nil {
+        return err
+    }
+    log.Infoln(log.Green, "Done!")
     return nil
 }
 
 func (info runInfo) build() error {
-    info.rtype = type_build
+    info.runType = TypeBuild
 
     log.Info(log.Cyan, "Reading targets ... ")
     targets, err := getTargetArgs(&info)
@@ -95,8 +127,8 @@ func (info runInfo) build() error {
     log.WriteSuccess()
 
     log.Infoln(log.Cyan.Add(color.Underline), "Building targets")
-    log.Infoln(log.Magenta, "Running with JOBS=%d", runtime.NumCPU() + 2)
-    errs := asyncBuildTargets(targetDirs, targets)
+    log.Infoln(log.Magenta, "Running with JOBS=%d", runtime.NumCPU()+2)
+    errs := asyncBuildTargets(targetDirs)
     return awaitErrors(errs)
 }
 
@@ -149,19 +181,32 @@ func configureTargets(info *runInfo, targets []types.Target) ([]string, error) {
     return targetDirs, nil
 }
 
-func asyncBuildTargets(targetDirs []string, targets []types.Target) []chan error {
-    errs := make([]chan error, 0, len(targets))
+func asyncBuildTargets(targetDirs []string) []chan error {
+    var function targetFunc = configAndBuild
+    return function.asyncApply(targetDirs)
+}
+
+func asyncCleanTargets(targetDirs []string, hard bool) []chan error {
+    var function targetFunc = cleanIfExists
+    if hard {
+        function = hardClean
+    }
+    return function.asyncApply(targetDirs)
+}
+
+func (function targetFunc) asyncApply(targetDirs []string) []chan error {
+    errs := make([]chan error, 0, len(targetDirs))
     for _, targetDir := range targetDirs {
         err := make(chan error)
-        go configAndBuild(targetDir, err)
+        go function(targetDir, err)
         errs = append(errs, err)
     }
     return errs
 }
 
 func awaitErrors(errs []chan error) error {
-    for _, errchan := range errs {
-        if err := <- errchan; err != nil {
+    for _, errChan := range errs {
+        if err := <-errChan; err != nil {
             return err
         }
     }

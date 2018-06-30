@@ -84,7 +84,7 @@ var updateFlags = []cli.Flag{
 
 var buildFlags = []cli.Flag{
     cli.BoolFlag{
-        Name: "all",
+        Name:  "all",
         Usage: "Build all available targets",
     },
     cli.BoolFlag{
@@ -94,6 +94,13 @@ var buildFlags = []cli.Flag{
     cli.BoolFlag{
         Name:  "disable-warnings",
         Usage: "Disables all the warning shown by wio",
+    },
+}
+
+var cleanFlags = []cli.Flag{
+    cli.BoolFlag{
+        Name: "hard",
+        Usage: "Removes build directories",
     },
 }
 
@@ -172,7 +179,6 @@ func main() {
                         },
                     },
                 },
-
             },
         },
 
@@ -187,21 +193,21 @@ func main() {
         },
 
         {
-            Name: "build",
-            Usage: "Configure and build the project.",
+            Name:      "build",
+            Usage:     "Configure and build the project.",
             UsageText: "wio build [targets] [command options]",
-            Flags: buildFlags,
+            Flags:     buildFlags,
             Action: func(c *cli.Context) {
-                command = run.Run{Context: c}
+                command = run.Run{Context: c, RunType: run.TypeBuild}
             },
         },
 
         {
-            Name: "clean",
+            Name:  "clean",
             Usage: "Clean project targets",
-            Flags: buildFlags,
+            Flags: append(buildFlags, cleanFlags...),
             Action: func(c *cli.Context) {
-                command = run.Run{Context: c}
+                command = run.Run{Context: c, RunType: run.TypeClean}
             },
         },
 
