@@ -71,27 +71,26 @@ func (pac Pac) handleInstall(directory string) error {
     // check install arguments
     installPackage := installArgumentCheck(pac.Context.Args())
 
-    remoteDirectory := directory + io.Sep + io.Folder + io.Sep + io.Modules
-    wioPath := directory + io.Sep + io.Config
+    remoteDirectory := io.Path(directory, io.Folder, io.Modules)
+    wioPath := io.Path(directory, io.Config)
 
     // clean npm_modules in .wio folder
     if pac.Context.Bool("clean") {
-        log.Write(log.INFO, color.New(color.FgCyan), "cleaning npm packages ... ")
+        log.Info(log.Cyan, "cleaning npm packages ... ")
 
         if !utils.PathExists(remoteDirectory) || !utils.PathExists(wioPath) {
-            log.Writeln(log.NONE, color.New(color.FgGreen), "nothing to do")
+            log.WriteSuccess()
         } else {
             if err := os.RemoveAll(remoteDirectory); err != nil {
                 log.WriteFailure()
                 return err
-            } else {
-                if err := os.RemoveAll(directory + io.Sep + io.Folder + io.Sep + "package-lock.json "); err != nil {
-                    log.WriteFailure()
-                    return err
-                } else {
-                    log.WriteSuccess()
-                }
             }
+            packageLock := io.Path(directory, io.Folder, "package-lock.json")
+            if err := os.RemoveAll(packageLock); err != nil {
+                log.WriteFailure()
+                return err
+            }
+            log.WriteSuccess()
         }
     }
 
@@ -162,7 +161,7 @@ func (pac Pac) handleInstall(directory string) error {
             npmCmdArgs = append(npmCmdArgs, "--verbose")
         }
         npmCmdArgs = append([]string{"install"}, npmCmdArgs...)
-        return run.Execute(directory + io.Sep + io.Folder, "npm", npmCmdArgs...)
+        return run.Execute(directory+io.Sep+io.Folder, "npm", npmCmdArgs...)
     }
     return nil
 }
