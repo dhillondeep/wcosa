@@ -89,7 +89,7 @@ func (pac Pac) handleInstall(directory string) error {
                     log.WriteFailure()
                     return err
                 } else {
-                    log.Writeln(log.NONE, color.New(color.FgGreen), "success")
+                    log.WriteSuccess()
                 }
             }
         }
@@ -134,7 +134,7 @@ func (pac Pac) handleInstall(directory string) error {
                 log.WriteFailure()
                 return err
             } else {
-                log.Writeln(log.NONE, color.New(color.FgGreen), "success")
+                log.WriteSuccess()
             }
         }
     } else {
