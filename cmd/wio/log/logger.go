@@ -77,22 +77,9 @@ func DisableWarnings() {
     createdWriter.warnings = false
 }
 
-// This must be called at the beggining
-func Init() {}
-
 // This provides a queue that can be used to log at different levels
 func GetQueue() *Queue {
     return NewQueue(5)
-}
-
-// Write Queue
-func QueueWrite(queue *Queue, logType Type, providedColor *color.Color, message string, a ...interface{}) {
-    pushLog(queue, logType, providedColor, message, a...)
-}
-
-// Writeln Queue
-func QueueWriteln(queue *Queue, logType Type, providedColor *color.Color, message string, a ...interface{}) {
-    QueueWrite(queue, logType, providedColor, message+"\n", a...)
 }
 
 // Copy one queue to another
@@ -266,16 +253,6 @@ func Err(args ...interface{}) {
 
 func Errln(args ...interface{}) {
     Writeln(append(args, ERR, Red)...)
-}
-
-func ErrExit(args ...interface{}) {
-    Err(args...)
-    os.Exit(1)
-}
-
-func ErrlnExit(args ...interface{}) {
-    Errln(args...)
-    os.Exit(1)
 }
 
 func WriteSuccess(args ...interface{}) {

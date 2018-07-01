@@ -414,7 +414,7 @@ func (pac Pac) handlePublish(directory string) error {
 
     queue := log.GetQueue()
 
-    log.QueueWrite(queue, log.VERB, nil, "creating package.json file ... ")
+    log.Verb(queue, "creating package.json file ... ")
 
     // npm config
     npmConfig := types.NpmConfig{}
@@ -436,25 +436,23 @@ func (pac Pac) handlePublish(directory string) error {
     // verify tag values
     if !stringPat.MatchString(npmConfig.Author) {
         log.Writeln(log.NONE, color.New(color.FgRed), "failure")
-        log.QueueWriteln(queue, log.VERB_NONE, color.New(color.FgRed), "failure")
+        log.WriteFailure(queue, log.VERB)
         log.PrintQueue(queue, log.TWO_SPACES)
         return goerr.New("author must be specified for a package")
     }
     if !stringPat.MatchString(npmConfig.Description) {
         log.Writeln(log.NONE, color.New(color.FgRed), "failure")
-        log.QueueWriteln(queue, log.VERB_NONE, color.New(color.FgRed), "failure")
+        log.WriteFailure(queue, log.VERB)
         log.PrintQueue(queue, log.TWO_SPACES)
         return goerr.New("description must be specified for a package")
     }
     if !versionPat.MatchString(npmConfig.Version) {
         log.Writeln(log.NONE, color.New(color.FgRed), "failure")
-        log.QueueWriteln(queue, log.VERB_NONE, color.New(color.FgRed), "failure")
+        log.WriteFailure(queue, log.VERB)
         log.PrintQueue(queue, log.TWO_SPACES)
         return goerr.New("package does not have a valid version")
     }
     if !stringPat.MatchString(npmConfig.License) {
-        log.QueueWriteln(queue, log.VERB_NONE, color.New(color.FgYellow), "warning")
-        log.QueueWriteln(queue, log.VERB_NONE, log.Yellow, "LICENSE was not provided, and is assumed to be MIT")
         npmConfig.License = "MIT"
     }
 
@@ -467,7 +465,7 @@ func (pac Pac) handlePublish(directory string) error {
         if !dependencyValue.Vendor {
             if err := dependencyCheck(subQueue, directory, dependencyName, dependencyValue.Version); err != nil {
                 log.Writeln(log.NONE, color.New(color.FgRed), "failure")
-                log.QueueWriteln(queue, log.VERB_NONE, color.New(color.FgRed), "failure")
+                log.WriteFailure(queue, log.VERB)
                 log.CopyQueue(subQueue, queue, log.TWO_SPACES)
                 log.PrintQueue(queue, log.TWO_SPACES)
                 return err
@@ -480,12 +478,12 @@ func (pac Pac) handlePublish(directory string) error {
     // write package.json file
     if err := io.NormalIO.WriteJson(directory+io.Sep+"package.json", &npmConfig); err != nil {
         log.Writeln(log.NONE, color.New(color.FgRed), "failure")
-        log.QueueWriteln(queue, log.VERB_NONE, color.New(color.FgRed), "failure")
+        log.WriteFailure(queue, log.VERB)
         log.PrintQueue(queue, log.TWO_SPACES)
         return err
     } else {
         log.Writeln(log.NONE, color.New(color.FgGreen), "success")
-        log.QueueWriteln(queue, log.VERB_NONE, color.New(color.FgGreen), "success")
+        log.WriteSuccess(queue, log.VERB)
         log.PrintQueue(queue, log.TWO_SPACES)
     }
 
