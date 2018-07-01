@@ -154,7 +154,7 @@ func convertPkgToDependency(pkgPath string, projectName string, projectDir strin
     projectDir += io.Sep
     pkgDir += io.Sep
     for _, file := range []string{"src", "include", "wio.yml"} {
-        if err := utils.CopyDir(projectDir+file, pkgDir+file); err != nil {
+        if err := utils.Copy(projectDir+file, pkgDir+file); err != nil {
             return err
         }
     }
@@ -162,7 +162,7 @@ func convertPkgToDependency(pkgPath string, projectName string, projectDir strin
 }
 
 func CreateCMakeDependencyTargets(
-    config *types.Config,
+    config types.IConfig,
     target *types.Target,
     projectPath string,
     queue *log.Queue) error {

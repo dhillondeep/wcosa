@@ -47,12 +47,6 @@
             "update": false
           }
         ]
-      },
-      {
-        "constraints": [],
-        "entry": ".wio/build",
-        "override": false,
-        "update": true
       }
     ]
   },
@@ -144,12 +138,6 @@
             "update": false
           }
         ]
-      },
-      {
-        "constraints": [],
-        "entry": ".wio/build",
-        "override": false,
-        "update": true
       }
     ]
   }

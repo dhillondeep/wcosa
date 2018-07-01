@@ -18,6 +18,7 @@ func (create Create) updateApp(directory string, config *types.AppConfig) error 
 
 func (create Create) updatePackage(directory string, config *types.PkgConfig) error {
     info := &createInfo{
+        context:     create.Context,
         directory:   directory,
         projectType: constants.PKG,
         name:        config.MainTag.GetName(),
@@ -25,7 +26,7 @@ func (create Create) updatePackage(directory string, config *types.PkgConfig) er
 
     log.Info(log.Cyan, "updating package files ... ")
     queue := log.GetQueue()
-    if err := create.updateProjectFiles(queue, info); err != nil {
+    if err := updateProjectFiles(queue, info); err != nil {
         log.WriteFailure()
         return err
     }
@@ -58,16 +59,16 @@ func (create Create) updatePackage(directory string, config *types.PkgConfig) er
 
 // Update Wio project
 func (create Create) handleUpdate(directory string) error {
-    cfg, err := utils.ReadWioConfig(directory + io.Sep + "wio.yml")
+    cfg, err := utils.ReadWioConfig(directory)
     if err != nil {
         return err
     }
-    switch cfg.Type {
-    case types.App:
-        err = create.updateApp(directory, cfg.Config.(*types.AppConfig))
+    switch cfg.GetType() {
+    case constants.APP:
+        err = create.updateApp(directory, cfg.(*types.AppConfig))
         break
-    default:
-        err = create.updatePackage(directory, cfg.Config.(*types.PkgConfig))
+    case constants.PKG:
+        err = create.updatePackage(directory, cfg.(*types.PkgConfig))
         break
     }
     return err
@@ -122,7 +123,7 @@ func updateAppConfig(queue *log.Queue, config *types.PkgConfig, info *createInfo
 }
 
 // Update project files
-func (create Create) updateProjectFiles(queue *log.Queue, info *createInfo) error {
+func updateProjectFiles(queue *log.Queue, info *createInfo) error {
     log.Verb(queue, "reading paths.json file ... ")
     structureData := &StructureConfigData{}
     if err := io.AssetIO.ParseJson("configurations/structure-avr.json", structureData); err != nil {

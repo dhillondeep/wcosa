@@ -410,42 +410,6 @@ func (tag *PkgTag) GetCompileOptions() CompileOptions {
     return &tag.CompileOptions
 }
 
-type Type int
-
-const (
-    App Type = 0
-    Pkg Type = 1
-)
-
-type Config struct {
-    Config IConfig
-    Type   Type
-}
-
-func (c Config) GetType() string {
-    return c.Config.GetType()
-}
-
-func (c Config) GetMainTag() MainTag {
-    return c.Config.GetMainTag()
-}
-
-func (c Config) GetTargets() Targets {
-    return c.Config.GetTargets()
-}
-
-func (c Config) GetDependencies() DependenciesTag {
-    return c.Config.GetDependencies()
-}
-
-func (c Config) SetDependencies(tag DependenciesTag) {
-    c.Config.SetDependencies(tag)
-}
-
-func (c Config) PrettyPrint(path string) error {
-    return prettyPrintConfig(c.Config, path)
-}
-
 type IConfig interface {
     GetType() string
     GetMainTag() MainTag
@@ -535,14 +499,14 @@ type DConfig struct {
 
 // Pretty print wio.yml
 func (config *PkgConfig) PrettyPrint(path string) error {
-    return prettyPrintConfig(config, path)
+    return PrettyPrint(config, path)
 }
 
 func (config *AppConfig) PrettyPrint(path string) error {
-    return prettyPrintConfig(config, path)
+    return PrettyPrint(config, path)
 }
 
-func prettyPrintConfig(config IConfig, path string) error {
+func PrettyPrint(config IConfig, path string) error {
     data, err := yaml.Marshal(config)
     if err != nil {
         return err

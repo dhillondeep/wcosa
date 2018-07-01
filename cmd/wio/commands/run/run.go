@@ -12,7 +12,6 @@ import (
     "wio/cmd/wio/log"
     "wio/cmd/wio/types"
     "wio/cmd/wio/utils"
-    "wio/cmd/wio/utils/io"
     "wio/cmd/wio/errors"
     "github.com/fatih/color"
     "runtime"
@@ -33,7 +32,7 @@ const (
 
 type runInfo struct {
     context *cli.Context
-    config  *types.Config
+    config  types.IConfig
 
     directory string
     targets   []string
@@ -61,7 +60,7 @@ func (run Run) Execute() error {
     if err != nil {
         return err
     }
-    config, err := utils.ReadWioConfig(directory + io.Sep + "wio.yml")
+    config, err := utils.ReadWioConfig(directory)
     if err != nil {
         return err
     }
