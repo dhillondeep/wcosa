@@ -21,6 +21,7 @@ import (
     "wio/cmd/wio/types"
     "wio/cmd/wio/utils"
     "wio/cmd/wio/utils/io"
+    "wio/cmd/wio/commands/run"
 )
 
 const (
@@ -83,11 +84,11 @@ func (pac Pac) handleInstall(directory string) error {
             log.Writeln(log.NONE, color.New(color.FgGreen), "nothing to do")
         } else {
             if err := os.RemoveAll(remoteDirectory); err != nil {
-                log.Writeln(log.NONE, color.New(color.FgRed), "failure")
+                log.WriteFailure()
                 return err
             } else {
                 if err := os.RemoveAll(directory + io.Sep + ".wio" + io.Sep + "package-lock.json "); err != nil {
-                    log.Writeln(log.NONE, color.New(color.FgRed), "failure")
+                    log.WriteFailure()
                     return err
                 } else {
                     log.Writeln(log.NONE, color.New(color.FgGreen), "success")
@@ -132,7 +133,7 @@ func (pac Pac) handleInstall(directory string) error {
 
             log.Write(log.INFO, color.New(color.FgCyan), "saving changes in wio.yml file ... ")
             if err := projectConfig.PrettyPrint(directory + io.Sep + "wio.yml"); err != nil {
-                log.Writeln(log.NONE, color.New(color.FgRed), "failure")
+                log.WriteFailure()
                 return err
             } else {
                 log.Writeln(log.NONE, color.New(color.FgGreen), "success")
@@ -364,37 +365,7 @@ func (pac Pac) handleCollect(directory string) error {
 
 // This handles the list command to show dependencies of the project
 func (pac Pac) handleList(directory string) error {
-    cmdNpm := exec.Command("npm", "list")
-    cmdNpm.Dir = directory + io.Sep + ".wio"
-    cmdNpm.Stderr = os.Stderr
-
-    npmStdoutReader, err := cmdNpm.StdoutPipe()
-    if err != nil {
-        return err
-    }
-
-    npmStdoutScanner := bufio.NewScanner(npmStdoutReader)
-    go func() {
-        for npmStdoutScanner.Scan() {
-            line := npmStdoutScanner.Text()
-            if strings.Contains(line, directory) {
-                line = directory
-            }
-
-            log.Infoln(line)
-        }
-    }()
-
-    err = cmdNpm.Start()
-    if err != nil {
-        return err
-    }
-
-    err = cmdNpm.Wait()
-    if err != nil {
-        return err
-    }
-    return nil
+    return run.Execute(directory+io.Sep+".wio", "npm", "list")
 }
 
 // This handles the publish command and uses npm to publish packages
@@ -410,64 +381,51 @@ func (pac Pac) handlePublish(directory string) error {
         return err
     }
 
-    log.Write(log.INFO, color.New(color.FgCyan), "checking files and packing them ... ")
-
-    queue := log.GetQueue()
-
-    log.Verb(queue, "creating package.json file ... ")
+    log.Info(log.Cyan, "checking files and packing them ... ")
 
     // npm config
-    npmConfig := types.NpmConfig{}
+    meta := pkgConfig.MainTag.Meta
+    npmConfig := types.NpmConfig{
+        Name:         pkgConfig.GetMainTag().GetName(),
+        Version:      pkgConfig.GetMainTag().GetVersion(),
+        Description:  meta.Description,
+        Repository:   meta.Repository,
+        Main:         ".wio.js",
+        Keywords:     meta.Keywords,
+        Author:       meta.Author,
+        License:      meta.License,
+        Contributors: meta.Contributors,
+    }
 
     // fill all the fields for package.json
-    npmConfig.Name = pkgConfig.MainTag.Meta.Name
-    npmConfig.Version = pkgConfig.MainTag.Meta.Version
-    npmConfig.Description = pkgConfig.MainTag.Meta.Description
-    npmConfig.Repository = pkgConfig.MainTag.Meta.Repository
-    npmConfig.Main = ".wio.js"
-    npmConfig.Keywords = utils.AppendIfMissing(pkgConfig.MainTag.Meta.Keywords, []string{"c++", "c", "wio", "pkg", "iot"})
-    npmConfig.Author = pkgConfig.MainTag.Meta.Author
-    npmConfig.License = pkgConfig.MainTag.Meta.License
-    npmConfig.Contributors = pkgConfig.MainTag.Meta.Contributors
-
     versionPat := regexp.MustCompile(`[0-9]+.[0-9]+.[0-9]+`)
     stringPat := regexp.MustCompile(`[\w"]+`)
 
     // verify tag values
     if !stringPat.MatchString(npmConfig.Author) {
-        log.Writeln(log.NONE, color.New(color.FgRed), "failure")
-        log.WriteFailure(queue, log.VERB)
-        log.PrintQueue(queue, log.TWO_SPACES)
+        log.WriteFailure()
         return goerr.New("author must be specified for a package")
     }
     if !stringPat.MatchString(npmConfig.Description) {
-        log.Writeln(log.NONE, color.New(color.FgRed), "failure")
-        log.WriteFailure(queue, log.VERB)
-        log.PrintQueue(queue, log.TWO_SPACES)
+        log.WriteFailure()
         return goerr.New("description must be specified for a package")
     }
     if !versionPat.MatchString(npmConfig.Version) {
-        log.Writeln(log.NONE, color.New(color.FgRed), "failure")
-        log.WriteFailure(queue, log.VERB)
-        log.PrintQueue(queue, log.TWO_SPACES)
+        log.WriteFailure()
         return goerr.New("package does not have a valid version")
     }
     if !stringPat.MatchString(npmConfig.License) {
         npmConfig.License = "MIT"
     }
+    log.WriteSuccess()
 
     npmConfig.Dependencies = make(types.NpmDependencyTag)
-
-    subQueue := log.GetQueue()
 
     // add dependencies to package.json
     for dependencyName, dependencyValue := range pkgConfig.DependenciesTag {
         if !dependencyValue.Vendor {
-            if err := dependencyCheck(subQueue, directory, dependencyName, dependencyValue.Version); err != nil {
-                log.Writeln(log.NONE, color.New(color.FgRed), "failure")
-                log.WriteFailure(queue, log.VERB)
-                log.CopyQueue(subQueue, queue, log.TWO_SPACES)
-                log.PrintQueue(queue, log.TWO_SPACES)
+            if err := dependencyCheck(directory, dependencyName, dependencyValue.Version); err != nil {
+                log.WriteFailure()
                 return err
             }
 
@@ -477,78 +435,17 @@ func (pac Pac) handlePublish(directory string) error {
 
     // write package.json file
     if err := io.NormalIO.WriteJson(directory+io.Sep+"package.json", &npmConfig); err != nil {
-        log.Writeln(log.NONE, color.New(color.FgRed), "failure")
-        log.WriteFailure(queue, log.VERB)
-        log.PrintQueue(queue, log.TWO_SPACES)
+        log.WriteFailure()
         return err
-    } else {
-        log.Writeln(log.NONE, color.New(color.FgGreen), "success")
-        log.WriteSuccess(queue, log.VERB)
-        log.PrintQueue(queue, log.TWO_SPACES)
     }
+    log.WriteSuccess()
 
     log.Writeln(log.INFO, color.New(color.FgCyan), "publishing the package to remote server ... ")
 
-    var cmdNpm *exec.Cmd
-
     // execute cmake command
-    if !log.IsVerbose() {
-        cmdNpm = exec.Command("npm", "publish")
+    if log.IsVerbose() {
+        return run.Execute(directory, "npm", "publish", "--verbose")
     } else {
-        cmdNpm = exec.Command("npm", "publish", "--verbose")
+        return run.Execute(directory, "npm", "publish")
     }
-
-    cmdNpm.Dir = directory
-
-    npmStderrReader, err := cmdNpm.StderrPipe()
-    if err != nil {
-        return err
-    }
-    npmStdoutReader, err := cmdNpm.StdoutPipe()
-    if err != nil {
-        return err
-    }
-
-    npmStdoutScanner := bufio.NewScanner(npmStdoutReader)
-    go func() {
-        for npmStdoutScanner.Scan() {
-            log.Writeln(log.INFO, color.New(color.Reset), npmStdoutScanner.Text())
-        }
-    }()
-
-    npmStderrScanner := bufio.NewScanner(npmStderrReader)
-    go func() {
-        for npmStderrScanner.Scan() {
-            line := npmStderrScanner.Text()
-            line = strings.Trim(strings.Replace(line, "npm", "wio", -1), " ")
-
-            if line == "" {
-                continue
-            } else if strings.Contains(line, "debug.log") || strings.Contains(line, "A complete log of this run can be found in:") {
-                continue
-            } else {
-                line = strings.Replace(line, "wio", "", -1)
-                line = strings.Replace(line, "verb", "", -1)
-                line = strings.Replace(line, "info", "", -1)
-                line = strings.Replace(line, "WARN ", "", -1)
-                line = strings.Replace(line, "ERR!", "", -1)
-                line = strings.Replace(line, "notarget", "", -1)
-
-                line = strings.Trim(line, " ")
-
-                log.Writeln(log.INFO, color.New(color.Reset), line)
-            }
-        }
-    }()
-
-    err = cmdNpm.Start()
-    if err != nil {
-        return err
-    }
-
-    err = cmdNpm.Wait()
-    if err != nil {
-        return err
-    }
-    return nil
 }
