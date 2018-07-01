@@ -15,12 +15,6 @@ import (
     "wio/cmd/wio/constants"
 )
 
-const (
-    REMOTE_NAME     = "node_modules"
-    VENDOR_NAME     = "vendor"
-    PKG_REMOTE_NAME = "pkg_module"
-)
-
 var packageVersions = map[string]string{}     // Keeps track of versions for the packages
 var cmakeTargets = map[string]*cmake.Target{} // CMake Target that will be built
 var cmakeTargetsLink []cmake.TargetLink       // CMake Target to Link to and from
@@ -38,7 +32,7 @@ type DependencyScanStructure struct {
 
 // Creates Scan structures for all the scanned packages
 func createDependencyScanStructure(name string, depPath string, fromVendor bool) (*DependencyScanStructure, types.DependenciesTag, error) {
-    configPath := depPath + io.Sep + "wio.yml"
+    configPath := depPath + io.Sep + io.Config
 
     config := types.PkgConfig{}
     if err := io.NormalIO.ParseYml(configPath, &config); err != nil {
@@ -88,14 +82,14 @@ func recursiveDependencyScan(queue *log.Queue, currDirectory string,
             }
 
             dirPath := currDirectory + io.Sep + dir.Name()
-            if !utils.PathExists(dirPath + io.Sep + "wio.yml") {
+            if !utils.PathExists(dirPath + io.Sep + io.Config) {
                 return goerr.New("wio.yml file missing")
             }
 
             var fromVendor = false
 
             // check if the current directory is for remote or vendor
-            if filepath.Base(currDirectory) == VENDOR_NAME {
+            if filepath.Base(currDirectory) == io.Vendor {
                 fromVendor = true
             }
 
@@ -115,14 +109,16 @@ func recursiveDependencyScan(queue *log.Queue, currDirectory string,
                 packageDependencies = packageDeps
             }
 
-            if utils.PathExists(dirPath + io.Sep + REMOTE_NAME) {
+            modulePath := io.Path(dirPath, io.Modules)
+            vendorPath := io.Path(dirPath, io.Vendor)
+            if utils.PathExists(modulePath) {
                 // if remote directory exists
-                if err := recursiveDependencyScan(queue, dirPath+io.Sep+REMOTE_NAME, dependencies, packageDependencies); err != nil {
+                if err := recursiveDependencyScan(queue, modulePath, dependencies, packageDependencies); err != nil {
                     return err
                 }
-            } else if utils.PathExists(dirPath + io.Sep + VENDOR_NAME) {
+            } else if utils.PathExists(vendorPath) {
                 // if vendor directory exists
-                if err := recursiveDependencyScan(queue, dirPath+io.Sep+VENDOR_NAME, dependencies, packageDependencies); err != nil {
+                if err := recursiveDependencyScan(queue, vendorPath, dependencies, packageDependencies); err != nil {
                     return err
                 }
             }
@@ -153,7 +149,7 @@ func convertPkgToDependency(pkgPath string, projectName string, projectDir strin
     // Copy project files
     projectDir += io.Sep
     pkgDir += io.Sep
-    for _, file := range []string{"src", "include", "wio.yml"} {
+    for _, file := range []string{"src", "include", io.Config} {
         if err := utils.Copy(projectDir+file, pkgDir+file); err != nil {
             return err
         }
@@ -174,8 +170,8 @@ func CreateCMakeDependencyTargets(
     projectFlags := (*target).GetFlags()
     projectDefinitions := (*target).GetDefinitions()
 
-    remotePackagesPath := projectPath + io.Sep + ".wio" + io.Sep + REMOTE_NAME
-    vendorPackagesPath := projectPath + io.Sep + VENDOR_NAME
+    remotePackagesPath := io.Path(projectPath, io.Folder, ``)
+    vendorPackagesPath := io.Path(projectPath, io.Vendor)
 
     scannedDependencies := map[string]*DependencyScanStructure{}
 
@@ -192,7 +188,7 @@ func CreateCMakeDependencyTargets(
             LinkVisibility: "PRIVATE",
         }
 
-        packageDependencyPath := projectPath + io.Sep + ".wio" + io.Sep + PKG_REMOTE_NAME
+        packageDependencyPath := io.Path(projectPath, io.Folder, io.Package)
 
         log.Verb(queue, "converting project to a dependency to be used in tests ... ")
 
@@ -202,7 +198,7 @@ func CreateCMakeDependencyTargets(
         }
         log.WriteSuccess(queue, log.VERB)
 
-        log.Verb(queue, "recursively scanning package dependency at path "+ "%s ...", packageDependencyPath)
+        log.Verb(queue, "recursively scanning package dependency at path "+"%s ...", packageDependencyPath)
         subQueue := log.GetQueue()
         if err := recursiveDependencyScan(subQueue, packageDependencyPath, scannedDependencies, projectDependencies); err != nil {
             log.WriteFailure(queue, log.VERB)

@@ -3,7 +3,6 @@ package pac
 import (
     "wio/cmd/wio/utils/io"
     "wio/cmd/wio/types"
-    "wio/cmd/wio/log"
     "regexp"
     goerr "errors"
     "wio/cmd/wio/constants"
@@ -45,13 +44,13 @@ func createNpmConfig(config types.IConfig) *types.NpmConfig {
     }
 }
 
-func updateNpmConfig(directory string) error {
+func updateNpmConfig(directory string, strict bool) error {
     config, err := utils.ReadWioConfig(directory)
     if err != nil {
         return err
     }
     npmConfig := createNpmConfig(config)
-    if err := validateNpmConfig(npmConfig); err != nil {
+    if err := validateNpmConfig(npmConfig); strict && err != nil {
         return err
     }
     npmConfig.Dependencies = make(types.NpmDependencyTag)
@@ -63,23 +62,20 @@ func updateNpmConfig(directory string) error {
             npmConfig.Dependencies[name] = value.Version
         }
     }
-
-    return io.NormalIO.WriteJson(directory+io.Sep+"package.json", npmConfig)
+    packagePath := io.Path(directory, io.Folder, "package.json")
+    return io.NormalIO.WriteJson(packagePath, npmConfig)
 }
 
 func validateNpmConfig(npmConfig *types.NpmConfig) error {
     versionPat := regexp.MustCompile(`[0-9]+.[0-9]+.[0-9]+`)
     stringPat := regexp.MustCompile(`[\w"]+`)
     if !stringPat.MatchString(npmConfig.Author) {
-        log.WriteFailure()
         return goerr.New("author must be specified for a package")
     }
     if !stringPat.MatchString(npmConfig.Description) {
-        log.WriteFailure()
         return goerr.New("description must be specified for a package")
     }
     if !versionPat.MatchString(npmConfig.Version) {
-        log.WriteFailure()
         return goerr.New("package does not have a valid version")
     }
     if !stringPat.MatchString(npmConfig.License) {

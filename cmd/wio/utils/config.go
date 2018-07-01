@@ -6,7 +6,7 @@ import (
 )
 
 func ReadWioConfig(directory string) (types.IConfig, error) {
-    wioPath := directory + io.Sep + "wio.yml"
+    wioPath := directory + io.Sep + io.Config
     isApp, err := IsAppType(wioPath)
     if err != nil {
         return nil, err

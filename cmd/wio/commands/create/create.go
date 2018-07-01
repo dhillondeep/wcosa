@@ -140,7 +140,7 @@ func fillAppConfig(queue *log.Queue, info *createInfo) error {
     }
     log.WriteSuccess(queue, log.VERB)
     log.Verb(queue, "pretty printing wio.yml file ... ")
-    wioYmlPath := info.directory + io.Sep + "wio.yml"
+    wioYmlPath := info.directory + io.Sep + io.Config
     if err := appConfig.PrettyPrint(wioYmlPath); err != nil {
         log.WriteFailure(queue, log.VERB)
         return err
@@ -193,7 +193,7 @@ func fillPackageConfig(queue *log.Queue, info *createInfo) error {
     }
     log.WriteSuccess(queue, log.VERB)
     log.Verb(queue, "pretty printing wio.yml file ... ")
-    wioYmlPath := info.directory + io.Sep + "wio.yml"
+    wioYmlPath := info.directory + io.Sep + io.Config
     if err := projectConfig.PrettyPrint(wioYmlPath); err != nil {
         log.WriteFailure(queue, log.VERB)
         return err

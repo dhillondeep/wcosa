@@ -39,7 +39,7 @@ func collectArgumentCheck(args []string) []string {
 
 // checks arguments to verify what to publish
 func publishCheck(directory string) error {
-    status, err := utils.IsAppType(directory + io.Sep + "wio.yml")
+    status, err := utils.IsAppType(directory + io.Sep + io.Config)
     if err != nil {
         return err
     }

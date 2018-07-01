@@ -45,10 +45,10 @@ func (pac Pac) Execute() error {
     if err != nil {
         return err
     }
-    if !utils.PathExists(directory + io.Sep + "wio.yml") {
+    if !utils.PathExists(directory + io.Sep + io.Config) {
         return errors.ConfigMissing{}
     }
-    if err := updateNpmConfig(directory); err != nil {
+    if err := updateNpmConfig(directory, pac.Type == PUBLISH); err != nil {
         return err
     }
 
@@ -71,8 +71,8 @@ func (pac Pac) handleInstall(directory string) error {
     // check install arguments
     installPackage := installArgumentCheck(pac.Context.Args())
 
-    remoteDirectory := directory + io.Sep + ".wio" + io.Sep + "node_modules"
-    wioPath := directory + io.Sep + "wio.yml"
+    remoteDirectory := directory + io.Sep + io.Folder + io.Sep + io.Modules
+    wioPath := directory + io.Sep + io.Config
 
     // clean npm_modules in .wio folder
     if pac.Context.Bool("clean") {
@@ -85,7 +85,7 @@ func (pac Pac) handleInstall(directory string) error {
                 log.WriteFailure()
                 return err
             } else {
-                if err := os.RemoveAll(directory + io.Sep + ".wio" + io.Sep + "package-lock.json "); err != nil {
+                if err := os.RemoveAll(directory + io.Sep + io.Folder + io.Sep + "package-lock.json "); err != nil {
                     log.WriteFailure()
                     return err
                 } else {
@@ -98,7 +98,7 @@ func (pac Pac) handleInstall(directory string) error {
     var npmCmdArgs []string
 
     if installPackage[0] != "all" {
-        log.Write(log.INFO, color.New(color.FgCyan), "installing %s ... ", installPackage)
+        log.Infoln(log.Blue, "Installing %s", installPackage)
         npmCmdArgs = append(npmCmdArgs, installPackage...)
 
         if pac.Context.IsSet("save") {
@@ -118,7 +118,7 @@ func (pac Pac) handleInstall(directory string) error {
 
                 packageName := strip[0]
                 dependencies[packageName] = &types.DependencyTag{
-                    Version: "0.0.1",
+                    Version: "latest",
                     Vendor:  false,
                 }
 
@@ -142,7 +142,7 @@ func (pac Pac) handleInstall(directory string) error {
             return goerr.New("--save flag needs at least one dependency specified")
         }
 
-        log.Write(log.INFO, color.New(color.FgCyan), "installing dependencies ... ")
+        log.Infoln(log.Blue, "Installing dependencies")
 
         projectConfig, err := utils.ReadWioConfig(directory)
         if err != nil {
@@ -162,7 +162,7 @@ func (pac Pac) handleInstall(directory string) error {
             npmCmdArgs = append(npmCmdArgs, "--verbose")
         }
         npmCmdArgs = append([]string{"install"}, npmCmdArgs...)
-        return run.Execute(directory + io.Sep + ".wio", "npm", npmCmdArgs...)
+        return run.Execute(directory + io.Sep + io.Folder, "npm", npmCmdArgs...)
     }
     return nil
 }
@@ -175,8 +175,8 @@ func (pac Pac) handleUninstall(directory string) error {
         return err
     }
 
-    remoteDirectory := directory + io.Sep + ".wio" + io.Sep + "node_modules"
-    wioPath := directory + io.Sep + "wio.yml"
+    remoteDirectory := directory + io.Sep + io.Folder + io.Sep + io.Modules
+    wioPath := directory + io.Sep + io.Config
 
     var config types.IConfig
     if pac.Context.IsSet("save") {
@@ -228,7 +228,7 @@ func (pac Pac) handleUninstall(directory string) error {
 
 // This handles the list command to show dependencies of the project
 func handleList(directory string) error {
-    return run.Execute(directory+io.Sep+".wio", "npm", "list")
+    return run.Execute(directory+io.Sep+io.Folder, "npm", "list")
 }
 
 // This handles the publish command and uses npm to publish packages

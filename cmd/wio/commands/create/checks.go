@@ -37,7 +37,7 @@ func performDirectoryCheck(context *cli.Context) (string, error) {
 func performWioExistsCheck(directory string) error {
     if !utils.PathExists(directory) {
         return errors.PathDoesNotExist{Path: directory}
-    } else if !utils.PathExists(directory + io.Sep + "wio.yml") {
+    } else if !utils.PathExists(directory + io.Sep + io.Config) {
         return errors.ConfigMissing{}
     }
     return nil
@@ -55,7 +55,7 @@ func performPreCreateCheck(directory string, onlyConfig bool) error {
     // Configure existing directory
     if onlyConfig {
         // Check if config exists
-        if utils.PathExists(directory + io.Sep + "wio.yml") {
+        if utils.PathExists(directory + io.Sep + io.Config) {
             promptMsg := "Override existing wio.yml?"
             yes, err := log.PromptYes(promptMsg)
             if err != nil {

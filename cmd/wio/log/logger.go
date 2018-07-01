@@ -46,6 +46,7 @@ var Green = color.New(color.FgGreen)
 var Yellow = color.New(color.FgYellow)
 var Red = color.New(color.FgRed)
 var Magenta = color.New(color.FgMagenta)
+var Blue = color.New(color.FgHiBlue)
 var Default = color.New(color.Reset)
 
 // Log colors and streams

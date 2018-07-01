@@ -103,7 +103,7 @@ func updatePackageConfig(queue *log.Queue, config *types.PkgConfig, info *create
     if strings.Trim(config.MainTag.Meta.Version, " ") == "" {
         config.MainTag.Meta.Version = "0.0.1"
     }
-    configPath := info.directory + io.Sep + "wio.yml"
+    configPath := info.directory + io.Sep + io.Config
     return config.PrettyPrint(configPath)
 }
 
@@ -118,7 +118,7 @@ func updateAppConfig(queue *log.Queue, config *types.PkgConfig, info *createInfo
     if strings.Trim(config.MainTag.Meta.Version, " ") == "" {
         config.MainTag.Meta.Version = "0.0.1"
     }
-    configPath := info.directory + io.Sep + "wio.yml"
+    configPath := info.directory + io.Sep + io.Config
     return config.PrettyPrint(configPath)
 }
 

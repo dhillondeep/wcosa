@@ -11,6 +11,15 @@ import (
     "path"
     "path/filepath"
     "runtime"
+    "bytes"
+)
+
+const (
+    Config  = "wio.yml"
+    Folder  = ".wio"
+    Modules = "node_modules"
+    Vendor = "vendor"
+    Package = "pkg_module"
 )
 
 const (
@@ -87,4 +96,14 @@ func Exists(path string) (bool, error) {
         return false, err
     }
     return true, nil
+}
+
+func Path(values ...string) string {
+    var buffer bytes.Buffer
+    for _, value := range values {
+        buffer.WriteString(value)
+        buffer.WriteString(Sep)
+    }
+    path := buffer.String()
+    return path[:len(path)-1]
 }

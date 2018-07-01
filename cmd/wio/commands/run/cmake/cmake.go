@@ -11,7 +11,7 @@ import (
 )
 
 func BuildPath(projectPath string) string {
-    return projectPath + io.Sep + ".wio" + io.Sep + constants.TargetDir
+    return projectPath + io.Sep + io.Folder + io.Sep + constants.TargetDir
 }
 
 func generateCmakeLists(
