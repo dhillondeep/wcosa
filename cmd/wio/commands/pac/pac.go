@@ -7,13 +7,11 @@
 package pac
 
 import (
-    "bufio"
     goerr "errors"
     "github.com/fatih/color"
     "github.com/urfave/cli"
     "io/ioutil"
     "os"
-    "os/exec"
     "regexp"
     "strings"
     "wio/cmd/wio/errors"
@@ -97,11 +95,11 @@ func (pac Pac) handleInstall(directory string) error {
         }
     }
 
-    var npmInstallArguments []string
+    var npmCmdArgs []string
 
     if installPackage[0] != "all" {
         log.Write(log.INFO, color.New(color.FgCyan), "installing %s ... ", installPackage)
-        npmInstallArguments = append(npmInstallArguments, installPackage...)
+        npmCmdArgs = append(npmCmdArgs, installPackage...)
 
         if pac.Context.IsSet("save") {
             projectConfig, err := utils.ReadWioConfig(directory + io.Sep + "wio.yml")
@@ -152,77 +150,19 @@ func (pac Pac) handleInstall(directory string) error {
         }
 
         for dependencyName, dependency := range projectConfig.GetDependencies() {
-            npmInstallArguments = append(npmInstallArguments, dependencyName+"@"+dependency.Version)
+            npmCmdArgs = append(npmCmdArgs, dependencyName+"@"+dependency.Version)
         }
     }
 
-    if len(npmInstallArguments) <= 0 {
+    if len(npmCmdArgs) <= 0 {
         log.Writeln(log.NONE, color.New(color.FgGreen), "nothing to do")
     } else {
         // install packages
-        cmdNpm := exec.Command("npm", "install")
-
         if log.IsVerbose() {
-            npmInstallArguments = append(npmInstallArguments, "--verbose")
+            npmCmdArgs = append(npmCmdArgs, "--verbose")
         }
-
-        cmdNpm.Args = append([]string{"npm", "install"}, npmInstallArguments...)
-        cmdNpm.Dir = directory + io.Sep + ".wio"
-
-        npmStderrReader, err := cmdNpm.StderrPipe()
-        if err != nil {
-            return err
-        }
-        npmStdoutReader, err := cmdNpm.StdoutPipe()
-        if err != nil {
-            return err
-        }
-
-        npmStdoutScanner := bufio.NewScanner(npmStdoutReader)
-        go func() {
-            for npmStdoutScanner.Scan() {
-                log.Writeln(log.INFO, color.New(color.Reset), npmStdoutScanner.Text())
-            }
-        }()
-
-        npmStderrScanner := bufio.NewScanner(npmStderrReader)
-        go func() {
-            for npmStderrScanner.Scan() {
-                line := npmStderrScanner.Text()
-                line = strings.Trim(strings.Replace(line, "npm", "wio", -1), " ")
-
-                if strings.Contains(line, "no such file or directory") ||
-                    strings.Contains(line, "No description") || strings.Contains(line, "No repository field") ||
-                    strings.Contains(line, "No README data") || strings.Contains(line, "No license field") ||
-                    strings.Contains(line, "notice created a lockfile as package-lock.json.") {
-                    continue
-                } else if line == "" {
-                    continue
-                } else if strings.Contains(line, "debug.log") || strings.Contains(line, "A complete log of this run can be found in:") {
-                    continue
-                } else {
-                    line = strings.Replace(line, "wio", "", -1)
-                    line = strings.Replace(line, "verb", "", -1)
-                    line = strings.Replace(line, "info", "", -1)
-                    line = strings.Replace(line, "WARN ", "", -1)
-                    line = strings.Replace(line, "ERR!", "", -1)
-                    line = strings.Replace(line, "notarget", "", -1)
-
-                    line = strings.Trim(line, " ")
-
-                    log.Writeln(log.ERR, color.New(color.Reset), line)
-                }
-            }
-        }()
-
-        err = cmdNpm.Start()
-        if err != nil {
-            return err
-        }
-        err = cmdNpm.Wait()
-        if err != nil {
-            return err
-        }
+        npmCmdArgs = append([]string{"install"}, npmCmdArgs...)
+        return run.Execute(directory + io.Sep + ".wio", "npm", npmCmdArgs...)
     }
     return nil
 }
