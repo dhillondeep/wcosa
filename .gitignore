@@ -16,8 +16,6 @@ cmd/wio/utils/io/bindata.go
 toolchain/toolchain
 
 # Test folders
-test/
-tests/
 wio-test/
 wio-app/
 
@@ -25,3 +23,4 @@ wio-app/
 *.swp
 *.un~
 *~
+
