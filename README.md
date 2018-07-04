@@ -1,9 +1,6 @@
-[![Build Status](https://travis-ci.org/waterloop/wcosa.svg?branch=master)](https://travis-ci.org/waterloop/wcosa)
-
 ## Wio
-Wio is a AVR development environment which let's you create, build, test and upload AVR programs. It current only
-supports `Cosa` SDK but, the support for `Arduino` SDK will be added in near future. Similarly, it only supports
-`AVR` development but, `ATMEL` boards support will be added in near future as well. Read the documentation below for features and uses.
+
+Wio is an open source Iot development environment. It let's user build c/c++ projects for various platforms in no time. At the moment only Atmel AVR platform is supported but, in future releases, and before this project is stable and out of beta, support for native (desktop c/c++) platform will be added.
 
 Table of contents
 =================
@@ -40,19 +37,23 @@ sudo apt-get install npm
 ```
 Then to install wio, you have to do:
 ```bash
+npm install -g wio
+```
+Many times there are issues with permission on ubuntu and hence, following can be done:
+```bash
 sudo npm install -g wio --unsafe-perm
 ```
 \
-Since Wio is an embedded development environment, you have to install compilers and build tools. So far Wio only supports `AVR` development and hence `AVR` toolchain is needed. In order to install that, you can do:
-* Download [Arduino](https://www.arduino.cc/en/Main/Software) or:
+Since Wio is a development environment, you have to install compilers and build tools.
 ```bash
+# This is for atmel AVR platform
 sudo apt-get install gcc-avr avr-libc avrdude
-```
-* CMake and Make
-```bash
+
+# This is for building any wio project
 sudo apt-get install cmake make
 ```
-All the framework files (SDK) are already included with wio and you do not have to worry about them.
+
+**Note:** All the framework files (SDK) are already included with wio and you do not have to worry about them.
 
 ### Arch
 Best way to install wio on Arch is to use `NPM`. NPM is a node package manager and can be downloaded using:
@@ -61,19 +62,23 @@ sudo pacman -S nodejs
 ```
 Then to install wio, you have to do:
 ```bash
+npm install -g wio
+```
+Many times there are issues with permission on Arch and hence, following can be done:
+```bash
 sudo npm install -g wio --unsafe-perm
 ```
 \
-Since Wio is an embedded development environment, you have to install compilers and build tools. So far Wio only supports `AVR` development and hence `AVR` toolchain is needed. In order to install that, you can do:
-* Download [Arduino](https://www.arduino.cc/en/Main/Software) or:
+Since Wio is a development environment, you have to install compilers and build tools.
 ```bash
+# This is for atmel AVR platform
 sudo pacman -S avr-gcc avr-libc avrdude
-```
-* CMake and Make
-```bash
+
+# This is for building any wio project
 sudo pacman -S cmake make
 ```
-All the framework files (SDK) are already included with wio and you do not have to worry about them.
+
+**Note:** All the framework files (SDK) are already included with wio and you do not have to worry about them.
 
 ### MacOs
 There are two good ways to install wio on MacOS. You can use `NPM` or `Homebrew`.
@@ -88,6 +93,10 @@ Then to install wio, you have to do:
 ```bash
 npm install -g wio
 ```
+If there are issues with permissions, following can be done:
+```bash
+sudo npm install -g wio --unsafe-perm
+```
 
 **Homebrew**
 
@@ -101,30 +110,30 @@ If you are planning on using [wio package manager](#package-manager), you will n
 brew install node
 ```
 \
-Since Wio is an embedded development environment, you have to install compilers and build tools. So far Wio only supports `AVR` development and hence `AVR` toolchain is needed. In order to install that, you can do:
-* Download [Arduino](https://www.arduino.cc/en/Main/Software) or:
+Since Wio is a development environment, you have to install compilers and build tools.
 ```bash
-# Keep in mind that building avr-gcc may take some time
+# This is for atmel AVR platform
 xcode-select --install
 brew tap osx-cross/avr
 brew install avr-gcc
 brew install avrdude
+
+# This is for building any wio project
+sudo pacman -S cmake make
 ```
-* CMake and Make
-```bash
-brew install cmake make
-```
-All the framework files (SDK) are already included with wio and you do not have to worry about them.
+
+**Note:** All the framework files (SDK) are already included with wio and you do not have to worry about them.
 
 ### Windows
 There are multiple ways to install wio. Instructions for each are mentioned below.
 
-### Scoop
+**Scoop**
+
 Scoop is a windows package manager. It downloads binaries like how linux package managers do. You can use scoop if you have powershell 13 or above. To install Scoop, type the following in powershell:
 ```bash
 iex (new-object net.webclient).downloadstring('https://get.scoop.sh')
 ```
-**Note:** if you get an error you might need to change the execution policy (i.e. enable Powershell):
+If you get an error you might need to change the execution policy (i.e. enable Powershell):
 ```bash
 set-executionpolicy -s cu unrestricted
 ```
@@ -133,44 +142,36 @@ After installing Scoop, you can install wio:
 scoop bucket add wio https://github.com/dhillondeep/wio-bucket.git
 scoop install wio
 ```
-\
-Since Wio is an embedded development environment, you have to install compilers and build tools. You can use Scoop to download `cmake` and `make`:
-```bash
-scoop install cmake make
-```
-In order for [wio package manager](#package-manager) to work, you need to install `npm`. To do that:
-```bash
-scoop install nodejs
-```
-We still need toolchain for AVR compilers. For this,
-* Download [Core Arduino](https://www.arduino.cc/en/Main/Software) and install it. This will contains all the compilers and tools needed for building and uploading the binaries
-* Go to Arduino install directory, ex: `C:\Program Files (x86)\Arduino` and from there go to `hardware\tools\avr\bin`. Grab the whole path and add that to your environment PATH
-* You will have to restart your shell for changes to take effect
 
-All the framework files (SDK) are already included with wio and you do not have to worry about them.
+**NPM**
 
-### NPM
 NPM is a node package manager and can be downloaded through [nodejs website](https://nodejs.org/en/download/)
 
 Then to install wio, you have to do:
 ```bash
 npm install -g wio
 ```
-\
-Since Wio is an embedded development environment, you have to install compilers and build tools. So far Wio only supports `AVR` development and hence `AVR` toolchain is needed. In order to install that, you follow the steps below:
-* Download [Core Arduino](https://www.arduino.cc/en/Main/Software) and install it. This will contains all the compilers and tools needed for building and uploading the binaries
-  * Go to Arduino install directory, ex: `C:\Program Files (x86)\Arduino` and from there go to `hardware\tools\avr\bin`. Grab the whole path and add that to your environment PATH
-* Wio uses `CMake` for build files generation. Install it from [CMake website](https://cmake.org/download/)
-  * Make sure to add `CMake` to your Environment Variables PATH
-* Wio uses `Make` for building the project. There are multiple ways to get this:
-  * If you have MinGW, you can add the `bin` folder to Environment PATH and this give you mingw32-make.exe
-  * If you want a standalone `Make`, install it from [GNU32 Website](http://gnuwin32.sourceforge.net/packages/make.htm)
-    * Make sure to add this to your Environment PATH
 
-All the framework files (SDK) are already included with wio and you do not have to worry about them.
+\
+Since Wio is an embedded development environment, you have to install compilers and build tools. 
+
+**Cmake and Make**
+
+You can use Scoop to download `cmake` and `make`:
+```bash
+scoop install cmake make
+```
+Or you can download CMake from [CMake website](https://cmake.org/download/) and Make from [GNU32 Website](http://gnuwin32.sourceforge.net/packages/make.htm). Make sure to add these tools to your Environment PATH
+
+**Atmel AVR toolchain**
+
+* Download [Core Arduino](https://www.arduino.cc/en/Main/Software) and install it. This will contains all the compilers and tools needed for building and uploading the binaries
+* Go to Arduino install directory, ex: `C:\Program Files (x86)\Arduino` and from there go to `hardware\tools\avr\bin`. Grab the whole path and add that to your environment PATH
+
+**Note:** All the framework files (SDK) are already included with wio and you do not have to worry about them.
 
 ## Github Releases
-Alternatively, all the versions are pushed to Github Releases and can be downloaded from [Github Releases site](https://github.com/waterloop/wio/releases).
+Alternatively, all the versions are pushed to Github Releases and can be downloaded from [Github Releases site](https://github.com/wio/wio/releases).
 
 ## Create and Update
 `Wio` enforces a strict project structure so that development is organized and easier to build. This project structure will be created by `create` and `update` commands provided. To create a wio project:
