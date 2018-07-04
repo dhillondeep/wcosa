@@ -9,7 +9,7 @@ Table of contents
 =================
 
 <!--ts-->
-   * [Install](#install)
+   * [Wio Install](#wio-install)
         * [Ubuntu](#ubuntu)
         * [Arch](#arch)
         * [MacOs](#macos)
@@ -28,7 +28,7 @@ Table of contents
         * [Install](#install)
 <!--te-->
 
-## Install
+## Wio Install
 Wio is available on all popular platforms. You can check a guide specific to your operating system below.
 
 ### Ubuntu
@@ -270,6 +270,7 @@ targets:
 dependencies:
   package1:
     version: 0.0.1
+```
 
 #### App
 Typical Structure for `app` project is as follows:
