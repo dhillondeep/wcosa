@@ -14,6 +14,7 @@ import (
     "wio/cmd/wio/log"
     "wio/cmd/wio/utils"
     "wio/cmd/wio/utils/io"
+    "path/filepath"
 )
 
 // Check directory
@@ -28,7 +29,10 @@ func performDirectoryCheck(context *cli.Context) (string, error) {
             return "", err
         }
     } else {
-        directory = context.Args()[0]
+        directory, err = filepath.Abs(context.Args()[0])
+        if err != nil {
+            return "", err
+        }
     }
     return directory, nil
 }

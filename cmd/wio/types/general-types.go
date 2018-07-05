@@ -507,15 +507,11 @@ func (config *AppConfig) PrettyPrint(path string) error {
 }
 
 func PrettyPrint(config IConfig, path string) error {
-    data, err := yaml.Marshal(config)
-    if err != nil {
-        return err
-    }
-    return io.NormalIO.WriteFile(path, data)
+   return prettyPrintHelp(config, path, false)
 }
 
 // Write configuration with nice spacing and information
-func prettyPrintHelp(config IConfig, filePath string) error {
+func prettyPrintHelp(config IConfig, filePath string, showHelp bool) error {
     appInfoPath := "templates" + io.Sep + "config" + io.Sep + "app-helper.txt"
     pkgInfoPath := "templates" + io.Sep + "config" + io.Sep + "pkg-helper.txt"
     targetsInfoPath := "templates" + io.Sep + "config" + io.Sep + "targets-helper.txt"
@@ -596,18 +592,26 @@ func prettyPrintHelp(config IConfig, filePath string) error {
         }
 
         if appTagPat.MatchString(line) {
-            finalStr += string(appInfoData) + "\n"
+            if showHelp {
+                finalStr += string(appInfoData) + "\n"
+            }
             finalStr += line
         } else if pkgTagPat.MatchString(line) {
-            finalStr += string(pkgInfoData) + "\n"
+            if showHelp {
+                finalStr += string(pkgInfoData) + "\n"
+            }
             finalStr += line
         } else if targetsTagPat.MatchString(line) {
             finalStr += "\n"
-            finalStr += string(targetsInfoData) + "\n"
+            if showHelp {
+                finalStr += string(targetsInfoData) + "\n"
+            }
             finalStr += line
         } else if dependenciesTagPat.MatchString(line) {
             finalStr += "\n"
-            finalStr += string(dependenciesInfoData) + "\n"
+            if showHelp {
+                finalStr += string(dependenciesInfoData) + "\n"
+            }
             finalStr += line
         } else if configTagPat.MatchString(line) || compileOptionsTagPat.MatchString(line) ||
             metaTagPat.MatchString(line) {
