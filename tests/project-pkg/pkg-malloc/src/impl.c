@@ -2,26 +2,27 @@
 #error "STACK_SIZE must be defined"
 #endif
 
+#define static_assert(cond, msg) typedef char __static_assertion[(cond) ? 1 : -1]
+
 #include <pkg-malloc.h>
 
-constexpr int stack_size = STACK_SIZE;
-static_assert(stack_size == 256, "Expected STACK_SIZE to be 256");
+static_assert(STACK_SIZE == 256, "Expected STACK_SIZE to be 256");
 
 typedef unsigned char byte;
-static byte memory[];
+static byte memory[STACK_SIZE];
 static int ptr = 0;
 
 void *stack_alloc(int size) {
     if (size > stack_remaining())
     { return (void *) 0; }
 
-    void *ptr = (void *) memory[ptr];
+    void *mem = (void *) (memory + ptr);
     ptr += size;
-    return ptr;
+    return mem;
 }
 
 void stack_reset()
 { ptr = 0; }
 
 int stack_remaining()
-{ return stack_size - ptr; }
+{ return STACK_SIZE - ptr; }
