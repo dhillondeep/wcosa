@@ -1,13 +1,13 @@
 package create
 
 import (
-    "wio/cmd/wio/log"
-    "wio/cmd/wio/utils/template"
-    "strings"
-    "path/filepath"
-    "wio/cmd/wio/utils/io"
-    "wio/cmd/wio/utils"
     "os"
+    "path/filepath"
+    "strings"
+    "wio/cmd/wio/log"
+    "wio/cmd/wio/utils"
+    "wio/cmd/wio/utils/io"
+    "wio/cmd/wio/utils/template"
 )
 
 func (info createInfo) fillReadMe(queue *log.Queue, readmeFile string) error {

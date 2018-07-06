@@ -1,15 +1,16 @@
 package create
 
 import (
-    "wio/cmd/wio/types"
+    "path/filepath"
+    "strings"
     "wio/cmd/wio/constants"
+    "wio/cmd/wio/errors"
     "wio/cmd/wio/log"
-    "github.com/fatih/color"
+    "wio/cmd/wio/types"
     "wio/cmd/wio/utils"
     "wio/cmd/wio/utils/io"
-    "strings"
-    "wio/cmd/wio/errors"
-    "path/filepath"
+
+    "github.com/fatih/color"
 )
 
 func (create Create) updateApp(directory string, config *types.AppConfig) error {

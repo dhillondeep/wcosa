@@ -1,7 +1,6 @@
 package pac
 
 import (
-    "wio/cmd/wio/commands"
     "wio/cmd/wio/constants"
     "wio/cmd/wio/errors"
     "wio/cmd/wio/log"

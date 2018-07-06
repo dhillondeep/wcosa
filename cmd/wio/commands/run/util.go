@@ -1,11 +1,11 @@
 package run
 
 import (
+    "os"
     "wio/cmd/wio/commands/run/cmake"
+    "wio/cmd/wio/constants"
     "wio/cmd/wio/types"
     "wio/cmd/wio/utils/io"
-    "wio/cmd/wio/constants"
-    "os"
 )
 
 func buildPath(info *runInfo) string {

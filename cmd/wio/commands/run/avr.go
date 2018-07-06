@@ -1,11 +1,11 @@
 package run
 
 import (
-    "wio/cmd/wio/toolchain"
+    "strings"
     "wio/cmd/wio/errors"
+    "wio/cmd/wio/toolchain"
     "wio/cmd/wio/types"
     "wio/cmd/wio/utils/io"
-    "strings"
 )
 
 func getPort(info *runInfo) (string, error) {

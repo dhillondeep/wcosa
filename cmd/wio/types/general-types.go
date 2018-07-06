@@ -8,13 +8,14 @@
 package types
 
 import (
-    "wio/cmd/wio/constants"
     "bufio"
-    "strings"
-    "wio/cmd/wio/utils/io"
-    "wio/cmd/wio/errors"
-    "gopkg.in/yaml.v2"
     "regexp"
+    "strings"
+    "wio/cmd/wio/constants"
+    "wio/cmd/wio/errors"
+    "wio/cmd/wio/utils/io"
+
+    "gopkg.in/yaml.v2"
 )
 
 // ############################################### Targets ##################################################

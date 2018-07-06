@@ -8,9 +8,9 @@ import (
     "path/filepath"
     "regexp"
 
-    wio "wio/cmd/wio/utils/io"
-    "wio/cmd/wio/errors"
     "strings"
+    "wio/cmd/wio/errors"
+    wio "wio/cmd/wio/utils/io"
 )
 
 // Checks if path exists and returns true and false based on that
@@ -79,7 +79,7 @@ func AppendIfMissing(slice []string, slice2 []string) []string {
 // destination file exists, all it's contents will be replaced by the contents
 // of the source file. The file mode will be copied from the source and
 // the copied data is synced/flushed to stable storage.
-func CopyFile(src, dst string)(error) {
+func CopyFile(src, dst string) error {
     if !PathExists(src) {
         msg := fmt.Sprintf("Path [%s] does not exist", src)
         return errors.String(msg)
@@ -123,7 +123,7 @@ func CopyFile(src, dst string)(error) {
     return nil
 }
 
-func Copy(src string, dst string) (error) {
+func Copy(src string, dst string) error {
     src = filepath.Clean(src)
     dst = filepath.Clean(dst)
 

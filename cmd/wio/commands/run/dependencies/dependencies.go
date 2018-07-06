@@ -7,12 +7,12 @@ import (
     "path/filepath"
     "strings"
     "wio/cmd/wio/commands/run/cmake"
+    "wio/cmd/wio/constants"
     "wio/cmd/wio/errors"
     "wio/cmd/wio/log"
     "wio/cmd/wio/types"
     "wio/cmd/wio/utils"
     "wio/cmd/wio/utils/io"
-    "wio/cmd/wio/constants"
 )
 
 var packageVersions = map[string]string{}     // Keeps track of versions for the packages

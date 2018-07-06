@@ -7,14 +7,15 @@
 package run
 
 import (
-    "github.com/urfave/cli"
     "os"
+    "runtime"
+    "wio/cmd/wio/errors"
     "wio/cmd/wio/log"
     "wio/cmd/wio/types"
     "wio/cmd/wio/utils"
-    "wio/cmd/wio/errors"
+
     "github.com/fatih/color"
-    "runtime"
+    "github.com/urfave/cli"
 )
 
 type Type int
@@ -25,9 +26,9 @@ type Run struct {
 }
 
 const (
-    TypeBuild  Type = 0
-    TypeClean  Type = 1
-    TypeRun    Type = 2
+    TypeBuild Type = 0
+    TypeClean Type = 1
+    TypeRun   Type = 2
 )
 
 type runInfo struct {

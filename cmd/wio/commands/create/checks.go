@@ -8,13 +8,14 @@ package create
 
 import (
     goerr "errors"
-    "github.com/urfave/cli"
     "os"
+    "path/filepath"
     "wio/cmd/wio/errors"
     "wio/cmd/wio/log"
     "wio/cmd/wio/utils"
     "wio/cmd/wio/utils/io"
-    "path/filepath"
+
+    "github.com/urfave/cli"
 )
 
 // Check directory

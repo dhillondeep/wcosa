@@ -1,13 +1,13 @@
 package run
 
 import (
+    "fmt"
+    sysio "io"
     "os"
     "os/exec"
-    "fmt"
     "runtime"
-    sysio "io"
-    "wio/cmd/wio/utils/io"
     "wio/cmd/wio/log"
+    "wio/cmd/wio/utils/io"
 )
 
 func configTarget(dir string) error {

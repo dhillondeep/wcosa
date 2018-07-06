@@ -7,18 +7,18 @@
 package io
 
 import (
+    "bytes"
     "os"
     "path"
     "path/filepath"
     "runtime"
-    "bytes"
 )
 
 const (
     Config  = "wio.yml"
     Folder  = ".wio"
     Modules = "node_modules"
-    Vendor = "vendor"
+    Vendor  = "vendor"
     Package = "pkg_module"
 )
 

@@ -1,10 +1,10 @@
 package io
 
 import (
-    "os"
+    "errors"
     "io"
     "io/ioutil"
-    "errors"
+    "os"
 )
 
 // Copies file from src to destination and if destination file exists, it overrides the file

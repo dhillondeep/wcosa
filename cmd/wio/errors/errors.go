@@ -1,9 +1,9 @@
 package errors
 
 import (
+    goerr "errors"
     "fmt"
     "strings"
-    goerr "errors"
 )
 
 type Error interface {
@@ -13,7 +13,6 @@ type Error interface {
 const (
     Spaces = "         "
 )
-
 
 type Generic struct {
     message string

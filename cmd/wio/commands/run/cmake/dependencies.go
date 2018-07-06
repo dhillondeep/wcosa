@@ -1,8 +1,8 @@
 package cmake
 
 import (
-    "wio/cmd/wio/utils/template"
     "strings"
+    "wio/cmd/wio/utils/template"
 )
 
 type Target struct {
@@ -23,7 +23,7 @@ type TargetLink struct {
 }
 
 var libraryStrings = map[string]map[bool]string{
-    "avr": {false: avrLibrary, true: avrHeader},
+    "avr":    {false: avrLibrary, true: avrHeader},
     "native": {false: desktopLibrary, true: desktopHeader},
 }
 

@@ -1,8 +1,8 @@
 package utils
 
 import (
-    "wio/cmd/wio/types"
     "wio/cmd/wio/errors"
+    "wio/cmd/wio/types"
     "wio/cmd/wio/utils/io"
 )
 

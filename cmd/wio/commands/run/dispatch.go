@@ -1,14 +1,14 @@
 package run
 
 import (
-    "wio/cmd/wio/types"
-    "wio/cmd/wio/errors"
     "fmt"
-    "wio/cmd/wio/commands/run/cmake"
     "strings"
-    "wio/cmd/wio/log"
+    "wio/cmd/wio/commands/run/cmake"
     "wio/cmd/wio/commands/run/dependencies"
     "wio/cmd/wio/constants"
+    "wio/cmd/wio/errors"
+    "wio/cmd/wio/log"
+    "wio/cmd/wio/types"
     "wio/cmd/wio/utils/io"
 )
 
@@ -79,7 +79,7 @@ func dispatchRunTarget(info *runInfo, target *types.Target) error {
         }
         return err
     case constants.NATIVE:
-        return runTarget(binDir, "." + io.Sep + (*target).GetName())
+        return runTarget(binDir, "."+io.Sep+(*target).GetName())
     default:
         return errors.Stringf("platform [%s] is not supported", platform)
     }
