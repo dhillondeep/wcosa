@@ -70,6 +70,15 @@ _linux_setup() {
 }
 
 _format() {
+    command -v goimports > /dev/null 2>&1 || {
+        echo 'goimports is not installed';
+        exit 1;
+    }
+    command -v vim > /dev/null 2>&1 || {
+        echo 'vim is not installed';
+        exit 1;
+    }
+
     find $(pwd)/cmd -name "*.go" -exec \
         goimports -w {} \;
     find $(pwd)/cmd -name "*.go" -exec \
@@ -93,6 +102,9 @@ _simple() {
     elif [ "$1" == 'linux-setup' ] ; then
         echo "Setting up environment for Linux"
         _linux_setup
+    elif [ "$1" == 'format' ] ; then
+        echo "Formatting wio codebase"
+        _format
     else
         _print_help
     fi

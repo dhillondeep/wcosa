@@ -17,9 +17,10 @@ import (
     "wio/cmd/wio/log"
     "wio/cmd/wio/toolchain"
 
+    "go.bug.st/serial.v1"
+
     "github.com/fatih/color"
     "github.com/urfave/cli"
-    "go.bug.st/serial.v1"
 )
 
 type Devices struct {
