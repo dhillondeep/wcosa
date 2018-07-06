@@ -1,44 +1,37 @@
 pkg:
   ide: none
+
   meta:
-    name: pkg-uart
-    description: "UART printf"
-    repository: ""
+    name: pkg-list
     version: 0.0.1
-    author: "wio"
-    contributors: []
-    organization: ""
     keywords:
-    - avr
-    - cosa
+    - native
+    - all
     - wio
     license: MIT
+
   config:
     minimum_wio_version: 0.3.2
     supported_platforms:
-    - avr
+    - native
     supported_frameworks:
-    - cosa
+    - all
     supported_boards:
     - all
+
   compile_options:
     header_only: false
-    platform: avr
+    platform: native
   flags:
-    required_flags: []
     visibility: PRIVATE
   definitions:
-    required_definitions: []
     visibility: PRIVATE
+
 targets:
   default: tests
   create:
     tests:
       src: tests
-      platform: avr
-      framework: cosa
-      board: uno
-      definitions:
-        pkg_definitions:
-        - BUFFER_SIZE=256
-dependencies: {}
+      platform: native
+      framework: all
+      board: all

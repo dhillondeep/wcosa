@@ -171,6 +171,28 @@ var cmd = []cli.Command{
         },
     },
 
+    {
+
+        Name: "vendor",
+        Usage: "Manage locally vendored dependencies.",
+        Subcommands: cli.Commands{
+            {
+                Name: "add",
+                Usage: "Add a vendored package as a dependency.",
+                UsageText: "wio vendor add [package]",
+                Action: func(c *cli.Context) {
+                },
+            },
+            {
+                Name: "rm",
+                Usage: "Remove a vendor dependency.",
+                UsageText: "wio vendor rm [package]",
+                Action: func(c *cli.Context) {
+                },
+            },
+        },
+    },
+
 
     {
         Name:      "devices",

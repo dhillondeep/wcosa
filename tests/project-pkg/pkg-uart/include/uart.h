@@ -5,7 +5,7 @@
 #error "Buildable only with C++"
 #endif
 
-namespace uart {
+namespace serial {
     extern void init(int baud);
     extern void printf(const char *fmt, ...);
 }

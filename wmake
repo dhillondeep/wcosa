@@ -62,6 +62,11 @@ _linux_setup() {
     ln -s -f $(pwd)/toolchain $(pwd)/bin/toolchain
     printf "Done!\n"
 
+    printf "Linking test vendor packages... "
+    cd tests
+    ./symlinks.sh
+    cd ..
+    printf "Done!\n"
 }
 
 _simple() {

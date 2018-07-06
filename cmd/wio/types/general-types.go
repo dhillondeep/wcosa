@@ -263,7 +263,7 @@ type DependencyTag struct {
     Flags                 []string            `yaml:"flags,omitempty"`
     Definitions           []string            `yaml:"definitions"`
     DependencyFlags       map[string][]string `yaml:"dependency_flags,omitempty"`
-    DependencyDefinitions map[string][]string `yaml:"dependency_definitions"`
+    DependencyDefinitions map[string][]string `yaml:"dependency_definitions,omitempty"`
 }
 
 // type for the libraries tag in the main wio.yml file
