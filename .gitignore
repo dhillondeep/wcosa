@@ -22,6 +22,7 @@ wio-app/
 
 # Editors
 *.swp
+*.swo
 *.un~
 *~
 

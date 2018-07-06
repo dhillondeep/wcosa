@@ -79,10 +79,13 @@ _format() {
         exit 1;
     }
 
-    find $(pwd)/cmd -name "*.go" -exec \
+    printf "Running gofmt... "
+    find $(pwd)/cmd -type f -name "*.go" -exec \
         goimports -w {} \;
-    find $(pwd)/cmd -name "*.go" -exec \
-        vim +"set tabstop=4 shiftwidth=4 expandtab | retab | wq" {} \;
+    printf "Done!\nRunning retab... "
+    find $(pwd)/cmd -type f -name "*.go" -exec \
+        vim -e -s +"set tabstop=4 shiftwidth=4 expandtab | retab | wq" {} \;
+    printf "Done!\n"
 }
 
 _simple() {
