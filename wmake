@@ -84,7 +84,7 @@ _format() {
         goimports -w {} \;
     printf "Done!\nRunning retab... "
     find $(pwd)/cmd -type f -name "*.go" -exec \
-        vim -e -s +"set tabstop=4 shiftwidth=4 expandtab | retab | wq" {} \;
+        vim -e -s +"set tabstop=4 shiftwidth=4 expandtab | retab | %s/\s\+$//e | wq" {} \;
     printf "Done!\n"
 }
 
