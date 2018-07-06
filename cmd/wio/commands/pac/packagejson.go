@@ -1,12 +1,12 @@
 package pac
 
 import (
-    "wio/cmd/wio/utils/io"
-    "wio/cmd/wio/types"
-    "regexp"
     goerr "errors"
+    "regexp"
     "wio/cmd/wio/constants"
+    "wio/cmd/wio/types"
     "wio/cmd/wio/utils"
+    "wio/cmd/wio/utils/io"
 )
 
 func createPkgNpmConfig(pkgConfig *types.PkgConfig) *types.NpmConfig {

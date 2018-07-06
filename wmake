@@ -69,6 +69,13 @@ _linux_setup() {
     printf "Done!\n"
 }
 
+_format() {
+    find $(pwd)/cmd -name "*.go" -exec \
+        goimports -w {} \;
+    find $(pwd)/cmd -name "*.go" -exec \
+        vim +"set tabstop=4 shiftwidth=4 expandtab | retab | wq" {} \;
+}
+
 _simple() {
     root_dir=$(cd -P -- "$(dirname -- "$0")" && pwd -P)
     root_dir_name=$(basename "$root_dir")

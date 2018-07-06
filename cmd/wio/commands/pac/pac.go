@@ -8,16 +8,17 @@ package pac
 
 import (
     goerr "errors"
-    "github.com/fatih/color"
-    "github.com/urfave/cli"
     "os"
     "strings"
+    "wio/cmd/wio/commands/run"
     "wio/cmd/wio/errors"
     "wio/cmd/wio/log"
     "wio/cmd/wio/types"
     "wio/cmd/wio/utils"
     "wio/cmd/wio/utils/io"
-    "wio/cmd/wio/commands/run"
+
+    "github.com/fatih/color"
+    "github.com/urfave/cli"
 )
 
 const (
