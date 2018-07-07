@@ -76,10 +76,13 @@ func recursiveDependencyScan(queue *log.Queue, currDirectory string,
                 continue
             }
 
+            log.Verbln(queue, "Checking %s", dir.Name())
             // only worry about dependencies in wio.yml file
             if _, exists := packageDependencies[dir.Name()]; !exists {
                 continue
             }
+
+            log.Verbln(queue, "Passed %s", dir.Name())
 
             dirPath := currDirectory + io.Sep + dir.Name()
             if !utils.PathExists(dirPath + io.Sep + io.Config) {

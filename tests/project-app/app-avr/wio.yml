@@ -1,0 +1,32 @@
+app:
+  name: app-avr
+  ide: none
+  config:
+    minimum_wio_version: 0.3.2
+    supported_platforms:
+    - avr
+    supported_frameworks:
+    - cosa
+    supported_boards:
+    - uno
+  compile_options:
+    platform: avr
+targets:
+  default: main
+  create:
+    main:
+      src: src
+      platform: avr
+      framework: cosa
+      board: uno
+dependencies:
+  pkg-list:
+    version: 0.0.1
+    vendor: true
+    link_visibility: PRIVATE
+    definitions: []
+  pkg-uart:
+    version: 0.0.1
+    vendor: true
+    link_visibility: PRIVATE
+    definitions: []
