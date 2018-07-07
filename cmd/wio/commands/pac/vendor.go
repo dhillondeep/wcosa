@@ -1,6 +1,7 @@
 package pac
 
 import (
+    "wio/cmd/wio/commands"
     "wio/cmd/wio/constants"
     "wio/cmd/wio/errors"
     "wio/cmd/wio/log"
@@ -12,6 +13,11 @@ import (
 )
 
 type VendorOp int
+
+const (
+    Add VendorOp = 0
+    Rm  VendorOp = 1
+)
 
 type Vendor struct {
     Context *cli.Context
@@ -28,7 +34,20 @@ func (cmd Vendor) GetContext() *cli.Context {
 }
 
 func (cmd Vendor) Execute() error {
-    return nil
+    dir, err := commands.GetDirectory(cmd)
+    if err != nil {
+        return err
+    }
+    if len(cmd.Context.Args()) <= 0 {
+        return errors.String("missing vendor package name")
+    }
+    info := &vendorInfo{dir: dir, name: cmd.Context.Args()[0]}
+    switch cmd.Op {
+    case Add:
+        return addVendorPackage(info)
+    case Rm:
+    }
+    return errors.Stringf("invalid VendorOp %d", cmd.Op)
 }
 
 func addVendorPackage(info *vendorInfo) error {
@@ -36,11 +55,8 @@ func addVendorPackage(info *vendorInfo) error {
     if err != nil {
         return err
     }
-    pkgDir := io.Path(info.dir, info.name)
-    exists, err := io.Exists(pkgDir)
-    if err != nil {
-        return err
-    }
+    pkgDir := io.Path(info.dir, io.Vendor, info.name)
+    exists := io.Exists(pkgDir)
     if !exists {
         return errors.Stringf("failed to find vendor/%s", info.name)
     }
@@ -60,6 +76,9 @@ func addVendorPackage(info *vendorInfo) error {
         Version:        pkgMeta.Version,
         Vendor:         true,
         LinkVisibility: "PRIVATE",
+    }
+    if config.GetDependencies() == nil {
+        config.SetDependencies(make(types.DependenciesTag))
     }
     config.GetDependencies()[pkgMeta.Name] = tag
     return utils.WriteWioConfig(info.dir, config)

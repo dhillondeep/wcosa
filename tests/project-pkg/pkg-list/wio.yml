@@ -1,15 +1,18 @@
 pkg:
   ide: none
-
   meta:
     name: pkg-list
+    description: ""
+    repository: ""
     version: 0.0.1
+    author: ""
+    contributors: []
+    organization: ""
     keywords:
     - native
     - all
     - wio
     license: MIT
-
   config:
     minimum_wio_version: 0.3.2
     supported_platforms:
@@ -18,15 +21,15 @@ pkg:
     - all
     supported_boards:
     - all
-
   compile_options:
     header_only: false
     platform: native
   flags:
+    required_flags: []
     visibility: PRIVATE
   definitions:
+    required_definitions: []
     visibility: PRIVATE
-
 targets:
   default: tests
   create:
@@ -35,3 +38,10 @@ targets:
       platform: native
       framework: all
       board: all
+dependencies:
+  pkg-malloc:
+    version: 0.0.1
+    vendor: true
+    link_visibility: PRIVATE
+    definitions:
+    - STACK_SIZE=256

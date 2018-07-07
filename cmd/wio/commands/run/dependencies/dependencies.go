@@ -72,7 +72,7 @@ func recursiveDependencyScan(queue *log.Queue, currDirectory string,
         // directories exist so let's go through each of them
         for _, dir := range dirs {
             // ignore files
-            if !dir.IsDir() {
+            if dir.Mode().IsRegular() {
                 continue
             }
 
@@ -198,7 +198,7 @@ func CreateCMakeDependencyTargets(
         }
         log.WriteSuccess(queue, log.VERB)
 
-        log.Verb(queue, "recursively scanning package dependency at path "+"%s ...", packageDependencyPath)
+        log.Verb(queue, "recursively scanning package dependency at path: %s ...", packageDependencyPath)
         subQueue := log.GetQueue()
         if err := recursiveDependencyScan(subQueue, packageDependencyPath, scannedDependencies, projectDependencies); err != nil {
             log.WriteFailure(queue, log.VERB)
@@ -210,7 +210,7 @@ func CreateCMakeDependencyTargets(
         }
     }
 
-    log.Verb(queue, log.VERB, nil, "recursively scanning remote dependencies at path: %s ... ", remotePackagesPath)
+    log.Verb(queue, "recursively scanning remote dependencies at path: %s ... ", remotePackagesPath)
     subQueue := log.GetQueue()
 
     if err := recursiveDependencyScan(subQueue, remotePackagesPath, scannedDependencies, projectDependencies); err != nil {
@@ -247,6 +247,7 @@ func CreateCMakeDependencyTargets(
             dependencyTargetName = dependencyName + "__" + packageVersions[dependencyName]
         }
 
+        log.Verbln(queue, "looking for dependency: %s", dependencyTargetName)
         if dependencyTarget = scannedDependencies[dependencyTargetName]; dependencyTarget == nil {
             return errors.DependencyDoesNotExistError{
                 DependencyName: fullName,

@@ -182,6 +182,7 @@ var cmd = []cli.Command{
                 Usage:     "Add a vendored package as a dependency.",
                 UsageText: "wio vendor add [package]",
                 Action: func(c *cli.Context) {
+                    command = pac.Vendor{Context: c, Op: pac.Add}
                 },
             },
             {

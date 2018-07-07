@@ -8,10 +8,7 @@ import (
 
 func ReadWioConfig(dir string) (types.IConfig, error) {
     wioPath := io.Path(dir, io.Config)
-    exists, err := io.Exists(wioPath)
-    if err != nil {
-        return nil, err
-    }
+    exists := io.Exists(wioPath)
     if !exists {
         return nil, errors.Stringf("Path does not contain a wio.yml: %s", dir)
     }
@@ -31,10 +28,7 @@ func ReadWioConfig(dir string) (types.IConfig, error) {
 
 func WriteWioConfig(dir string, config types.IConfig) error {
     wioPath := io.Path(dir, io.Config)
-    exists, err := io.Exists(wioPath)
-    if err != nil {
-        return err
-    }
+    exists := io.Exists(wioPath)
     if !exists {
         return errors.Stringf("Path does not contain a wio.yml: %s", dir)
     }

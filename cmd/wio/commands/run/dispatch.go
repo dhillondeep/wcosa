@@ -64,7 +64,10 @@ func dispatchCmakeNativeGeneric(info *runInfo, target *types.Target) error {
 func dispatchCmakeDependencies(info *runInfo, target *types.Target) error {
     path := info.directory
     queue := log.NewQueue(16)
-    return dependencies.CreateCMakeDependencyTargets(info.config, target, path, queue)
+    err := dependencies.CreateCMakeDependencyTargets(info.config, target, path, queue)
+    log.Verbln()
+    log.PrintQueue(queue, log.TWO_SPACES)
+    return err
 }
 
 func dispatchRunTarget(info *runInfo, target *types.Target) error {
@@ -89,6 +92,5 @@ func dispatchCanRunTarget(info *runInfo, target *types.Target) bool {
     binDir := binaryPath(info, target)
     platform := (*target).GetPlatform()
     file := binDir + io.Sep + (*target).GetName() + platformExtension(platform)
-    exists, _ := io.Exists(file)
-    return exists
+    return io.Exists(file)
 }

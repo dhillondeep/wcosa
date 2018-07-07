@@ -87,15 +87,9 @@ func GetOS() string {
     }
 }
 
-func Exists(path string) (bool, error) {
+func Exists(path string) bool {
     _, err := os.Stat(path)
-    if os.IsNotExist(err) {
-        return false, nil
-    }
-    if err != nil {
-        return false, err
-    }
-    return true, nil
+    return err == nil
 }
 
 func Path(values ...string) string {
