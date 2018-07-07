@@ -15,6 +15,9 @@ cmd/wio/utils/io/bindata.go
 # Toolchain symlink
 toolchain/toolchain
 
+# Test package vendors
+vendor/
+
 # Test folders
 wio-test/
 wio-app/
