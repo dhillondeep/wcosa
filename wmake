@@ -57,6 +57,10 @@ _linux_setup() {
     go get golang.org/x/sys/unix
     printf "Done!\n"
 
+    printf "Installing gotools..."
+    sudo apt-get install golang-golang-x-tools
+    printf "Done!\n"
+
     printf "Linking toolchain... "
     mkdir -p ./bin
     ln -s -f $(pwd)/toolchain $(pwd)/bin/toolchain
