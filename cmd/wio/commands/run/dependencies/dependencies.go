@@ -96,6 +96,8 @@ func recursiveDependencyScan(queue *log.Queue, currDirectory string,
                 fromVendor = true
             }
 
+            var newPackageDependencies types.DependenciesTag
+
             // create DependencyScanStructure
             if dependencyPackage, packageDeps, err := createDependencyScanStructure(dir.Name(), dirPath, fromVendor); err != nil {
                 return err
@@ -109,19 +111,19 @@ func recursiveDependencyScan(queue *log.Queue, currDirectory string,
 
                 log.Verbln(queue, "%s package stored as dependency named: %s", dirPath, dependencyName)
 
-                packageDependencies = packageDeps
+                newPackageDependencies = packageDeps
             }
 
             modulePath := io.Path(dirPath, io.Modules)
             vendorPath := io.Path(dirPath, io.Vendor)
             if utils.PathExists(modulePath) {
                 // if remote directory exists
-                if err := recursiveDependencyScan(queue, modulePath, dependencies, packageDependencies); err != nil {
+                if err := recursiveDependencyScan(queue, modulePath, dependencies, newPackageDependencies); err != nil {
                     return err
                 }
             } else if utils.PathExists(vendorPath) {
                 // if vendor directory exists
-                if err := recursiveDependencyScan(queue, vendorPath, dependencies, packageDependencies); err != nil {
+                if err := recursiveDependencyScan(queue, vendorPath, dependencies, newPackageDependencies); err != nil {
                     return err
                 }
             }
