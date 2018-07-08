@@ -54,7 +54,5 @@ func GenerateDependencies(platform string, targets map[string]*Target, links []T
         cmakeStrings = append(cmakeStrings, finalString)
     }
 
-    cmakeStrings = append(cmakeStrings, "")
-
     return cmakeStrings
 }
