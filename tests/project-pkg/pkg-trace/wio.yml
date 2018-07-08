@@ -1,7 +1,7 @@
 pkg:
   ide: none
   meta:
-    name: pkg-malloc
+    name: pkg-trace
     description: ""
     repository: ""
     version: 0.0.1
@@ -9,37 +9,43 @@ pkg:
     contributors: []
     organization: ""
     keywords:
-    - native
-    - all
+    - avr
+    - cosa
     - wio
     license: MIT
   config:
     minimum_wio_version: 0.3.2
     supported_platforms:
-    - native
+    - avr
     supported_frameworks:
-    - all
+    - cosa
     supported_boards:
     - all
   compile_options:
     header_only: false
-    platform: native
+    platform: avr
   flags:
     required_flags: []
     visibility: PRIVATE
   definitions:
     required_definitions:
-    - STACK_SIZE
+    - BUFFER_SIZE
     visibility: PRIVATE
 targets:
   default: tests
   create:
     tests:
       src: tests
-      platform: native
-      framework: all
-      board: all
+      platform: avr
+      framework: cosa
+      board: uno
       definitions:
         pkg_definitions:
-          - STACK_SIZE=256
-dependencies: {}
+        - BUFFER_SIZE=256
+dependencies:
+  pkg-uart:
+    version: 0.0.1
+    vendor: true
+    link_visibility: PRIVATE
+    definitions:
+    - $(BUFFER_SIZE)

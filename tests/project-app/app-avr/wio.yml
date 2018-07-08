@@ -29,4 +29,5 @@ dependencies:
     version: 0.0.1
     vendor: true
     link_visibility: PRIVATE
-    definitions: []
+    definitions:
+    - BUFFER_SIZE=256
