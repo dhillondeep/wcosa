@@ -13,16 +13,16 @@ int main(int argc, char *argv[]) {
 
     if (argc != 3) {
         fprintf(stderr, "USAGE: app-pipe [command] [filename]\n");
-        exit(1);
+        return 1;
     }
 
     if ((infile = fopen(argv[2], "rt")) == NULL) {
         perror("fopen");
-        exit(1);
+        return 1;
     }
     if ((pipe_fp = popen(argv[1], "w")) == NULL) {
         perror("popen");
-        exit(1);
+        return 1;
     }
     do {
         fgets(readbuf, buffer_size, infile);
