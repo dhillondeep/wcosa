@@ -49,9 +49,12 @@ func (pac Pac) Execute() error {
     if !utils.PathExists(directory + io.Sep + io.Config) {
         return errors.ConfigMissing{}
     }
+    log.Info("updating package.json ... ")
     if err := updateNpmConfig(directory, pac.Type == PUBLISH); err != nil {
+        log.WriteFailure()
         return err
     }
+    log.WriteSuccess()
 
     switch pac.Type {
     case INSTALL:

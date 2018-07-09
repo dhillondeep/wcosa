@@ -2,6 +2,7 @@ package pac
 
 import (
     goerr "errors"
+    "os"
     "regexp"
     "wio/cmd/wio/constants"
     "wio/cmd/wio/types"
@@ -29,6 +30,7 @@ func createAppNpmConfig(appConfig *types.AppConfig) *types.NpmConfig {
         Name:        appConfig.GetMainTag().GetName(),
         Version:     appConfig.GetMainTag().GetVersion(),
         Description: "A wio application",
+        Repository:  "repo",
         Main:        ".wio.js",
         Keywords:    []string{"wio", "app"},
         Author:      "wio",
@@ -62,8 +64,11 @@ func updateNpmConfig(directory string, strict bool) error {
             npmConfig.Dependencies[name] = value.Version
         }
     }
-    packagePath := io.Path(directory, io.Folder, "package.json")
-    return io.NormalIO.WriteJson(packagePath, npmConfig)
+    dotWioPath := io.Path(directory, io.Folder)
+    if err := os.MkdirAll(dotWioPath, os.ModePerm); err != nil {
+        return err
+    }
+    return io.NormalIO.WriteJson(io.Path(dotWioPath, "package.json"), npmConfig)
 }
 
 func validateNpmConfig(npmConfig *types.NpmConfig) error {
