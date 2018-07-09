@@ -31,13 +31,17 @@ pkg:
     required_definitions: []
     visibility: PRIVATE
 targets:
-  default: tests
   create:
-    tests:
-      src: tests
+    native-tests:
+      src: native-tests
       platform: native
       framework: all
       board: all
+    avr-tests:
+      src: avr-tests
+      platform: avr
+      framework: cosa
+      board: uno
 dependencies:
   pkg-malloc:
     version: 0.0.1
