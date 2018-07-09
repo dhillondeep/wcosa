@@ -155,8 +155,11 @@ func getTargetArgs(info *runInfo) ([]types.Target, error) {
         }
         if len(info.targets) <= 0 {
             defaultName := info.config.GetTargets().GetDefaultTarget()
+            if defaultName == "" {
+                return nil, errors.String("no default target specified")
+            }
             if _, exists := projectTargets[defaultName]; !exists {
-                return nil, errors.Stringf("default target [%s] does not exist", defaultName)
+                return nil, errors.Stringf("default target %s does not exist", defaultName)
             }
             projectTargets[defaultName].SetName(defaultName)
             targets = append(targets, projectTargets[defaultName])
