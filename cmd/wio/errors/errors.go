@@ -31,6 +31,17 @@ func Stringf(format string, a ...interface{}) error {
     return String(msg)
 }
 
+// Fatal errors are triggered ONLY if a logic failure occurs
+// within the code base, i.e. they should NEVER occur
+func Fatal(message string) error {
+    return Stringf("FATAL: %s", message)
+}
+
+func Fatalf(format string, a ...interface{}) error {
+    msg := fmt.Sprintf(format, a...)
+    return Fatal(msg)
+}
+
 type ProgramArgumentsError struct {
     CommandName  string
     ArgumentName string
