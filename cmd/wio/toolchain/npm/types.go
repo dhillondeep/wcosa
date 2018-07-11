@@ -1,19 +1,20 @@
 package npm
 
 type packageData struct {
-	Time         map[string]string         `json:"time"`
-	Name         string                    `json:"name"`
-	DistTags     map[string]string         `json:"dist-tags"`
-	Versions     map[string]packageVersion `json:"versions"`
-	Maintainers  []packageAuthor           `json:"maintainers"`
-	Keywords     []string                  `json:"keywords"`
-	Repository   packageRepository         `json:"repository"`
-	Contributors []packageAuthor           `json:"contributors"`
-	Author       packageAuthor             `json:"author"`
-	Bugs         packageBug                `json:"bugs"`
-	License      string                    `json:"license"`
-	Readme       string                    `json:"readme"`
+	Time           map[string]string         `json:"time"`
+	Name           string                    `json:"name"`
+	DistTags       map[string]string         `json:"dist-tags"`
+	Versions       map[string]packageVersion `json:"versions"`
+	Maintainers    []packageAuthor           `json:"maintainers"`
+	Keywords       []string                  `json:"keywords"`
+	Repository     packageRepository         `json:"repository"`
+	Contributors   []packageAuthor           `json:"contributors"`
+	Author         packageAuthor             `json:"author"`
+	Bugs           packageBug                `json:"bugs"`
+	License        string                    `json:"license"`
+	Readme         string                    `json:"readme"`
 	ReadmeFilename string                    `json:"readmeFilename"`
+	Error          string                    `json:"error"`
 }
 
 type packageRepository struct {

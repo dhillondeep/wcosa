@@ -10,9 +10,6 @@ import (
 	"strings"
 	"os"
 	"io"
-	"compress/gzip"
-	"archive/tar"
-	"path/filepath"
 )
 
 const timeoutSeconds = 10
@@ -69,6 +66,9 @@ func getPackageData(name string) (*packageData, error) {
 	var data packageData
 	url := makePackageUrl(name)
 	err := getJson(clientInstance, url, &data)
+	if err == nil && data.Error != "" {
+		err = errors.String(data.Error)
+	}
 	return &data, err
 }
 
@@ -94,41 +94,4 @@ func downloadTarball(url string, dest string) error {
 }
 
 func untar(src string, dest string) error {
-	tarFile, err := os.Open(src)
-	defer tarFile.Close()
-	gzReader, err := gzip.NewReader(tarFile)
-	defer gzReader.Close()
-	if err != nil {
-		return err
-	}
-	tarReader := tar.NewReader(gzReader)
-	for {
-		header, err := tarReader.Next()
-		switch {
-		case err == io.EOF:
-			return nil
-		case err != nil:
-			return err
-		case header == nil:
-			continue
-		}
-		target := filepath.Join(dest, header.Name)
-		switch header.Typeflag{
-		case tar.TypeDir:
-			if _, err := os.Stat(target); err != nil {
-				if err := os.MkdirAll(target, os.ModePerm); err != nil {
-					return err
-				}
-			}
-		case tar.TypeReg:
-			file, err := os.OpenFile(target, os.O_CREATE | os.O_RDWR, os.FileMode(header.Mode))
-			if err != nil {
-				return err
-			}
-			if _, err := io.Copy(file, tarReader); err != nil {
-				return err
-			}
-			file.Close()
-		}
-	}
 }
