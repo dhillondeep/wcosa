@@ -29,11 +29,8 @@ func getVersionQuery(versionStr string) (versionQuery, error) {
     }
 }
 
-func findPackage(name string, versionStr string) (*packageVersion, error) {
-    pkgData, err := getPackageData(name)
-    if err != nil {
-        return nil, err
-    }
+func findPackage(pkgData *packageData, versionStr string) (*packageVersion, error) {
+    name := packageData.Name
     if len(pkgData.Versions) <= 0 {
         return nil, errors.Stringf("package %s found but no versions exist", name)
     }
