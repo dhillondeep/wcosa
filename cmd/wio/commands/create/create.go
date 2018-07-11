@@ -222,7 +222,7 @@ func (info createInfo) printPackageCreateSummary() {
     log.Info(log.Cyan, "path             ")
     log.Writeln(info.directory)
     log.Info(log.Cyan, "project type     ")
-    log.Writeln("pkg")
+    log.Writeln(info.projectType)
     log.Info(log.Cyan, "platform         ")
     log.Writeln(info.platform)
     log.Info(log.Cyan, "framework        ")

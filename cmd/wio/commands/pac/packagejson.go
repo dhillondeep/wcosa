@@ -18,7 +18,7 @@ func createPkgNpmConfig(pkgConfig *types.PkgConfig) *types.NpmConfig {
         Description:  meta.Description,
         Repository:   meta.Repository,
         Main:         ".wio.js",
-        Keywords:     meta.Keywords,
+        Keywords:     utils.AppendIfMissing(meta.Keywords, []string{"wio", "pkg"}),
         Author:       meta.Author,
         License:      meta.License,
         Contributors: meta.Contributors,

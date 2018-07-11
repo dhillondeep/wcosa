@@ -101,7 +101,7 @@ func (pac Pac) handleInstall(directory string) error {
     var npmCmdArgs []string
 
     if installPackage[0] != "all" {
-        log.Infoln(log.Blue, "Installing %s", installPackage)
+        log.Infoln(log.Blue, "Installing %s", strings.Join(installPackage, ","))
         npmCmdArgs = append(npmCmdArgs, installPackage...)
 
         if pac.Context.IsSet("save") {
