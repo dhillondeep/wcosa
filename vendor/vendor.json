@@ -16,7 +16,13 @@
 			"revisionTime": "2017-12-08T18:51:09Z"
 		},
 		{
-			"checksumSHA1": "Cl2jBQddOV5Ak4IyaF24wolJgfk=",
+			"checksumSHA1": "Q8Y8aBNAuiO4/HVyj9PRyBz50YM=",
+			"path": "github.com/dsnet/compress/bzip2",
+			"revision": "cc9eb1d7ad760af14e8f918698f745e80377af4f",
+			"revisionTime": "2017-12-08T18:51:09Z"
+		},
+		{
+			"checksumSHA1": "rUK6wJzSweagbKHcRUU1TWkQq/0=",
 			"path": "github.com/dsnet/compress/bzip2/internal/sais",
 			"revision": "cc9eb1d7ad760af14e8f918698f745e80377af4f",
 			"revisionTime": "2017-12-08T18:51:09Z"
@@ -78,6 +84,12 @@
 			"revisionTime": "2018-04-17T22:02:35Z"
 		},
 		{
+			"checksumSHA1": "rz0k2HRJ9gx11wt/gqATiRd2qz8=",
+			"path": "github.com/nwaples/rardecode",
+			"revision": "e06696f847aeda6f39a8f0b7cdff193b7690aef6",
+			"revisionTime": "2017-03-13T01:07:58Z"
+		},
+		{
 			"checksumSHA1": "WDgX011m3uQMKWf8cHb5Ndyzmj8=",
 			"path": "github.com/pierrec/lz4",
 			"revision": "6b9367c9ff401dbc54fabce3fb8d972e799b702d",
@@ -88,6 +100,12 @@
 			"path": "github.com/pierrec/lz4/internal/xxh32",
 			"revision": "6b9367c9ff401dbc54fabce3fb8d972e799b702d",
 			"revisionTime": "2018-06-10T16:27:16Z"
+		},
+		{
+			"checksumSHA1": "xmr7xQnHDFh7vSDy+mEjMyxdxDw=",
+			"path": "github.com/ulikunitz/xz",
+			"revision": "636d36a76670e6c700f22fd5f4588679ff2896c4",
+			"revisionTime": "2018-07-03T11:21:13Z"
 		},
 		{
 			"checksumSHA1": "vjnTkzNrMs5Xj6so/fq0mQ6dT1c=",
