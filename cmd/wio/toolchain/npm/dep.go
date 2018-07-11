@@ -7,7 +7,8 @@ type depTreeNode struct {
 }
 
 type depTreeInfo struct {
-    cache map[string]map[string]*packageVersion
+    dataCache map[string]*packageData
+    versionCache map[string]map[string]*packageVersion
 }
 
 func buildDependencyTree(root *depTreeNode, info *depTreeInfo) error {
@@ -19,25 +20,32 @@ func buildDependencyTree(root *depTreeNode, info *depTreeInfo) error {
     if query != equal {
         return nil
     }
-    // get the dependencies of the hard version
+    // get the version data
     var pkgVersion *packageVersion = nil
-    if cacheName, exists := info.cache[root.name]; exists {
-        if cacheVersion, exists := cacheName[root.version]; exists {
-            pkgVersion = cacheVersion
+    if cachedName, exists := info.versionCache[root.name]; exists {
+        if cachedVersion, exists := cachedName[root.version]; exists {
+            pkgVersion = cachedVersion
+        } else {
+            cachedData := info.dataCache[root.name]
+            pkgVersion, err = findPackage(cachedData, root.version)
+            if err != nil {
+                return err
+            }
+            cachedName[root.version] = pkgVersion
         }
-    }
-    if pkgVersion == nil {
-        pkgVersion, err = findPackage(root.name, root.version)
+    } else {
+        pkgData, err := getPackageData(root.name)
         if err != nil {
             return err
         }
-        if cacheName, exists := info.cache[root.name]; exists {
-            cacheName[root.version] = pkgVersion
-        } else {
-            info.cache[root.name] = map[string]*packageVersion{root.version: pkgVersion}
+        info.dataCache[root.name] = pkgData
+        pkgVersion, err = findPackage(pkgData, root.version)
+        if err != nil {
+            return err
         }
+        info.versionCache[root.name] = map[string]*packageVersion{root.version: pkgVersion}
     }
-
+    // get the dependencies of the hard version
     for depName, depVer := range pkgVersion.Dependencies {
         depNode := &depTreeNode{name: depName, version: depVer}
         root.children = append(root.children, depNode)

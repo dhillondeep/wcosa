@@ -30,7 +30,7 @@ func getVersionQuery(versionStr string) (versionQuery, error) {
 }
 
 func findPackage(pkgData *packageData, versionStr string) (*packageVersion, error) {
-    name := packageData.Name
+    name := pkgData.Name
     if len(pkgData.Versions) <= 0 {
         return nil, errors.Stringf("package %s found but no versions exist", name)
     }

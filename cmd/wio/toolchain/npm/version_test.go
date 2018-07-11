@@ -116,11 +116,3 @@ func TestFindNearest(t *testing.T) {
     }
 }
 
-func TestTest(t *testing.T) {
-    root := &depTreeNode{name: "wlib-json", version:"1.0.4"}
-    info := &depTreeInfo{cache: map[string]map[string]*packageVersion{}}
-    if err := buildDependencyTree(root, info); err != nil {
-        t.Fatal(err.Error())
-    }
-    t.Log(root.children[0].name)
-}
