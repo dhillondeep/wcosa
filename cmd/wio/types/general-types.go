@@ -471,6 +471,22 @@ func (config *PkgConfig) SetDependencies(tag DependenciesTag) {
     config.DependenciesTag = tag
 }
 
+func (config *PkgConfig) Name() string {
+    return config.MainTag.Meta.Name
+}
+
+func (config *PkgConfig) Version() string {
+    return config.MainTag.Meta.Version
+}
+
+func (config *PkgConfig) Dependencies() map[string]string {
+    depMap := map[string]string{}
+    for name, dep := range config.DependenciesTag {
+        depMap[name] = dep.Version
+    }
+    return depMap
+}
+
 type NpmDependencyTag map[string]string
 
 type NpmConfig struct {

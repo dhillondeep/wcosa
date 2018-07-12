@@ -20,18 +20,18 @@ const (
     registryBaseUrl = "https://registry.npmjs.org"
 )
 
-var clientInstance = &http.Client{Timeout: timeoutSeconds * time.Second}
+var npmClient = &http.Client{Timeout: timeoutSeconds * time.Second}
 
-func getJson(client *http.Client, url string, target interface{}) error {
+func getJson(client *http.Client, url string, target interface{}) (int, error) {
     resp, err := client.Get(url)
     defer resp.Body.Close()
     if err != nil {
-        return err
+        return 0, err
     }
     if resp.StatusCode != http.StatusOK {
-        return errors.Stringf("HTTP request to %s returned %d", url, resp.StatusCode)
+        return resp.StatusCode, nil
     }
-    return json.NewDecoder(resp.Body).Decode(target)
+    return http.StatusOK, json.NewDecoder(resp.Body).Decode(target)
 }
 
 func findFirstSlash(value string) int {
@@ -60,18 +60,37 @@ func urlResolve(values ...string) string {
     return result[:len(result)-1]
 }
 
-func makePackageUrl(name string) string {
-    return urlResolve(registryBaseUrl, name)
+func fetchPackageData(name string) (*packageData, error) {
+    var data packageData
+    url := urlResolve(registryBaseUrl, name)
+    status, err := getJson(npmClient, url, &data)
+    if err != nil {
+        return nil, err
+    }
+    if status == http.StatusNotFound {
+       return nil, errors.Stringf("package not found: %s", name)
+    }
+    if status != http.StatusOK {
+        return nil, errors.Stringf("registry GET (%s) returned %d", url, status)
+    }
+    return &data, nil
 }
 
-func getPackageData(name string) (*packageData, error) {
-    var data packageData
-    url := makePackageUrl(name)
-    err := getJson(clientInstance, url, &data)
-    if err == nil && data.Error != "" {
-        err = errors.String(data.Error)
+func fetchPackageVersion(name string, versionStr string) (*packageVersion, error) {
+    // assumes `versionStr` is a hard version
+    var version packageVersion
+    url := urlResolve(registryBaseUrl, name, versionStr)
+    status, err := getJson(npmClient, url, &version)
+    if err != nil {
+        return nil, err
     }
-    return &data, err
+    if status == http.StatusNotFound {
+        return nil, errors.Stringf("package not found: %s@%s", name, versionStr)
+    }
+    if status != http.StatusOK {
+        return nil, errors.Stringf("registry GET (%s) returned %d", url, status)
+    }
+    return &version, nil
 }
 
 func downloadTarball(url string, dest string) error {

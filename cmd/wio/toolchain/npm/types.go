@@ -34,7 +34,7 @@ type packageBug struct {
 
 type packageDist struct {
     Integrity    string `json:"integrity"`
-    Shasum       string `json:"shasum"`
+    ShaSum       string `json:"shasum"`
     Tarball      string `json:"tarball"`
     FileCount    int    `json:"fileCount"`
     UnpackedSize int    `json:"unpackedSize"`
