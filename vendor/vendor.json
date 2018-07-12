@@ -10,6 +10,12 @@
 			"revisionTime": "2017-07-28T08:12:30Z"
 		},
 		{
+			"checksumSHA1": "1xK7ycc1ICRInk/S9iiyB9Rpv50=",
+			"path": "github.com/deckarep/golang-set",
+			"revision": "504e848d77ea4752b3057b8fb46da0e7f746ccf3",
+			"revisionTime": "2018-06-03T19:32:48Z"
+		},
+		{
 			"checksumSHA1": "92dnVWesQCC1xueK1Du/6c+yLOk=",
 			"path": "github.com/dsnet/compress",
 			"revision": "cc9eb1d7ad760af14e8f918698f745e80377af4f",
