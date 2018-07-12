@@ -72,6 +72,15 @@ func (l versionList) findNearest(near version) version {
     return l[index]
 }
 
+func (l versionList) highestMajor(major int) (version, error) {
+    for i := l.Len() - 1; i >= 0; i-- {
+        if l[i].major == major {
+            return l[i], nil
+        }
+    }
+    return version{}, errors.Stringf("failed to find version near %d", major)
+}
+
 func (v *version) mag() int64 {
     // assumes that no version value exceeds 1 << 20
     major := uint64(v.major)

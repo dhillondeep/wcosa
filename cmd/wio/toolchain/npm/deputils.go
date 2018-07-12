@@ -7,15 +7,15 @@ import (
     "wio/cmd/wio/utils"
 )
 
-func getOrFetchVersion(node *depTreeNode, info *depTreeInfo) (*packageVersion, error) {
-    config, err := tryFindConfig(node, info)
+func getOrFetchVersion(name string, ver string, dir string) (*packageVersion, error) {
+    config, err := tryFindConfig(name, ver, dir)
     if err != nil {
         return nil, err
     }
     if config != nil {
         return configToVersion(config), nil
     }
-    return fetchPackageVersion(node.name, node.version)
+    return fetchPackageVersion(name, ver)
 }
 
 // Only Name, Version, and Dependencies are needed for dependency resolution
@@ -35,11 +35,11 @@ func configToVersion(config *types.PkgConfig) *packageVersion {
 //
 // Function returns nil error and nil result if not found.
 // Vendor is preferred to allow overrides.
-func tryFindConfig(node *depTreeNode, info *depTreeInfo) (*types.PkgConfig, error) {
+func tryFindConfig(name string, ver string, baseDir string) (*types.PkgConfig, error) {
     paths := []string{
-        io.Path(info.baseDir, io.Vendor, node.name),
-        io.Path(info.baseDir, io.Vendor, node.name+"__"+node.version),
-        io.Path(info.baseDir, io.Folder, io.Modules, node.name+"__"+node.version),
+        io.Path(baseDir, io.Vendor, name),
+        io.Path(baseDir, io.Vendor, name+"__"+ver),
+        io.Path(baseDir, io.Folder, io.Modules, name+"__"+ver),
     }
     var config *types.PkgConfig = nil
     for i := 0; config == nil && i < len(paths); i++ {
@@ -50,10 +50,10 @@ func tryFindConfig(node *depTreeNode, info *depTreeInfo) (*types.PkgConfig, erro
         if tryConfig == nil {
             continue
         }
-        if tryConfig.Name() != node.name {
+        if tryConfig.Name() != name {
             return nil, errors.Stringf("config %s has wrong name", paths[i])
         }
-        if tryConfig.Version() != node.version {
+        if tryConfig.Version() != ver {
             if i != 0 {
                 return nil, errors.Stringf("config %s has wrong version", paths[i])
             } else {
