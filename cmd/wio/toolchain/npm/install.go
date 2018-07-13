@@ -90,3 +90,27 @@ func removePackageExtras(pkgDir string) error {
 //          src
 //          wio.yml
 //
+func installPackages(dir string, config types.IConfig) error {
+    deps := config.GetDependencies()
+    depNodes := make([]*depTreeNode, 0, len(deps))
+    for name, depTag := range deps {
+        depNode = &depTreeNode{name: name, version: depTag.Version}
+        depNodes = append(depNodes, depNode)
+    }
+    root := &depTreeNode{
+        name: config.Name(),
+        version: config.Version(),
+        children: depNodes,
+    }
+    info := newTreeInfo(dir)
+    for depNode := range root.children {
+        if err := buildDependencyTree(depNode, info, false); err != nil {
+            return err
+        }
+    }
+    for name, versions := range info.cache {
+        for version := range versions {
+            log.Infoln("%s@%s", name, version)
+        }
+    }
+}

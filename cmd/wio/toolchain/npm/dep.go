@@ -14,8 +14,24 @@ type depTreeNode struct {
 type depTreeInfo struct {
     baseDir    string
     cache      map[string]map[string]*packageVersion
+    data       map[string]*packageData
     unresolved map[string]mapset.Set
     versions   map[string]versionList
+
+    resLeast map[string]string
+    resNear  map[string]map[int]string
+}
+
+func newTreeInfo(dir string) *depTreeInfo {
+    return &depTreeInfo{
+        baseDir: dir,
+        cache: map[string]map[string]*packageVersion{},
+        data: map[string]*packageData{},
+        unresolved: map[string]mapset.Set{},
+        versions: map[string]versionList,
+        resLeast: map[string]string{},
+        resNear: map[string]map[int]string{},
+    }
 }
 
 func buildDependencyTree(root *depTreeNode, info *depTreeInfo) error {
@@ -23,14 +39,9 @@ func buildDependencyTree(root *depTreeNode, info *depTreeInfo) error {
     if err != nil {
         return err
     }
-    // base case reached with ~ or ^ version query
+
+    // version query resolve
     if query != equal {
-        if unresolved, exists := info.unresolved[root.name]; exists {
-            unresolved.Add(root.version)
-        } else {
-            info.unresolved[root.name] = mapset.NewSet(root.version)
-        }
-        return nil
     }
 
     // get the version data
@@ -66,129 +77,26 @@ func buildDependencyTree(root *depTreeNode, info *depTreeInfo) error {
     return nil
 }
 
-func resolveVersionQueries(info *depTreeInfo) error {
-    // collect available versions into sorted `versionList`
-    for name, versions := range info.cache {
-        list := make(versionList, 0, len(versions))
-        for version := range versions {
-            versionVal, _ := strtover(version) // err unlikely
-            list = append(list, versionVal)
-        }
-        sort.Sort(list)
-        info.versions[name] = list
+func printTree(node *depTreeNode, level log.Type, pre string) {
+    log.Writeln(level, "%s@%s", node.name, node.version)
+    for i := 0; i < len(node.children) - 1; i++ {
+        log.Write(level, "%s|_ ", pre)
+        printTree(node.children[i], level, pre + "|  ")
     }
-    // for `atLeast` queries only need to resolve highest
-    // for `near` queries resolve once per unique major version
-    for name, unresolved := range info.unresolved {
-        atLeastVer, nearVers := trimVersionQueries(unresolved)
-        resAtLeast, resNear, err := resolveQueries(name, atLeastVer, nearVers, info.versions[name])
-        if err != nil {
-            return err
-        }
-        newVers := make(versionList, 0, len(resNear) + 1)
-        for _, nearVer := range resNear {
-            if nearVer.major != resAtLeast.major {
-                newVers = append(newVers, nearVer)
-            }
-        }
-        newVers = append(newVers, resAtLeast)
-        for _, newVer := range newVers {
-            verStr := vertostr(newVer)
-            pkgVer, err := getOrFetchVersion(name, verStr, info.baseDir)
-            if err != nil {
-                return err
-            }
-            if cacheName, exists := info.cache[name]; exists {
-                cacheName[verStr] = pkgVer
-            } else {
-                info.cache[name] = map[string]*packageVersion{verStr: pkgVer}
-            }
-        }
+    if len(node.children) > 0 {
+        log.Write(level, "%s\\_ ", pre)
+        printTree(node.children[len(node.children) - 1], level, pre + "   ")
     }
-    return nil
 }
 
-func trimVersionQueries(unresolved mapset.Set) (version, mapset.Set) {
-    atLeastVer := version{0, 0, 0}
-    nearVers := mapset.NewSet()
-    for ver := range unresolved.Iter() {
-        verStr := ver.(string)
-        verVal, _ := strtover(verStr[1:])   // err unlikely
-        query, _ := getVersionQuery(verStr) // err unlikely
-        switch query {
-        case atLeast:
-            if versionLess(atLeastVer, verVal) {
-                atLeastVer = verVal
-            }
-        case near:
-            nearVers.Add(verVal.major)
-        }
-    }
-    return atLeastVer, nearVers
-}
-
-func resolveQueries(
-    name string,
-    atLeastVer version,
-    nearVers mapset.Set,
-    available versionList) (version, versionList, error) {
-
-    didAtLeast := false
-    var atLeast version
-
-    majorRemain := make([]int, 0, nearVers.Cardinality())
-    resolvedNear := make(versionList, 0, nearVers.Cardinality())
-
-    if available != nil && len(available) > 0 {
-        ver, err := available.findAtLeast(atLeastVer)
-        if err == nil {
-            didAtLeast = true
-            atLeast = ver
-        }
-
-        for major := range nearVers.Iter() {
-            ver, err := available.highestMajor(major.(int))
-            if err == nil {
-                resolvedNear = append(resolvedNear, ver)
-            } else {
-                majorRemain = append(majorRemain, major.(int))
-            }
-        }
-    }
-
-    // atLeast resolved and no leftover near
-    if didAtLeast && len(majorRemain) == 0 {
-        return atLeast, resolvedNear, nil
-    }
-
-    // need to query package data
-    data, err := fetchPackageData(name)
-    if err != nil {
-        return version{}, nil, err
-    }
-    remoteVers := make(versionList, 0, len(data.Versions))
-    for ver := range data.Versions {
-        verVal, _ := strtover(ver) // err unlikely
-        remoteVers = append(remoteVers, verVal)
-    }
-    sort.Sort(remoteVers)
-
-    // resolve remaining
-    if !didAtLeast {
-        ver, err := remoteVers.findAtLeast(atLeastVer)
-        if err != nil {
-            return version{}, nil, err
-        }
-        atLeast = ver
-    }
-    if len(majorRemain) > 0 {
-        for major := range majorRemain {
-            ver, err := remoteVers.highestMajor(major)
-            if err != nil {
-                return version{}, nil, err
-            }
-            resolvedNear = append(resolvedNear, ver)
-        }
-    }
-    return atLeast, resolvedNear, nil
-}
+/*
+pkg
+|_ wlib-json@1.0.4
+|  \_ wlib-wio@1.0.0
+\_ wlib-memory@1.0.2
+|  |_ wlib-tmp@1.0.0
+|  |  \_ wlib-util@1.0.0
+|  \_ wlib-malloc@1.0.2
+|     \_ wlib-tlsf@1.0.1
+\_ wlib-list@1.0.0
+*/
