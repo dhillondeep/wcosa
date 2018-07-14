@@ -7,13 +7,14 @@
 package create
 
 import (
-    "github.com/fatih/color"
     "path/filepath"
     "wio/cmd/wio/config"
+    "wio/cmd/wio/constants"
     "wio/cmd/wio/log"
     "wio/cmd/wio/types"
     "wio/cmd/wio/utils/io"
-    "wio/cmd/wio/constants"
+
+    "github.com/fatih/color"
 )
 
 // Creation of AVR projects
@@ -36,7 +37,7 @@ func (create Create) createProject(dir string) error {
     queue := log.GetQueue()
     if !info.configOnly {
         log.Info(log.Cyan, "creating project structure ... ")
-        if err :=createStructure(queue, &info); err != nil {
+        if err := createStructure(queue, &info); err != nil {
             log.WriteFailure()
             return err
         } else {

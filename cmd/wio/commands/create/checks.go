@@ -8,33 +8,23 @@ package create
 
 import (
     goerr "errors"
-    "github.com/urfave/cli"
     "os"
+    "path/filepath"
     "wio/cmd/wio/errors"
     "wio/cmd/wio/log"
     "wio/cmd/wio/utils"
     "wio/cmd/wio/utils/io"
-    "path/filepath"
+
+    "github.com/urfave/cli"
 )
 
 // Check directory
 func performDirectoryCheck(context *cli.Context) (string, error) {
-    var directory string
-    var err error
-
     // directory is always the first argument
     if len(context.Args()) <= 0 {
-        directory, err = os.Getwd()
-        if err != nil {
-            return "", err
-        }
-    } else {
-        directory, err = filepath.Abs(context.Args()[0])
-        if err != nil {
-            return "", err
-        }
+        return os.Getwd()
     }
-    return directory, nil
+    return filepath.Abs(context.Args()[0])
 }
 
 // This check is used to see if wio.yml file exists and the directory is valid

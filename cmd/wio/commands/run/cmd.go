@@ -1,13 +1,13 @@
 package run
 
 import (
+    "fmt"
+    sysio "io"
     "os"
     "os/exec"
-    "fmt"
     "runtime"
-    sysio "io"
-    "wio/cmd/wio/utils/io"
     "wio/cmd/wio/log"
+    "wio/cmd/wio/utils/io"
 )
 
 func configTarget(dir string) error {
@@ -49,10 +49,8 @@ func configAndBuild(dir string, errChan chan error) {
 func cleanIfExists(dir string, errChan chan error) {
     log.Verbln(log.Magenta, "Cleaning directory: %s", dir)
     binDir := dir + io.Sep + "bin"
-    exists, err := io.Exists(binDir)
-    if err != nil {
-        errChan <- err
-    } else if exists {
+    exists := io.Exists(binDir)
+    if exists {
         errChan <- cleanTarget(binDir)
     } else {
         errChan <- nil

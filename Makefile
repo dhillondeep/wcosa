@@ -13,6 +13,7 @@ get:
 	@echo Getting Required tools to build this project
 	go get -u github.com/jteeuwen/go-bindata/...
 	go get -u github.com/kardianos/govendor
+	go get -u github.com/stretchr/testify
 	@echo Tools Downloaded and Built!!
 
 build:

@@ -7,18 +7,18 @@
 package io
 
 import (
+    "bytes"
     "os"
     "path"
     "path/filepath"
     "runtime"
-    "bytes"
 )
 
 const (
     Config  = "wio.yml"
     Folder  = ".wio"
     Modules = "node_modules"
-    Vendor = "vendor"
+    Vendor  = "vendor"
     Package = "pkg_module"
 )
 
@@ -87,15 +87,9 @@ func GetOS() string {
     }
 }
 
-func Exists(path string) (bool, error) {
+func Exists(path string) bool {
     _, err := os.Stat(path)
-    if os.IsNotExist(err) {
-        return false, nil
-    }
-    if err != nil {
-        return false, err
-    }
-    return true, nil
+    return err == nil
 }
 
 func Path(values ...string) string {

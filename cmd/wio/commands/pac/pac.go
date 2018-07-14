@@ -8,16 +8,17 @@ package pac
 
 import (
     goerr "errors"
-    "github.com/fatih/color"
-    "github.com/urfave/cli"
     "os"
     "strings"
+    "wio/cmd/wio/commands/run"
     "wio/cmd/wio/errors"
     "wio/cmd/wio/log"
     "wio/cmd/wio/types"
     "wio/cmd/wio/utils"
     "wio/cmd/wio/utils/io"
-    "wio/cmd/wio/commands/run"
+
+    "github.com/fatih/color"
+    "github.com/urfave/cli"
 )
 
 const (
@@ -48,9 +49,12 @@ func (pac Pac) Execute() error {
     if !utils.PathExists(directory + io.Sep + io.Config) {
         return errors.ConfigMissing{}
     }
+    log.Info("updating package.json ... ")
     if err := updateNpmConfig(directory, pac.Type == PUBLISH); err != nil {
+        log.WriteFailure()
         return err
     }
+    log.WriteSuccess()
 
     switch pac.Type {
     case INSTALL:

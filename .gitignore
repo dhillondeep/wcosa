@@ -15,13 +15,17 @@ cmd/wio/utils/io/bindata.go
 # Toolchain symlink
 toolchain/toolchain
 
+# Test package vendors
+vendor/
+
 # Test folders
-test/
-tests/
 wio-test/
 wio-app/
+.wio/
 
 # Editors
 *.swp
+*.swo
 *.un~
 *~
+

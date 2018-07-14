@@ -1,0 +1,22 @@
+app:
+  name: app-stdout
+  ide: none
+  config:
+    minimum_wio_version: 0.3.2
+    supported_platforms:
+    - native
+    supported_frameworks:
+    - all
+    supported_boards:
+    - all
+  compile_options:
+    platform: native
+targets:
+  default: main
+  create:
+    main:
+      src: src
+      platform: native
+      framework: all
+      board: all
+dependencies: {}

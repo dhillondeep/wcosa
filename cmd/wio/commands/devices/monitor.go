@@ -9,9 +9,6 @@ package devices
 import (
     goerr "errors"
     "fmt"
-    "github.com/fatih/color"
-    "github.com/urfave/cli"
-    "go.bug.st/serial.v1"
     "os"
     "os/signal"
     "strings"
@@ -19,6 +16,11 @@ import (
     "wio/cmd/wio/errors"
     "wio/cmd/wio/log"
     "wio/cmd/wio/toolchain"
+
+    "go.bug.st/serial.v1"
+
+    "github.com/fatih/color"
+    "github.com/urfave/cli"
 )
 
 type Devices struct {

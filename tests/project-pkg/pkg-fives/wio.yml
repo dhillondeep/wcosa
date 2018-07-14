@@ -1,0 +1,41 @@
+pkg:
+  ide: none
+  meta:
+    name: pkg-fives
+    description: ""
+    repository: ""
+    version: 0.0.1
+    author: ""
+    contributors: []
+    organization: ""
+    keywords:
+    - all
+    - all
+    - wio
+    license: MIT
+  config:
+    minimum_wio_version: 0.3.2
+    supported_platforms:
+    - all
+    supported_frameworks:
+    - all
+    supported_boards:
+    - all
+  compile_options:
+    header_only: false
+    platform: all
+  flags:
+    required_flags: []
+    visibility: PRIVATE
+  definitions:
+    required_definitions: []
+    visibility: PRIVATE
+targets:
+  default: tests
+  create:
+    tests:
+      src: tests
+      platform: native
+      framework: all
+      board: all
+dependencies: {}

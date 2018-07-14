@@ -8,7 +8,6 @@
 package main
 
 import (
-    "github.com/urfave/cli"
     "os"
     "time"
     "wio/cmd/wio/commands"
@@ -17,9 +16,11 @@ import (
     "wio/cmd/wio/commands/pac"
     "wio/cmd/wio/commands/run"
     "wio/cmd/wio/config"
+    "wio/cmd/wio/constants"
     "wio/cmd/wio/log"
     "wio/cmd/wio/utils/io"
-    "wio/cmd/wio/constants"
+
+    "github.com/urfave/cli"
 )
 
 var createFlags = []cli.Flag{
@@ -73,7 +74,7 @@ var buildFlags = []cli.Flag{
         Usage: "Build all available targets",
     },
     cli.StringFlag{
-        Name: "port",
+        Name:  "port",
         Usage: "Specify upload port",
     },
     cli.BoolFlag{
@@ -88,14 +89,14 @@ var buildFlags = []cli.Flag{
 
 var cleanFlags = []cli.Flag{
     cli.BoolFlag{
-        Name: "hard",
+        Name:  "hard",
         Usage: "Removes build directories",
     },
 }
 
 var runFlags = []cli.Flag{
     cli.StringFlag{
-        Name: "port",
+        Name:  "port",
         Usage: "Specify upload port",
     },
     cli.BoolFlag{
@@ -165,12 +166,34 @@ var cmd = []cli.Command{
         Name:      "run",
         Usage:     "Builds, Runs and/or Uploads the project to a device.",
         UsageText: "wio run [directory] [command options]",
-        Flags: runFlags,
+        Flags:     runFlags,
         Action: func(c *cli.Context) {
             command = run.Run{Context: c, RunType: run.TypeRun}
         },
     },
 
+    {
+
+        Name:  "vendor",
+        Usage: "Manage locally vendored dependencies.",
+        Subcommands: cli.Commands{
+            {
+                Name:      "add",
+                Usage:     "Add a vendored package as a dependency.",
+                UsageText: "wio vendor add [package]",
+                Action: func(c *cli.Context) {
+                    command = pac.Vendor{Context: c, Op: pac.Add}
+                },
+            },
+            {
+                Name:      "rm",
+                Usage:     "Remove a vendor dependency.",
+                UsageText: "wio vendor rm [package]",
+                Action: func(c *cli.Context) {
+                },
+            },
+        },
+    },
 
     {
         Name:      "devices",

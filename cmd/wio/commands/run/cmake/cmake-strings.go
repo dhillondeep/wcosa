@@ -37,19 +37,19 @@ target_include_directories(
 // This is for header only AVR dependency
 const avrLibrary = `
 file(GLOB_RECURSE
-    {{DEPENDENCY_NAME}}_files 
-    "{{DEPENDENCY_PATH}}/src/*.cpp" 
+    {{DEPENDENCY_NAME}}_files
+    "{{DEPENDENCY_PATH}}/src/*.cpp"
     "{{DEPENDENCY_PATH}}/src/*.cc"
     "{{DEPENDENCY_PATH}}/src/*.c")
 
 generate_arduino_library(
     {{DEPENDENCY_NAME}}
-	SRCS ${{{DEPENDENCY_NAME}}_files}
-	BOARD ${BOARD})
+    SRCS ${{{DEPENDENCY_NAME}}_files}
+    BOARD ${BOARD})
 
 target_compile_definitions(
     {{DEPENDENCY_NAME}}
-    {{DEFINITIONS_VISIBILITY}} 
+    {{DEFINITIONS_VISIBILITY}}
     {{DEPENDENCY_DEFINITIONS}})
 
 target_compile_definitions(
@@ -61,7 +61,7 @@ target_compile_definitions(
 
 target_compile_options(
     {{DEPENDENCY_NAME}}
-    {{FLAGS_VISIBILITY}} 
+    {{FLAGS_VISIBILITY}}
     {{DEPENDENCY_FLAGS}})
 
 target_include_directories(
@@ -86,12 +86,12 @@ add_library({{DEPENDENCY_NAME}} INTERFACE)
 
 target_compile_definitions(
     {{DEPENDENCY_NAME}}
-    {{DEFINITIONS_VISIBILITY}} 
+    {{DEFINITIONS_VISIBILITY}}
     {{DEPENDENCY_DEFINITIONS}})
 
 target_compile_options(
     {{DEPENDENCY_NAME}}
-    {{FLAGS_VISIBILITY}} 
+    {{FLAGS_VISIBILITY}}
     {{DEPENDENCY_FLAGS}})
 
 target_include_directories(
@@ -102,7 +102,7 @@ target_include_directories(
 
 // This is for header only desktop dependency
 const desktopLibrary = `
-file(GLOB_RECURSE 
+file(GLOB_RECURSE
     {{DEPENDENCY_NAME}}_files
     "{{DEPENDENCY_PATH}}/src/*.cpp"
     "{{DEPENDENCY_PATH}}/src/*.cc"

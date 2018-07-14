@@ -2,8 +2,8 @@ package template
 
 import (
     "strings"
-    "wio/cmd/wio/utils/io"
     "wio/cmd/wio/errors"
+    "wio/cmd/wio/utils/io"
 )
 
 func IOReplace(path string, values map[string]string) error {

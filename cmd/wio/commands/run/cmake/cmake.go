@@ -1,13 +1,13 @@
 package cmake
 
 import (
+    "os"
     "path/filepath"
     "strings"
+    "wio/cmd/wio/constants"
     "wio/cmd/wio/types"
     "wio/cmd/wio/utils/io"
-    "os"
     "wio/cmd/wio/utils/template"
-    "wio/cmd/wio/constants"
 )
 
 func BuildPath(projectPath string) string {

@@ -7,14 +7,15 @@
 package run
 
 import (
-    "github.com/urfave/cli"
     "os"
+    "runtime"
+    "wio/cmd/wio/errors"
     "wio/cmd/wio/log"
     "wio/cmd/wio/types"
     "wio/cmd/wio/utils"
-    "wio/cmd/wio/errors"
+
     "github.com/fatih/color"
-    "runtime"
+    "github.com/urfave/cli"
 )
 
 type Type int
@@ -25,9 +26,9 @@ type Run struct {
 }
 
 const (
-    TypeBuild  Type = 0
-    TypeClean  Type = 1
-    TypeRun    Type = 2
+    TypeBuild Type = 0
+    TypeClean Type = 1
+    TypeRun   Type = 2
 )
 
 type runInfo struct {
@@ -154,8 +155,11 @@ func getTargetArgs(info *runInfo) ([]types.Target, error) {
         }
         if len(info.targets) <= 0 {
             defaultName := info.config.GetTargets().GetDefaultTarget()
+            if defaultName == "" {
+                return nil, errors.String("no default target specified")
+            }
             if _, exists := projectTargets[defaultName]; !exists {
-                return nil, errors.Stringf("default target [%s] does not exist", defaultName)
+                return nil, errors.Stringf("default target %s does not exist", defaultName)
             }
             projectTargets[defaultName].SetName(defaultName)
             targets = append(targets, projectTargets[defaultName])

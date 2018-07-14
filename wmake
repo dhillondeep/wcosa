@@ -57,11 +57,43 @@ _linux_setup() {
     go get golang.org/x/sys/unix
     printf "Done!\n"
 
+    printf "Getting govendor dependencies... "
+    govendor sync
+    printf "Done!\n"
+
+    printf "Installing gotools..."
+    sudo apt-get install golang-golang-x-tools
+    printf "Done!\n"
+
     printf "Linking toolchain... "
     mkdir -p ./bin
     ln -s -f $(pwd)/toolchain $(pwd)/bin/toolchain
     printf "Done!\n"
 
+    printf "Linking test vendor packages... "
+    cd tests
+    ./symlinks.sh
+    cd ..
+    printf "Done!\n"
+}
+
+_format() {
+    command -v goimports > /dev/null 2>&1 || {
+        echo 'goimports is not installed';
+        exit 1;
+    }
+    command -v vim > /dev/null 2>&1 || {
+        echo 'vim is not installed';
+        exit 1;
+    }
+
+    printf "Running gofmt... "
+    find $(pwd)/cmd -type f -name "*.go" -exec \
+        goimports -w {} \;
+    printf "Done!\nRunning retab... "
+    find $(pwd)/cmd -type f -name "*.go" -exec \
+        vim -e -s +"set tabstop=4 shiftwidth=4 expandtab | retab | %s/\s\+$//e | wq" {} \;
+    printf "Done!\n"
 }
 
 _simple() {
@@ -81,6 +113,9 @@ _simple() {
     elif [ "$1" == 'linux-setup' ] ; then
         echo "Setting up environment for Linux"
         _linux_setup
+    elif [ "$1" == 'format' ] ; then
+        echo "Formatting wio codebase"
+        _format
     else
         _print_help
     fi

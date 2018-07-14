@@ -9,12 +9,13 @@ package log
 import (
     "bufio"
     "fmt"
-    "github.com/fatih/color"
-    "github.com/mattn/go-colorable"
     "os"
     "regexp"
     "strings"
     "wio/cmd/wio/utils"
+
+    "github.com/fatih/color"
+    "github.com/mattn/go-colorable"
 )
 
 type Indentation string
@@ -209,7 +210,7 @@ func write(logType Type, providedColor *color.Color, message string, a ...interf
 var yesValues = []string{"y", "ye", "yes", "oui"}
 
 func PromptYes(promptMsg string) (bool, error) {
-    Info(Yellow, promptMsg + " (y/N): ")
+    Info(Yellow, promptMsg+" (y/N): ")
 
     reader := bufio.NewReader(os.Stdin)
     text, err := reader.ReadString('\n')

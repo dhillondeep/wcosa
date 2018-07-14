@@ -8,13 +8,14 @@
 package types
 
 import (
-    "wio/cmd/wio/constants"
     "bufio"
-    "strings"
-    "wio/cmd/wio/utils/io"
-    "wio/cmd/wio/errors"
-    "gopkg.in/yaml.v2"
     "regexp"
+    "strings"
+    "wio/cmd/wio/constants"
+    "wio/cmd/wio/errors"
+    "wio/cmd/wio/utils/io"
+
+    "gopkg.in/yaml.v2"
 )
 
 // ############################################### Targets ##################################################
@@ -263,11 +264,19 @@ type DependencyTag struct {
     Flags                 []string            `yaml:"flags,omitempty"`
     Definitions           []string            `yaml:"definitions"`
     DependencyFlags       map[string][]string `yaml:"dependency_flags,omitempty"`
-    DependencyDefinitions map[string][]string `yaml:"dependency_definitions"`
+    DependencyDefinitions map[string][]string `yaml:"dependency_definitions,omitempty"`
 }
 
 // type for the libraries tag in the main wio.yml file
 type DependenciesTag map[string]*DependencyTag
+
+func (deps DependenciesTag) collect() map[string]string {
+    depMap := map[string]string{}
+    for name, dep := range deps {
+        depMap[name] = dep.Version
+    }
+    return depMap
+}
 
 // ############################################### Project ##################################################
 
@@ -416,6 +425,10 @@ type IConfig interface {
     GetTargets() Targets
     GetDependencies() DependenciesTag
     SetDependencies(tag DependenciesTag)
+
+    Name() string
+    Version() string
+    Dependencies() map[string]string
 }
 
 type AppConfig struct {
@@ -444,6 +457,18 @@ func (config *AppConfig) SetDependencies(tag DependenciesTag) {
     config.DependenciesTag = tag
 }
 
+func (config *AppConfig) Name() string {
+    return config.MainTag.Name
+}
+
+func (config *AppConfig) Version() string {
+    return config.MainTag.GetVersion()
+}
+
+func (config *AppConfig) Dependencies() map[string]string {
+    return config.GetDependencies().collect()
+}
+
 type PkgConfig struct {
     MainTag         PkgTag          `yaml:"pkg"`
     TargetsTag      PkgAVRTargets   `yaml:"targets"`
@@ -468,6 +493,18 @@ func (config *PkgConfig) GetDependencies() DependenciesTag {
 
 func (config *PkgConfig) SetDependencies(tag DependenciesTag) {
     config.DependenciesTag = tag
+}
+
+func (config *PkgConfig) Name() string {
+    return config.MainTag.Meta.Name
+}
+
+func (config *PkgConfig) Version() string {
+    return config.MainTag.Meta.Version
+}
+
+func (config *PkgConfig) Dependencies() map[string]string {
+    return config.GetDependencies().collect()
 }
 
 type NpmDependencyTag map[string]string
@@ -507,7 +544,7 @@ func (config *AppConfig) PrettyPrint(path string) error {
 }
 
 func PrettyPrint(config IConfig, path string) error {
-   return prettyPrintHelp(config, path, false)
+    return prettyPrintHelp(config, path, false)
 }
 
 // Write configuration with nice spacing and information

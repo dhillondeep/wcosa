@@ -7,12 +7,12 @@ import (
     "path/filepath"
     "strings"
     "wio/cmd/wio/commands/run/cmake"
+    "wio/cmd/wio/constants"
     "wio/cmd/wio/errors"
     "wio/cmd/wio/log"
     "wio/cmd/wio/types"
     "wio/cmd/wio/utils"
     "wio/cmd/wio/utils/io"
-    "wio/cmd/wio/constants"
 )
 
 var packageVersions = map[string]string{}     // Keeps track of versions for the packages
@@ -72,14 +72,17 @@ func recursiveDependencyScan(queue *log.Queue, currDirectory string,
         // directories exist so let's go through each of them
         for _, dir := range dirs {
             // ignore files
-            if !dir.IsDir() {
+            if dir.Mode().IsRegular() {
                 continue
             }
 
+            log.Verbln(queue, "Checking %s", dir.Name())
             // only worry about dependencies in wio.yml file
             if _, exists := packageDependencies[dir.Name()]; !exists {
                 continue
             }
+
+            log.Verbln(queue, "Passed %s", dir.Name())
 
             dirPath := currDirectory + io.Sep + dir.Name()
             if !utils.PathExists(dirPath + io.Sep + io.Config) {
@@ -92,6 +95,8 @@ func recursiveDependencyScan(queue *log.Queue, currDirectory string,
             if filepath.Base(currDirectory) == io.Vendor {
                 fromVendor = true
             }
+
+            var newPackageDependencies types.DependenciesTag
 
             // create DependencyScanStructure
             if dependencyPackage, packageDeps, err := createDependencyScanStructure(dir.Name(), dirPath, fromVendor); err != nil {
@@ -106,19 +111,19 @@ func recursiveDependencyScan(queue *log.Queue, currDirectory string,
 
                 log.Verbln(queue, "%s package stored as dependency named: %s", dirPath, dependencyName)
 
-                packageDependencies = packageDeps
+                newPackageDependencies = packageDeps
             }
 
             modulePath := io.Path(dirPath, io.Modules)
             vendorPath := io.Path(dirPath, io.Vendor)
             if utils.PathExists(modulePath) {
                 // if remote directory exists
-                if err := recursiveDependencyScan(queue, modulePath, dependencies, packageDependencies); err != nil {
+                if err := recursiveDependencyScan(queue, modulePath, dependencies, newPackageDependencies); err != nil {
                     return err
                 }
             } else if utils.PathExists(vendorPath) {
                 // if vendor directory exists
-                if err := recursiveDependencyScan(queue, vendorPath, dependencies, packageDependencies); err != nil {
+                if err := recursiveDependencyScan(queue, vendorPath, dependencies, newPackageDependencies); err != nil {
                     return err
                 }
             }
@@ -170,7 +175,7 @@ func CreateCMakeDependencyTargets(
     projectFlags := (*target).GetFlags()
     projectDefinitions := (*target).GetDefinitions()
 
-    remotePackagesPath := io.Path(projectPath, io.Folder, ``)
+    remotePackagesPath := io.Path(projectPath, io.Folder)
     vendorPackagesPath := io.Path(projectPath, io.Vendor)
 
     scannedDependencies := map[string]*DependencyScanStructure{}
@@ -198,7 +203,7 @@ func CreateCMakeDependencyTargets(
         }
         log.WriteSuccess(queue, log.VERB)
 
-        log.Verb(queue, "recursively scanning package dependency at path "+"%s ...", packageDependencyPath)
+        log.Verb(queue, "recursively scanning package dependency at path: %s ...", packageDependencyPath)
         subQueue := log.GetQueue()
         if err := recursiveDependencyScan(subQueue, packageDependencyPath, scannedDependencies, projectDependencies); err != nil {
             log.WriteFailure(queue, log.VERB)
@@ -210,7 +215,7 @@ func CreateCMakeDependencyTargets(
         }
     }
 
-    log.Verb(queue, log.VERB, nil, "recursively scanning remote dependencies at path: %s ... ", remotePackagesPath)
+    log.Verb(queue, "recursively scanning remote dependencies at path: %s ... ", remotePackagesPath)
     subQueue := log.GetQueue()
 
     if err := recursiveDependencyScan(subQueue, remotePackagesPath, scannedDependencies, projectDependencies); err != nil {
@@ -247,6 +252,7 @@ func CreateCMakeDependencyTargets(
             dependencyTargetName = dependencyName + "__" + packageVersions[dependencyName]
         }
 
+        log.Verbln(queue, "looking for dependency: %s", dependencyTargetName)
         if dependencyTarget = scannedDependencies[dependencyTargetName]; dependencyTarget == nil {
             return errors.DependencyDoesNotExistError{
                 DependencyName: fullName,
