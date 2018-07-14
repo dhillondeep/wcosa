@@ -119,12 +119,35 @@ func (q *dualBound) Str() string {
     return fmt.Sprintf("%s %s", q.lower.Str(), q.upper.Str())
 }
 
+func trimX(str string) string {
+    loc := anyMatch.FindStringIndex(str)
+    if loc != nil {
+        str = str[:loc[0]]
+    }
+    if len(str) > 0 && str[len(str)-1] == '.' {
+        str = str[:len(str)-1]
+    }
+    return str
+}
+
+func stripEqV(str string) string {
+    if len(str) > 0 && str[0] == '=' {
+        str = str[1:]
+    }
+    if len(str) > 0 && str[0] == 'v' {
+        str = str[1:]
+    }
+    return str
+}
+
 var cmpMatch = regexp.MustCompile(`^(>=|<=|>|<)v?([*xX]|[0-9]+)(\.([*xX]|[0-9]+)){0,2}(-[a-zA-Z0-9]+(\.[0-9]+)?)?$`)
 var misMatch = regexp.MustCompile(`^=?v?(([*xX]|[0-9]+)(\.([*xX]|[0-9]+)){0,2})?(-[a-zA-Z0-9]+(\.[0-9]+)?)?$`)
 var tildeMatch = regexp.MustCompile(`^~=?v?(([*xX]|[0-9]+)(\.([*xX]|[0-9]+)){0,2}(-[0-9a-zA-Z]+(\.[0-9]+)?)?)?$`)
 var caretMatch = regexp.MustCompile(`^\^=?v?(([*xX]|[0-9]+)(\.([*xX]|[0-9]+)){0,2}(-[0-9a-zA-Z]+(\.[0-9]+)?)?)?$`)
+var rangeMatch = regexp.MustCompile(`^[0-9]+(\.([*xX]|[0-9]+)){0,2}\s+-\s+[0-9]+(\.([*xX]|[0-9]+)){0,2}$`)
 var opMatch = regexp.MustCompile(`^(>=|<=|>|<)`)
 var anyMatch = regexp.MustCompile(`[*xX]`)
+var betMatch = regexp.MustCompile(`\s+-\s+`)
 
 var queryMap = map[string]queryOp{
     "=":  queryEq,
@@ -137,14 +160,9 @@ var queryMap = map[string]queryOp{
 var queryInv = [...]string{"=", "<", ">", "<=", ">="}
 
 func parseIncompl(str string) *Version {
-    loc := anyMatch.FindStringIndex(str)
-    if loc != nil {
-        str = str[:loc[0]]
-    }
+    str = trimX(str)
     if str == "" {
         str = "0"
-    } else if str[len(str)-1] == '.' {
-        str = str[:len(str)-1]
     }
     str += strings.Repeat(".0", 2-strings.Count(str, "."))
     return Parse(str)
@@ -158,19 +176,20 @@ func parseCmpQuery(str string) Query {
 
 func parseMisQuery(str string) Query {
     lower := parseIncompl(str)
+    str = trimX(str)
     ver := strings.Split(str, ".")
     switch {
-    case len(str) == 0 || anyMatch.MatchString(ver[0]):
+    case len(str) == 0:
         return &singleBound{op: queryGe, ver: lower}
 
-    case len(ver) == 1 || anyMatch.MatchString(ver[1]):
+    case len(ver) == 1:
         upper := &Version{lower.Major + 1, 0, 0}
         return &dualBound{
             lower: &singleBound{op: queryGe, ver: lower},
             upper: &singleBound{op: queryLt, ver: upper},
         }
 
-    case len(ver) == 2 || anyMatch.MatchString(ver[2]):
+    case len(ver) == 2:
         upper := &Version{lower.Major, lower.Minor + 1, 0}
         return &dualBound{
             lower: &singleBound{op: queryGe, ver: lower},
@@ -202,19 +221,20 @@ func parseTildeQuery(str string) Query {
 
 func parseCaretQuery(str string) Query {
     lower := parseIncompl(str)
+    str = trimX(str)
     ver := strings.Split(str, ".")
     switch {
-    case len(str) == 0 || anyMatch.MatchString(ver[0]):
+    case len(str) == 0:
         return parseMisQuery(str)
 
-    case len(ver) == 1 || anyMatch.MatchString(ver[1]):
+    case len(ver) == 1:
         upper := &Version{lower.Major + 1, 0, 0}
         return &dualBound{
             lower: &singleBound{op: queryGe, ver: lower},
             upper: &singleBound{op: queryLt, ver: upper},
         }
 
-    case len(ver) == 2 || anyMatch.MatchString(ver[2]):
+    case len(ver) == 2:
         upper := &Version{0, 0, 0}
         if lower.Major == 0 {
             upper.Minor = lower.Minor + 1
@@ -247,14 +267,28 @@ func parseCaretQuery(str string) Query {
     }
 }
 
-func stripEqV(str string) string {
-    if len(str) > 0 && str[0] == '=' {
-        str = str[1:]
+func parseRangeQuery(str string) Query {
+    bounds := betMatch.Split(str, -1)
+    lower := parseIncompl(bounds[0])
+    upper := bounds[1]
+    if IsValid(upper) {
+        return &dualBound{
+            lower: &singleBound{op: queryGe, ver: lower},
+            upper: &singleBound{op: queryLe, ver: Parse(upper)},
+        }
     }
-    if len(str) > 0 && str[0] == 'v' {
-        str = str[1:]
+    upper = trimX(upper)
+    ver := parseIncompl(upper)
+    switch strings.Count(upper, ".") {
+    case 0:
+        ver.Major++
+    case 1:
+        ver.Minor++
     }
-    return str
+    return &dualBound{
+        lower: &singleBound{op: queryGe, ver: lower},
+        upper: &singleBound{op: queryLt, ver: ver},
+    }
 }
 
 func MakeQuery(str string) Query {
@@ -265,16 +299,14 @@ func MakeQuery(str string) Query {
     switch {
     case cmpMatch.MatchString(str):
         return parseCmpQuery(str)
-
     case misMatch.MatchString(str):
         return parseMisQuery(stripEqV(str))
-
     case tildeMatch.MatchString(str):
         return parseTildeQuery(stripEqV(str[1:]))
-
     case caretMatch.MatchString(str):
         return parseCaretQuery(stripEqV(str[1:]))
-
+    case rangeMatch.MatchString(str):
+        return parseRangeQuery(str)
     default:
         return nil
     }

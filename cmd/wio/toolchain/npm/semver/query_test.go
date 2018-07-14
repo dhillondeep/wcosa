@@ -61,14 +61,17 @@ func TestMakeQuery(t *testing.T) {
     single := func(op queryOp, major int, minor int, patch int) *singleBound {
         return &singleBound{op: op, ver: &Version{major, minor, patch}}
     }
-    dual := func(lmajor int, lminor int, lpatch int, umajor int, uminor int, upatch int) *dualBound {
+    dual := func(a1 int, a2 int, a3 int, b1 int, b2 int, b3 int) *dualBound {
         return &dualBound{
-            lower: single(queryGe, lmajor, lminor, lpatch),
-            upper: single(queryLt, umajor, uminor, upatch),
+            lower: single(queryGe, a1, a2, a3),
+            upper: single(queryLt, b1, b2, b3),
         }
     }
     doTest := func(q Query, str string) {
         res := MakeQuery(str)
+        if !assert.NotNil(t, res) {
+            t.Fatalf("Nil result for [%s]", q.Str())
+        }
         if !assert.True(t, eq(q, res)) {
             t.Errorf("Equality test [%s] == [%s] failed!", q.Str(), res.Str())
         }
@@ -138,4 +141,22 @@ func TestMakeQuery(t *testing.T) {
     doTest(dual(0, 0, 0, 0, 1, 0), "^0.0")
     doTest(dual(1, 0, 0, 2, 0, 0), "^1.x")
     doTest(dual(0, 0, 0, 1, 0, 0), "^0.x")
+
+    // Range
+    doTest(&dualBound{
+        single(queryGe, 1, 2, 3),
+        single(queryLe, 2, 3, 4),
+    }, "1.2.3 - 2.3.4")
+    doTest(&dualBound{
+        single(queryGe, 1, 2, 0),
+        single(queryLe, 2, 3, 4),
+    }, "1.2 - 2.3.4")
+    doTest(&dualBound{
+        single(queryGe, 1, 2, 3),
+        single(queryLt, 2, 4, 0),
+    }, "1.2.3 - 2.3")
+    doTest(&dualBound{
+        single(queryGe, 1, 2, 3),
+        single(queryLt, 3, 0, 0),
+    }, "1.2.3 - 2")
 }
