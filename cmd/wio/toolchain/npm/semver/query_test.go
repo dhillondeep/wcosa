@@ -67,6 +67,20 @@ func TestMakeQuery(t *testing.T) {
             upper: single(queryLt, b1, b2, b3),
         }
     }
+    listEq := func(a Query, b Query) bool {
+        al := a.(queryList)
+        bl := b.(queryList)
+        if len(al) != len(bl) {
+            return false
+        }
+        for i, aq := range al {
+            if !eq(aq, bl[i]) {
+                return false
+            }
+        }
+
+        return true
+    }
     doTest := func(q Query, str string) {
         res := MakeQuery(str)
         if !assert.NotNil(t, res) {
@@ -76,6 +90,10 @@ func TestMakeQuery(t *testing.T) {
             t.Errorf("Equality test [%s] == [%s] failed!", q.Str(), res.Str())
         }
     }
+
+    // Equal
+    doTest(single(queryEq, 56, 56, 56), "56.56.56")
+    doTest(single(queryEq, 15, 16, 17), "15.16.17")
 
     // Ranges
     doTest(single(queryGe, 567, 765, 890), ">=567.765.890")
@@ -159,4 +177,64 @@ func TestMakeQuery(t *testing.T) {
         single(queryGe, 1, 2, 3),
         single(queryLt, 3, 0, 0),
     }, "1.2.3 - 2")
+    doTest(&dualBound{
+        single(queryGe, 1, 2, 0),
+        single(queryLe, 2, 3, 4),
+    }, "1.2.x - 2.3.4")
+    doTest(&dualBound{
+        single(queryGe, 1, 2, 3),
+        single(queryLt, 2, 4, 0),
+    }, "1.2.3 - 2.3.x")
+    doTest(&dualBound{
+        single(queryGe, 1, 2, 3),
+        single(queryLt, 3, 0, 0),
+    }, "1.2.3 - 2.x.x")
+
+    // And
+    doTest(&dualBound{
+        single(queryGe, 1, 2, 3),
+        single(queryLe, 2, 3, 4),
+    }, ">=1.2.3 <=2.3.4")
+    doTest(&dualBound{
+        single(queryGe, 1, 2, 0),
+        single(queryLe, 2, 3, 4),
+    }, ">=1.2.0 <=2.3.4")
+    doTest(&dualBound{
+        single(queryGe, 1, 2, 3),
+        single(queryLt, 2, 4, 0),
+    }, ">=1.2.3 <2.4.0")
+    doTest(&dualBound{
+        single(queryGe, 1, 2, 3),
+        single(queryLt, 3, 0, 0),
+    }, ">=1.2.3 <3.0.0")
+    doTest(&dualBound{
+        single(queryGt, 6, 6, 6),
+        single(queryLt, 7, 7, 7),
+    }, ">6.6.6 <7.7.7")
+    doTest(&dualBound{
+        single(queryGe, 1, 2, 0),
+        single(queryLe, 2, 3, 0),
+    }, ">=1.2.x <=2.3.x")
+    doTest(&dualBound{
+        single(queryGe, 1, 2, 0),
+        single(queryLe, 2, 3, 0),
+    }, ">=1.2 <=2.3")
+    doTest(&dualBound{
+        single(queryGe, 1, 0, 0),
+        single(queryLt, 2, 0, 0),
+    }, ">=1.x.x <2.x")
+    doTest(&dualBound{
+        single(queryGe, 1, 0, 0),
+        single(queryLt, 3, 0, 0),
+    }, ">=1 <3")
+
+    var res Query
+    var exp Query
+    res = MakeQuery("1.2.7 || >=1.2.9 <2.0.0 || ~1.2.3")
+    exp = queryList{
+        single(queryEq, 1, 2, 7),
+        dual(1, 2, 9, 2, 0, 0),
+        MakeQuery("~1.2.3"),
+    }
+    assert.True(t, listEq(res, exp))
 }

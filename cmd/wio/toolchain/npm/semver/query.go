@@ -4,6 +4,7 @@ import (
     "regexp"
     "strings"
     "fmt"
+    "bytes"
 )
 
 type queryOp int
@@ -52,6 +53,8 @@ type dualBound struct {
     lower *singleBound
     upper *singleBound
 }
+
+type queryList []Query
 
 func (q *singleBound) Matches(ver *Version) bool {
     return q.op.compare(ver, q.ver)
@@ -119,6 +122,39 @@ func (q *dualBound) Str() string {
     return fmt.Sprintf("%s %s", q.lower.Str(), q.upper.Str())
 }
 
+func (ql queryList) Matches(ver *Version) bool {
+    for _, q := range ql {
+        if q.Matches(ver) {
+            return true
+        }
+    }
+    return false
+}
+
+func (ql queryList) FindBest(list List) *Version {
+    res := make(List, 0, len(ql))
+    for _, q := range ql {
+        if ver := q.FindBest(list); ver != nil {
+            res = append(res, ver)
+        }
+    }
+    if len(res) == 0 {
+        return nil
+    }
+    res.Sort()
+    return res[len(res)-1]
+}
+
+func (ql queryList) Str() string {
+    var buf bytes.Buffer
+    for _, q := range ql {
+        buf.WriteString(q.Str())
+        buf.WriteString(" || ")
+    }
+    res := buf.String()
+    return res[:len(res)-4]
+}
+
 func trimX(str string) string {
     loc := anyMatch.FindStringIndex(str)
     if loc != nil {
@@ -145,9 +181,12 @@ var misMatch = regexp.MustCompile(`^=?v?(([*xX]|[0-9]+)(\.([*xX]|[0-9]+)){0,2})?
 var tildeMatch = regexp.MustCompile(`^~=?v?(([*xX]|[0-9]+)(\.([*xX]|[0-9]+)){0,2}(-[0-9a-zA-Z]+(\.[0-9]+)?)?)?$`)
 var caretMatch = regexp.MustCompile(`^\^=?v?(([*xX]|[0-9]+)(\.([*xX]|[0-9]+)){0,2}(-[0-9a-zA-Z]+(\.[0-9]+)?)?)?$`)
 var rangeMatch = regexp.MustCompile(`^[0-9]+(\.([*xX]|[0-9]+)){0,2}\s+-\s+[0-9]+(\.([*xX]|[0-9]+)){0,2}$`)
+var andMatch = regexp.MustCompile(`^(>=|>)[0-9]+(\.([*xX]|[0-9]+)){0,2}\s+(<=|<)[0-9]+(\.([*xX]|[0-9]+)){0,2}$`)
 var opMatch = regexp.MustCompile(`^(>=|<=|>|<)`)
 var anyMatch = regexp.MustCompile(`[*xX]`)
 var betMatch = regexp.MustCompile(`\s+-\s+`)
+var spaceMatch = regexp.MustCompile(`\s+`)
+var orMatch = regexp.MustCompile(`\s+\|\|\s+`)
 
 var queryMap = map[string]queryOp{
     "=":  queryEq,
@@ -168,7 +207,7 @@ func parseIncompl(str string) *Version {
     return Parse(str)
 }
 
-func parseCmpQuery(str string) Query {
+func parseCmpQuery(str string) *singleBound {
     loc := opMatch.FindStringIndex(str)
     opStr := str[loc[0]:loc[1]]
     return &singleBound{op: queryMap[opStr], ver: parseIncompl(str[loc[1]:])}
@@ -267,7 +306,7 @@ func parseCaretQuery(str string) Query {
     }
 }
 
-func parseRangeQuery(str string) Query {
+func parseRangeQuery(str string) *dualBound {
     bounds := betMatch.Split(str, -1)
     lower := parseIncompl(bounds[0])
     upper := bounds[1]
@@ -291,6 +330,27 @@ func parseRangeQuery(str string) Query {
     }
 }
 
+func parseAndQuery(str string) *dualBound {
+    bounds := spaceMatch.Split(str, -1)
+    return &dualBound{
+        lower: parseCmpQuery(bounds[0]),
+        upper: parseCmpQuery(bounds[1]),
+    }
+}
+
+func parseOrQuery(str string) queryList {
+    queries := orMatch.Split(str, -1)
+    ql := make(queryList, 0, len(queries))
+    for _, query := range queries {
+        if q := MakeQuery(query); q != nil {
+            ql = append(ql, q)
+        } else {
+            return nil
+        }
+    }
+    return ql
+}
+
 func MakeQuery(str string) Query {
     // should never be called if valid Version passed
     if IsValid(str) {
@@ -307,6 +367,10 @@ func MakeQuery(str string) Query {
         return parseCaretQuery(stripEqV(str[1:]))
     case rangeMatch.MatchString(str):
         return parseRangeQuery(str)
+    case andMatch.MatchString(str):
+        return parseAndQuery(str)
+    case orMatch.MatchString(str):
+        return parseOrQuery(str)
     default:
         return nil
     }
