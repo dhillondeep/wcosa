@@ -181,11 +181,11 @@ var misMatch = regexp.MustCompile(`^=?v?(([*xX]|[0-9]+)(\.([*xX]|[0-9]+)){0,2})?
 var tildeMatch = regexp.MustCompile(`^~=?v?(([*xX]|[0-9]+)(\.([*xX]|[0-9]+)){0,2}(-[0-9a-zA-Z]+(\.[0-9]+)?)?)?$`)
 var caretMatch = regexp.MustCompile(`^\^=?v?(([*xX]|[0-9]+)(\.([*xX]|[0-9]+)){0,2}(-[0-9a-zA-Z]+(\.[0-9]+)?)?)?$`)
 var rangeMatch = regexp.MustCompile(`^[0-9]+(\.([*xX]|[0-9]+)){0,2}\s+-\s+[0-9]+(\.([*xX]|[0-9]+)){0,2}$`)
-var andMatch = regexp.MustCompile(`^(>=|>)[0-9]+(\.([*xX]|[0-9]+)){0,2}\s+(<=|<)[0-9]+(\.([*xX]|[0-9]+)){0,2}$`)
+var andMatch = regexp.MustCompile(`^(>=|>)\s*[0-9]+(\.([*xX]|[0-9]+)){0,2}\s+(<=|<)\s*[0-9]+(\.([*xX]|[0-9]+)){0,2}$`)
 var opMatch = regexp.MustCompile(`^(>=|<=|>|<)`)
 var anyMatch = regexp.MustCompile(`[*xX]`)
 var betMatch = regexp.MustCompile(`\s+-\s+`)
-var spaceMatch = regexp.MustCompile(`\s+`)
+var spaceMatch = regexp.MustCompile(`\s+<`)
 var orMatch = regexp.MustCompile(`\s+\|\|\s+`)
 
 var queryMap = map[string]queryOp{
@@ -210,7 +210,8 @@ func parseIncompl(str string) *Version {
 func parseCmpQuery(str string) *singleBound {
     loc := opMatch.FindStringIndex(str)
     opStr := str[loc[0]:loc[1]]
-    return &singleBound{op: queryMap[opStr], ver: parseIncompl(str[loc[1]:])}
+	verStr := strings.Trim(str[loc[1]:], " ")
+    return &singleBound{op: queryMap[opStr], ver: parseIncompl(verStr)}
 }
 
 func parseMisQuery(str string) Query {
@@ -334,7 +335,7 @@ func parseAndQuery(str string) *dualBound {
     bounds := spaceMatch.Split(str, -1)
     return &dualBound{
         lower: parseCmpQuery(bounds[0]),
-        upper: parseCmpQuery(bounds[1]),
+        upper: parseCmpQuery("<"+bounds[1]),
     }
 }
 

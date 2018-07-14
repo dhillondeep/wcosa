@@ -29,3 +29,14 @@ func (list List) Less(i int, j int) bool {
 func (list List) Sort() {
     sort.Sort(list)
 }
+
+func (list List) Insert(v *Version) List {
+	for _, el := range list {
+		if el.eq(v) {
+			return list
+		}
+	}
+	list = append(list, v)
+	list.Sort()
+	return list
+}

@@ -1,44 +1,57 @@
 package resolve
 
 import (
-    "wio/cmd/wio/errors"
-    "wio/cmd/wio/toolchain/npm/semver"
+	"wio/cmd/wio/errors"
+	"wio/cmd/wio/log"
+	"wio/cmd/wio/toolchain/npm/semver"
 )
 
 func (i *Info) ResolveTree(root *Node) error {
+	if ret := i.GetRes(root.name, root.ver); ret != nil {
+		root.resolve = ret
+		return nil
+	}
 	ver, err := i.resolveVer(root.name, root.ver)
 	if err != nil {
 		return err
 	}
 	root.resolve = ver
-	data := i.GetVersion(root.name, ver.Str())
-	for name, ver := data.Dependencies {
-		node := &{name: name, ver: ver}
+	i.SetRes(root.name, root.ver, ver)
+	data, err := i.GetVersion(root.name, ver.Str())
+	if err != nil {
+		return err
+	}
+	for name, ver := range data.Dependencies {
+		node := &Node{name: name, ver: ver}
 		root.deps = append(root.deps, node)
 	}
 	for _, node := range root.deps {
 		if err := i.ResolveTree(node); err != nil {
-			return nil
+			return err
 		}
 	}
 	return nil
 }
 
-func (i *Info) resolveVer(name string, ver string) (*Version, error) {
-    if ret := semver.Parse(ver); ret != nil {
+func (i *Info) resolveVer(name string, ver string) (*semver.Version, error) {
+	if ret := semver.Parse(ver); ret != nil {
 		i.StoreVer(name, ret)
-        return ret
-    }
-    query := semver.MakeQuery(ver)
-    if query == nil {
-        return nil, errors.Stringf("invalid version expression %s", str)
-    }
+		return ret, nil
+	}
+	query := semver.MakeQuery(ver)
+	if query == nil {
+		return nil, errors.Stringf("invalid version expression %s", ver)
+	}
 	if ret := i.resolve[name].Find(query); ret != nil {
 		return ret, nil
 	}
-    if ret := query.FindBest(i.GetList(name)); ret != nil {
+	list, err := i.GetList(name)
+	if err != nil {
+		return nil, err
+	}
+	if ret := query.FindBest(list); ret != nil {
 		i.StoreVer(name, ret)
 		return ret, nil
 	}
-	return nil, errors.Stringf("unable to find suitable version for %s", str)
+	return nil, errors.Stringf("unable to find suitable version for %s", ver)
 }

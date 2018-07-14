@@ -3,18 +3,22 @@ package resolve
 import (
     "wio/cmd/wio/toolchain/npm"
     "wio/cmd/wio/toolchain/npm/client"
+    "wio/cmd/wio/toolchain/npm/semver"
 )
 
 type DataCache map[string]*npm.Data
 type VerCache map[string]map[string]*npm.Version
+type ResCache map[string]map[string]*semver.Version
+type ListMap map[string]semver.List
 
 type Info struct {
     dir  string
     data DataCache
     ver  VerCache
+	res ResCache
 
-	resolve map[string]semver.List
-	lists map[string]semver.List
+    resolve ListMap
+    lists   ListMap
 }
 
 type Node struct {
@@ -22,7 +26,7 @@ type Node struct {
     ver  string
     deps []*Node
 
-	resolve *semver.Version
+    resolve *semver.Version
 }
 
 func NewInfo(dir string) *Info {
@@ -30,6 +34,9 @@ func NewInfo(dir string) *Info {
         dir:  dir,
         data: DataCache{},
         ver:  VerCache{},
+		res: ResCache{},
+		resolve: ListMap{},
+		lists: ListMap{},
     }
 }
 
@@ -61,6 +68,23 @@ func (i *Info) setVer(name string, ver string, data *npm.Version) {
     }
 }
 
+func (i *Info) SetRes(name string, query string, ver *semver.Version) {
+	if data, exists := i.res[name]; exists {
+		data[query] = ver
+	} else {
+		i.res[name] = map[string]*semver.Version{query: ver}
+	}
+}
+
+func (i *Info) GetRes(name string, query string) *semver.Version {
+	if data, exists := i.res[name]; exists {
+		if ret, exists := data[query]; exists {
+			return ret
+		}
+	}
+	return nil
+}
+
 func (i *Info) GetData(name string) (*npm.Data, error) {
     if ret := i.getData(name); ret != nil {
         return ret, nil
@@ -79,8 +103,8 @@ func (i *Info) GetVersion(name string, ver string) (*npm.Version, error) {
     }
     if data := i.getData(name); data != nil {
         if ret, exists := data.Versions[ver]; exists {
-            i.setVer(name, ver, ret)
-            return ret
+            i.setVer(name, ver, &ret)
+            return &ret, nil
         }
     }
     ret, err := findVersion(name, ver, i.dir)
@@ -100,30 +124,26 @@ func (i *Info) GetVersion(name string, ver string) (*npm.Version, error) {
 }
 
 func (i *Info) GetList(name string) (semver.List, error) {
-	if ret, exists := i.lists[name]; exists {
-		return ret, nil
-	}
-	data, err := GetData(name)
-	if err != nil {
-		return err
-	}
-	vers := data.Versions
-	list := make(semver.List, 0, len(vers))
-	for ver := range vers {
-		list = append(list, semver.Parse(ver))
-	}
-	list.Sort()
-	i.lists[name] = list
-	return list
+    if ret, exists := i.lists[name]; exists {
+        return ret, nil
+    }
+    data, err := i.GetData(name)
+    if err != nil {
+        return nil, err
+    }
+    vers := data.Versions
+    list := make(semver.List, 0, len(vers))
+    for ver := range vers {
+		parse := semver.Parse(ver)
+		if parse != nil {
+        	list = append(list, semver.Parse(ver))
+		}
+    }
+    list.Sort()
+    i.lists[name] = list
+    return list, nil
 }
 
-func (i *Info) StoreVer(name string, ver *Version) {
-	list := i.resolve[name]
-	for _, el := range list {
-		if el.eq(ver) {
-			return
-		}
-	}
-	list = append(list, ver)
-	list.Sort()
+func (i *Info) StoreVer(name string, ver *semver.Version) {
+	i.resolve[name] = i.resolve[name].Insert(ver)
 }
