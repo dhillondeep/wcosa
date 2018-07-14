@@ -42,10 +42,10 @@ func removePackageExtras(pkgDir string) error {
 // The generated folder structure will be
 //
 // `pkgDir`
-//      [packageName]__[packageVersion]
-//      [packageName]__[packageVersion]
+//      [packageName]__[Version]
+//      [packageName]__[Version]
 //      ...
-//      [packageName]__[packageVersion]
+//      [packageName]__[Version]
 //          include
 //          src
 //          wio.yml

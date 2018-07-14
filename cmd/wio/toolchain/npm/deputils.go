@@ -7,7 +7,7 @@ import (
     "wio/cmd/wio/utils"
 )
 
-func getOrFetchVersion(name string, ver string, dir string) (*packageVersion, error) {
+func getOrFetchVersion(name string, ver string, dir string) (*Version, error) {
     config, err := tryFindConfig(name, ver, dir)
     if err != nil {
         return nil, err
@@ -19,8 +19,8 @@ func getOrFetchVersion(name string, ver string, dir string) (*packageVersion, er
 }
 
 // Only Name, Version, and Dependencies are needed for dependency resolution
-func configToVersion(config *types.PkgConfig) *packageVersion {
-    return &packageVersion{
+func configToVersion(config *types.PkgConfig) *Version {
+    return &Version{
         Name: config.Name(),
         Version: config.Version(),
         Dependencies: config.Dependencies(),

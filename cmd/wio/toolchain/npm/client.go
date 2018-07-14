@@ -60,8 +60,8 @@ func urlResolve(values ...string) string {
     return result[:len(result)-1]
 }
 
-func fetchPackageData(name string) (*packageData, error) {
-    var data packageData
+func fetchPackageData(name string) (*Data, error) {
+    var data Data
     url := urlResolve(registryBaseUrl, name)
     status, err := getJson(npmClient, url, &data)
     if err != nil {
@@ -76,9 +76,9 @@ func fetchPackageData(name string) (*packageData, error) {
     return &data, nil
 }
 
-func fetchPackageVersion(name string, versionStr string) (*packageVersion, error) {
+func fetchPackageVersion(name string, versionStr string) (*Version, error) {
     // assumes `versionStr` is a hard version
-    var version packageVersion
+    var version Version
     url := urlResolve(registryBaseUrl, name, versionStr)
     status, err := getJson(npmClient, url, &version)
     if err != nil {

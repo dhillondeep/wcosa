@@ -12,15 +12,15 @@ type depTreeNode struct {
 
 type depTreeInfo struct {
     baseDir    string
-    cache      map[string]map[string]*packageVersion
-    data       map[string]*packageData
+    cache      map[string]map[string]*Version
+    data       map[string]*Data
 }
 
 func newTreeInfo(dir string) *depTreeInfo {
     return &depTreeInfo{
         baseDir: dir,
-        cache: map[string]map[string]*packageVersion{},
-        data: map[string]*packageData{},
+        cache: map[string]map[string]*Version{},
+        data: map[string]*Data{},
     }
 }
 
@@ -35,7 +35,7 @@ func buildDependencyTree(root *depTreeNode, info *depTreeInfo) error {
     }
 
     // get the version data
-    var pkgVersion *packageVersion = nil
+    var pkgVersion *Version = nil
     if cacheName, exists := info.cache[root.name]; exists {
         if _, exists := cacheName[root.version]; exists {
             return nil // already resolved
@@ -49,7 +49,7 @@ func buildDependencyTree(root *depTreeNode, info *depTreeInfo) error {
         if cacheName, exists := info.cache[root.name]; exists {
             cacheName[root.version] = pkgVersion
         } else {
-            info.cache[root.name] = map[string]*packageVersion{root.version: pkgVersion}
+            info.cache[root.name] = map[string]*Version{root.version: pkgVersion}
         }
     }
 
