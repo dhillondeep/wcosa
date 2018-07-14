@@ -1,10 +1,10 @@
 package semver
 
 import (
+    "bytes"
+    "fmt"
     "regexp"
     "strings"
-    "fmt"
-    "bytes"
 )
 
 type queryOp int

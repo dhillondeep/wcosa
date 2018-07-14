@@ -1,4 +1,4 @@
-package npm
+package client
 
 import (
     "bytes"
@@ -10,6 +10,8 @@ import (
     "os"
     "strings"
     "wio/cmd/wio/errors"
+
+    "wio/cmd/wio/toolchain/npm"
 
     "github.com/mholt/archiver"
 )
@@ -60,15 +62,15 @@ func urlResolve(values ...string) string {
     return result[:len(result)-1]
 }
 
-func fetchPackageData(name string) (*Data, error) {
-    var data Data
+func FetchPackageData(name string) (*npm.Data, error) {
+    var data npm.Data
     url := urlResolve(registryBaseUrl, name)
     status, err := getJson(npmClient, url, &data)
     if err != nil {
         return nil, err
     }
     if status == http.StatusNotFound {
-       return nil, errors.Stringf("package not found: %s", name)
+        return nil, errors.Stringf("package not found: %s", name)
     }
     if status != http.StatusOK {
         return nil, errors.Stringf("registry GET (%s) returned %d", url, status)
@@ -76,9 +78,9 @@ func fetchPackageData(name string) (*Data, error) {
     return &data, nil
 }
 
-func fetchPackageVersion(name string, versionStr string) (*Version, error) {
+func FetchPackageVersion(name string, versionStr string) (*npm.Version, error) {
     // assumes `versionStr` is a hard version
-    var version Version
+    var version npm.Version
     url := urlResolve(registryBaseUrl, name, versionStr)
     status, err := getJson(npmClient, url, &version)
     if err != nil {

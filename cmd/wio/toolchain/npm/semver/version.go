@@ -1,10 +1,10 @@
 package semver
 
 import (
-    "regexp"
-    "strings"
-    "strconv"
     "fmt"
+    "regexp"
+    "strconv"
+    "strings"
 )
 
 var match = regexp.MustCompile(`^=?v?[0-9]+\.[0-9]+\.[0-9]+(-[0-9a-zA-Z]+(\.[0-9]+)?)?$`)

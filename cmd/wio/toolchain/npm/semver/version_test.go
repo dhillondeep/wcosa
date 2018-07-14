@@ -2,6 +2,7 @@ package semver
 
 import (
     "testing"
+
     "github.com/stretchr/testify/assert"
 )
 
@@ -60,7 +61,7 @@ func TestVersion_less(t *testing.T) {
     assert.True(t, b.less(a))
     assert.False(t, a.less(b))
 
-    a = &Version{4,100, 99}
+    a = &Version{4, 100, 99}
     assert.True(t, b.less(a))
     assert.False(t, a.less(b))
 

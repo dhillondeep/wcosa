@@ -18,8 +18,8 @@ type Data struct {
 }
 
 type Repository struct {
-    PType string `json:"type"`
-    Url   string `json:"url"`
+    Type string `json:"type"`
+    Url  string `json:"url"`
 }
 
 type Author struct {

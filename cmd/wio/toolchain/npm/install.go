@@ -3,9 +3,9 @@ package npm
 import (
     "os"
     "wio/cmd/wio/errors"
-    "wio/cmd/wio/utils/io"
-    "wio/cmd/wio/types"
     "wio/cmd/wio/log"
+    "wio/cmd/wio/types"
+    "wio/cmd/wio/utils/io"
 )
 
 type versionQuery int
@@ -58,8 +58,8 @@ func installPackages(dir string, config types.IConfig) error {
         depNodes = append(depNodes, depNode)
     }
     root := &depTreeNode{
-        name: config.Name(),
-        version: config.Version(),
+        name:     config.Name(),
+        version:  config.Version(),
         children: depNodes,
     }
     info := newTreeInfo(dir)

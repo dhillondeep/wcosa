@@ -1,28 +1,29 @@
-package npm
+package resolve
 
 import (
-    "wio/cmd/wio/types"
-    "wio/cmd/wio/utils/io"
     "wio/cmd/wio/errors"
+    "wio/cmd/wio/toolchain/npm"
+    "wio/cmd/wio/types"
     "wio/cmd/wio/utils"
+    "wio/cmd/wio/utils/io"
 )
 
-func getOrFetchVersion(name string, ver string, dir string) (*Version, error) {
+func findVersion(name string, ver string, dir string) (*npm.Version, error) {
     config, err := tryFindConfig(name, ver, dir)
     if err != nil {
         return nil, err
     }
-    if config != nil {
-        return configToVersion(config), nil
+    if config == nil {
+        return nil, nil
     }
-    return fetchPackageVersion(name, ver)
+    return configToVersion(config), nil
 }
 
 // Only Name, Version, and Dependencies are needed for dependency resolution
-func configToVersion(config *types.PkgConfig) *Version {
-    return &Version{
-        Name: config.Name(),
-        Version: config.Version(),
+func configToVersion(config *types.PkgConfig) *npm.Version {
+    return &npm.Version{
+        Name:         config.Name(),
+        Version:      config.Version(),
         Dependencies: config.Dependencies(),
     }
 }
@@ -35,11 +36,11 @@ func configToVersion(config *types.PkgConfig) *Version {
 //
 // Function returns nil error and nil result if not found.
 // Vendor is preferred to allow overrides.
-func tryFindConfig(name string, ver string, baseDir string) (*types.PkgConfig, error) {
+func tryFindConfig(name string, ver string, dir string) (*types.PkgConfig, error) {
     paths := []string{
-        io.Path(baseDir, io.Vendor, name),
-        io.Path(baseDir, io.Vendor, name+"__"+ver),
-        io.Path(baseDir, io.Folder, io.Modules, name+"__"+ver),
+        io.Path(dir, io.Vendor, name),
+        io.Path(dir, io.Vendor, name+"__"+ver),
+        io.Path(dir, io.Folder, io.Modules, name+"__"+ver),
     }
     var config *types.PkgConfig = nil
     for i := 0; config == nil && i < len(paths); i++ {
