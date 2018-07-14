@@ -1,8 +1,7 @@
 package npm
 
 import (
-    "github.com/deckarep/golang-set"
-    "sort"
+    "wio/cmd/wio/log"
 )
 
 type depTreeNode struct {
@@ -15,11 +14,6 @@ type depTreeInfo struct {
     baseDir    string
     cache      map[string]map[string]*packageVersion
     data       map[string]*packageData
-    unresolved map[string]mapset.Set
-    versions   map[string]versionList
-
-    resLeast map[string]string
-    resNear  map[string]map[int]string
 }
 
 func newTreeInfo(dir string) *depTreeInfo {
@@ -27,10 +21,6 @@ func newTreeInfo(dir string) *depTreeInfo {
         baseDir: dir,
         cache: map[string]map[string]*packageVersion{},
         data: map[string]*packageData{},
-        unresolved: map[string]mapset.Set{},
-        versions: map[string]versionList,
-        resLeast: map[string]string{},
-        resNear: map[string]map[int]string{},
     }
 }
 

@@ -270,6 +270,14 @@ type DependencyTag struct {
 // type for the libraries tag in the main wio.yml file
 type DependenciesTag map[string]*DependencyTag
 
+func (deps DependenciesTag) collect() map[string]string {
+    depMap := map[string]string{}
+    for name, dep := range deps {
+        depMap[name] = dep.Version
+    }
+    return depMap
+}
+
 // ############################################### Project ##################################################
 
 type MainTag interface {
@@ -417,6 +425,10 @@ type IConfig interface {
     GetTargets() Targets
     GetDependencies() DependenciesTag
     SetDependencies(tag DependenciesTag)
+
+    Name() string
+    Version() string
+    Dependencies() map[string]string
 }
 
 type AppConfig struct {
@@ -443,6 +455,18 @@ func (config *AppConfig) GetDependencies() DependenciesTag {
 
 func (config *AppConfig) SetDependencies(tag DependenciesTag) {
     config.DependenciesTag = tag
+}
+
+func (config *AppConfig) Name() string {
+    return config.MainTag.Name
+}
+
+func (config *AppConfig) Version() string {
+    return config.MainTag.GetVersion()
+}
+
+func (config *AppConfig) Dependencies() map[string]string {
+    return config.GetDependencies().collect()
 }
 
 type PkgConfig struct {
@@ -480,11 +504,7 @@ func (config *PkgConfig) Version() string {
 }
 
 func (config *PkgConfig) Dependencies() map[string]string {
-    depMap := map[string]string{}
-    for name, dep := range config.DependenciesTag {
-        depMap[name] = dep.Version
-    }
-    return depMap
+    return config.GetDependencies().collect()
 }
 
 type NpmDependencyTag map[string]string
@@ -524,7 +544,7 @@ func (config *AppConfig) PrettyPrint(path string) error {
 }
 
 func PrettyPrint(config IConfig, path string) error {
-   return prettyPrintHelp(config, path, false)
+    return prettyPrintHelp(config, path, false)
 }
 
 // Write configuration with nice spacing and information

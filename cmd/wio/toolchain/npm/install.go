@@ -4,6 +4,8 @@ import (
     "os"
     "wio/cmd/wio/errors"
     "wio/cmd/wio/utils/io"
+    "wio/cmd/wio/types"
+    "wio/cmd/wio/log"
 )
 
 type versionQuery int
@@ -29,48 +31,6 @@ func getVersionQuery(versionStr string) (versionQuery, error) {
     }
 }
 
-func findPackage(pkgData *packageData, versionStr string) (*packageVersion, error) {
-    name := pkgData.Name
-    if len(pkgData.Versions) <= 0 {
-        return nil, errors.Stringf("package %s found but no versions exist", name)
-    }
-    // check for dist tag version
-    if distTag, exists := pkgData.DistTags[versionStr]; exists {
-        versionStr = distTag
-    }
-    queryType, err := getVersionQuery(versionStr)
-    if err != nil {
-        return nil, err
-    }
-    if queryType == equal {
-        if pkgVersion, exists := pkgData.Versions[versionStr]; exists {
-            return &pkgVersion, nil
-        }
-        return nil, errors.Stringf("package %s@%s does not exist", name, versionStr)
-    }
-    versionStrList := make([]string, 0, len(pkgData.Versions))
-    for versionKey := range pkgData.Versions {
-        versionStrList = append(versionStrList, versionKey)
-    }
-    sortedVersions, err := sortedVersionList(versionStrList)
-    queryVersion, err := strtover(versionStr[1:])
-    if err != nil {
-        return nil, err
-    }
-    var version version
-    switch queryType {
-    case atLeast:
-        version, err = sortedVersions.findAtLeast(queryVersion)
-        if err != nil {
-            return nil, err
-        }
-    case near:
-        version = sortedVersions.findNearest(queryVersion)
-    }
-    pkgVersion := pkgData.Versions[vertostr(version)]
-    return &pkgVersion, nil
-}
-
 // Removes `.wio.js` and `package.json` from extracted tarball
 func removePackageExtras(pkgDir string) error {
     if err := os.Remove(io.Path(pkgDir, ".wio.js")); err != nil {
@@ -94,7 +54,7 @@ func installPackages(dir string, config types.IConfig) error {
     deps := config.GetDependencies()
     depNodes := make([]*depTreeNode, 0, len(deps))
     for name, depTag := range deps {
-        depNode = &depTreeNode{name: name, version: depTag.Version}
+        depNode := &depTreeNode{name: name, version: depTag.Version}
         depNodes = append(depNodes, depNode)
     }
     root := &depTreeNode{
@@ -103,8 +63,8 @@ func installPackages(dir string, config types.IConfig) error {
         children: depNodes,
     }
     info := newTreeInfo(dir)
-    for depNode := range root.children {
-        if err := buildDependencyTree(depNode, info, false); err != nil {
+    for _, depNode := range root.children {
+        if err := buildDependencyTree(depNode, info); err != nil {
             return err
         }
     }
@@ -113,4 +73,6 @@ func installPackages(dir string, config types.IConfig) error {
             log.Infoln("%s@%s", name, version)
         }
     }
+
+    return nil
 }
