@@ -31,12 +31,12 @@ func (list List) Sort() {
 }
 
 func (list List) Insert(v *Version) List {
-	for _, el := range list {
-		if el.eq(v) {
-			return list
-		}
-	}
-	list = append(list, v)
-	list.Sort()
-	return list
+    for _, el := range list {
+        if el.eq(v) {
+            return list
+        }
+    }
+    list = append(list, v)
+    list.Sort()
+    return list
 }

@@ -15,7 +15,7 @@ type Info struct {
     dir  string
     data DataCache
     ver  VerCache
-	res ResCache
+    res  ResCache
 
     resolve ListMap
     lists   ListMap
@@ -31,12 +31,12 @@ type Node struct {
 
 func NewInfo(dir string) *Info {
     return &Info{
-        dir:  dir,
-        data: DataCache{},
-        ver:  VerCache{},
-		res: ResCache{},
-		resolve: ListMap{},
-		lists: ListMap{},
+        dir:     dir,
+        data:    DataCache{},
+        ver:     VerCache{},
+        res:     ResCache{},
+        resolve: ListMap{},
+        lists:   ListMap{},
     }
 }
 
@@ -69,20 +69,20 @@ func (i *Info) setVer(name string, ver string, data *npm.Version) {
 }
 
 func (i *Info) SetRes(name string, query string, ver *semver.Version) {
-	if data, exists := i.res[name]; exists {
-		data[query] = ver
-	} else {
-		i.res[name] = map[string]*semver.Version{query: ver}
-	}
+    if data, exists := i.res[name]; exists {
+        data[query] = ver
+    } else {
+        i.res[name] = map[string]*semver.Version{query: ver}
+    }
 }
 
 func (i *Info) GetRes(name string, query string) *semver.Version {
-	if data, exists := i.res[name]; exists {
-		if ret, exists := data[query]; exists {
-			return ret
-		}
-	}
-	return nil
+    if data, exists := i.res[name]; exists {
+        if ret, exists := data[query]; exists {
+            return ret
+        }
+    }
+    return nil
 }
 
 func (i *Info) GetData(name string) (*npm.Data, error) {
@@ -134,10 +134,10 @@ func (i *Info) GetList(name string) (semver.List, error) {
     vers := data.Versions
     list := make(semver.List, 0, len(vers))
     for ver := range vers {
-		parse := semver.Parse(ver)
-		if parse != nil {
-        	list = append(list, semver.Parse(ver))
-		}
+        parse := semver.Parse(ver)
+        if parse != nil {
+            list = append(list, semver.Parse(ver))
+        }
     }
     list.Sort()
     i.lists[name] = list
@@ -145,5 +145,5 @@ func (i *Info) GetList(name string) (semver.List, error) {
 }
 
 func (i *Info) StoreVer(name string, ver *semver.Version) {
-	i.resolve[name] = i.resolve[name].Insert(ver)
+    i.resolve[name] = i.resolve[name].Insert(ver)
 }

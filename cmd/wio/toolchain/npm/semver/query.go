@@ -210,7 +210,7 @@ func parseIncompl(str string) *Version {
 func parseCmpQuery(str string) *singleBound {
     loc := opMatch.FindStringIndex(str)
     opStr := str[loc[0]:loc[1]]
-	verStr := strings.Trim(str[loc[1]:], " ")
+    verStr := strings.Trim(str[loc[1]:], " ")
     return &singleBound{op: queryMap[opStr], ver: parseIncompl(verStr)}
 }
 
@@ -335,7 +335,7 @@ func parseAndQuery(str string) *dualBound {
     bounds := spaceMatch.Split(str, -1)
     return &dualBound{
         lower: parseCmpQuery(bounds[0]),
-        upper: parseCmpQuery("<"+bounds[1]),
+        upper: parseCmpQuery("<" + bounds[1]),
     }
 }
 
