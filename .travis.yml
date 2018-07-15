@@ -1,0 +1,16 @@
+language: go
+
+go:
+  - "1.10.2"
+
+go_import_path: wio
+
+before_install:
+  - source wenv
+
+install:
+  - wmake linux-setup
+
+script:
+  - go test -v ./...
+  - wmake build

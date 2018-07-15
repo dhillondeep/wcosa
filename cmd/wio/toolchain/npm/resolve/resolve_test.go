@@ -1,5 +1,6 @@
 package resolve
 
+/*
 import (
     "testing"
     "wio/cmd/wio/log"
@@ -33,3 +34,4 @@ func printTree(node *Node, pre string) {
         printTree(node.deps[len(node.deps)-1], pre+"   ")
     }
 }
+*/
