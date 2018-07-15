@@ -20,9 +20,9 @@ func (cmd Cmd) GetContext() *cli.Context {
 
 func (cmd Cmd) Execute() error {
     dir, err := commands.GetDirectory(cmd)
-	if err != nil {
-		return err
-	}
+    if err != nil {
+        return err
+    }
     info := resolve.NewInfo(dir)
     name, ver, err := cmd.getArgs(info)
     if err != nil {
@@ -32,15 +32,21 @@ func (cmd Cmd) Execute() error {
     if err != nil {
         return err
     }
-    config.GetDependencies()[name] = &types.DependencyTag{
+    log.Infoln(log.Cyan, "Adding dependency %s@%s", name, ver)
+    deps := config.GetDependencies()
+    if prev, exists := deps[name]; exists && prev.Version != ver {
+        log.Warnln("Replacing previous version %s", prev.Version)
+    } else if exists {
+        log.Warnln("Same version already exists")
+    }
+    deps[name] = &types.DependencyTag{
         Version:        ver,
         Vendor:         false,
         LinkVisibility: "PRIVATE",
     }
-    log.Infoln(log.Cyan, "Adding dependency %s@%s", name, ver)
     if err := utils.WriteWioConfig(dir, config); err != nil {
         return err
     }
 
-	return nil
+    return nil
 }

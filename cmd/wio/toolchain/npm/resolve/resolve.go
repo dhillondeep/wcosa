@@ -24,6 +24,18 @@ func (i *Info) GetLatest(name string) (string, error) {
     return list.Last().Str(), nil
 }
 
+func (i *Info) Exists(name string, ver string) (bool, error) {
+    if ret := semver.Parse(ver); ret == nil {
+        return false, errors.Stringf("invalid version %s", ver)
+    }
+    data, err := i.GetData(name)
+    if err != nil {
+        return false, err
+    }
+    _, exists := data.Versions[ver]
+    return exists, nil
+}
+
 func (i *Info) ResolveTree(root *Node) error {
     if ret := i.GetRes(root.name, root.ver); ret != nil {
         root.resolve = ret
