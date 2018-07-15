@@ -12,6 +12,10 @@ import (
 
 type Cmd struct {
     Context *cli.Context
+
+    dir string
+    info *resolve.Info
+    config types.IConfig
 }
 
 func (cmd Cmd) GetContext() *cli.Context {
@@ -19,21 +23,33 @@ func (cmd Cmd) GetContext() *cli.Context {
 }
 
 func (cmd Cmd) Execute() error {
-    dir, err := commands.GetDirectory(cmd)
+    var err error
+    cmd.dir, err = commands.GetDirectory(cmd)
     if err != nil {
         return err
     }
-    info := resolve.NewInfo(dir)
-    name, ver, err := cmd.getArgs(info)
+    cmd.config, err = utils.ReadWioConfig(cmd.dir)
     if err != nil {
         return err
     }
-    config, err := utils.ReadWioConfig(dir)
+    cmd.info = resolve.NewInfo(cmd.dir)
+
+    if len(cmd.Context.Args()) > 0 {
+        if err := cmd.AddDependency(); err != nil {
+            return err
+        }
+    }
+
+    return nil
+}
+
+func (cmd Cmd) AddDependency() error {
+    name, ver, err := cmd.getArgs(cmd.info)
     if err != nil {
         return err
     }
     log.Infoln(log.Cyan, "Adding dependency %s@%s", name, ver)
-    deps := config.GetDependencies()
+    deps := cmd.config.GetDependencies()
     if prev, exists := deps[name]; exists && prev.Version != ver {
         log.Warnln("Replacing previous version %s", prev.Version)
     } else if exists {
@@ -44,9 +60,5 @@ func (cmd Cmd) Execute() error {
         Vendor:         false,
         LinkVisibility: "PRIVATE",
     }
-    if err := utils.WriteWioConfig(dir, config); err != nil {
-        return err
-    }
-
-    return nil
+    return utils.WriteWioConfig(cmd.dir, cmd.config)
 }

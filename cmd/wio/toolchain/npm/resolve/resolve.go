@@ -3,6 +3,7 @@ package resolve
 import (
     "wio/cmd/wio/errors"
     "wio/cmd/wio/toolchain/npm/semver"
+    "wio/cmd/wio/types"
 )
 
 const (
@@ -34,6 +35,21 @@ func (i *Info) Exists(name string, ver string) (bool, error) {
     }
     _, exists := data.Versions[ver]
     return exists, nil
+}
+
+func (i *Info) ResolveRemote(config types.IConfig) error {
+    root := &Node{name: config.Name(), ver: config.Version()}
+    deps := config.Dependencies()
+    for name, ver := range deps {
+        node := &Node{name: name, ver: ver}
+        root.deps = append(root.deps, node)
+    }
+    for _, dep := range root.deps {
+        if err := i.ResolveTree(dep); err != nil {
+            return err
+        }
+    }
+    return nil
 }
 
 func (i *Info) ResolveTree(root *Node) error {
