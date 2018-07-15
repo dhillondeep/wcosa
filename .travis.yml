@@ -13,5 +13,5 @@ install:
   - wmake travis-setup
 
 script:
-  - go test -v ./...
   - wmake build
+  - go test -v ./...
