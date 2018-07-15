@@ -14,7 +14,14 @@ import (
 )
 
 func (create Create) updateApp(directory string, config *types.AppConfig) error {
-    return nil
+    info := &createInfo{
+        context:     create.Context,
+        directory:   directory,
+        projectType: constants.APP,
+        name:        config.MainTag.GetName(),
+    }
+    log.Info(log.Cyan, "updating app files ... ")
+    return info.update(config)
 }
 
 func (create Create) updatePackage(directory string, config *types.PkgConfig) error {
@@ -26,6 +33,10 @@ func (create Create) updatePackage(directory string, config *types.PkgConfig) er
     }
 
     log.Info(log.Cyan, "updating package files ... ")
+    return info.update(config)
+}
+
+func (info *createInfo) update(config types.IConfig) error {
     queue := log.GetQueue()
     if err := updateProjectFiles(queue, info); err != nil {
         log.WriteFailure()
@@ -47,13 +58,13 @@ func (create Create) updatePackage(directory string, config *types.PkgConfig) er
     log.Writeln()
     log.Infoln(log.Yellow.Add(color.Underline), "Project update summary")
     log.Info(log.Cyan, "path             ")
-    log.Writeln(directory)
+    log.Writeln(info.directory)
     log.Info(log.Cyan, "project name     ")
     log.Writeln(info.name)
     log.Info(log.Cyan, "wio version      ")
     log.Writeln(config.GetMainTag().GetConfigurations().WioVersion)
     log.Info(log.Cyan, "project type     ")
-    log.Writeln("pkg")
+    log.Writeln(info.projectType)
 
     return nil
 }
@@ -76,12 +87,12 @@ func (create Create) handleUpdate(directory string) error {
 }
 
 // Update configurations
-func updateConfig(queue *log.Queue, config *types.PkgConfig, info *createInfo) error {
+func updateConfig(queue *log.Queue, config types.IConfig, info *createInfo) error {
     switch info.projectType {
     case constants.APP:
-        return updateAppConfig(queue, config, info)
+        return updateAppConfig(queue, config.(*types.AppConfig), info)
     case constants.PKG:
-        return updatePackageConfig(queue, config, info)
+        return updatePackageConfig(queue, config.(*types.PkgConfig), info)
     }
     return nil
 }
@@ -108,16 +119,13 @@ func updatePackageConfig(queue *log.Queue, config *types.PkgConfig, info *create
     return config.PrettyPrint(configPath)
 }
 
-func updateAppConfig(queue *log.Queue, config *types.PkgConfig, info *createInfo) error {
+func updateAppConfig(queue *log.Queue, config *types.AppConfig, info *createInfo) error {
     // Ensure a minimum wio version is specified
     if strings.Trim(config.MainTag.Config.WioVersion, " ") == "" {
         return errors.String("wio.yml missing `minimum_wio_version`")
     }
     if config.MainTag.GetName() != filepath.Base(info.directory) {
         log.Warnln(queue, "Base directory different from project name")
-    }
-    if strings.Trim(config.MainTag.Meta.Version, " ") == "" {
-        config.MainTag.Meta.Version = "0.0.1"
     }
     configPath := info.directory + io.Sep + io.Config
     return config.PrettyPrint(configPath)
@@ -133,9 +141,9 @@ func updateProjectFiles(queue *log.Queue, info *createInfo) error {
     } else {
         log.WriteSuccess(queue, log.VERB)
     }
-    dataType := &structureData.App
+    dataType := &structureData.Pkg
     if info.projectType == constants.APP {
-        dataType = &structureData.Pkg
+        dataType = &structureData.App
     }
     copyProjectAssets(queue, info, dataType)
     return nil
