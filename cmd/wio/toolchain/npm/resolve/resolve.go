@@ -41,6 +41,9 @@ func (i *Info) ResolveRemote(config types.IConfig) error {
     logResolveStart(config)
 
     root := &Node{name: config.Name(), ver: config.Version()}
+    if root.resolve = semver.Parse(root.ver); root.resolve == nil {
+        return errors.Stringf("project has invalid version %s", root.ver)
+    }
     deps := config.Dependencies()
     for name, ver := range deps {
         node := &Node{name: name, ver: ver}
@@ -52,7 +55,7 @@ func (i *Info) ResolveRemote(config types.IConfig) error {
         }
     }
 
-    logResolveDone()
+    logResolveDone(root)
     return nil
 }
 
