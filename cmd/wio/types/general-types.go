@@ -450,6 +450,9 @@ func (config *AppConfig) GetTargets() Targets {
 }
 
 func (config *AppConfig) GetDependencies() DependenciesTag {
+	if config.DependenciesTag == nil {
+		config.DependenciesTag = DependenciesTag{}
+	}
     return config.DependenciesTag
 }
 
@@ -488,6 +491,9 @@ func (config *PkgConfig) GetTargets() Targets {
 }
 
 func (config *PkgConfig) GetDependencies() DependenciesTag {
+	if config.DependenciesTag == nil {
+		config.DependenciesTag = DependenciesTag{}
+	}
     return config.DependenciesTag
 }
 

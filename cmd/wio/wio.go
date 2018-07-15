@@ -184,7 +184,7 @@ var cmd = []cli.Command{
                 Usage:     "Add a vendored package as a dependency.",
                 UsageText: "wio vendor add [package]",
                 Action: func(c *cli.Context) {
-                    command = vendor.Cmd{Context: c, Op: vendor.Remove}
+                    command = vendor.Cmd{Context: c, Op: vendor.Add}
                 },
             },
             {
@@ -192,7 +192,7 @@ var cmd = []cli.Command{
                 Usage:     "Remove a vendor dependency.",
                 UsageText: "wio vendor rm [package]",
                 Action: func(c *cli.Context) {
-                    command = vendor.Cmd{Context: c, Op: vendor.Add}
+                    command = vendor.Cmd{Context: c, Op: vendor.Remove}
                 },
             },
         },

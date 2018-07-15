@@ -40,6 +40,10 @@ func (cmd Cmd) Execute() error {
         }
     }
 
+    if err := cmd.info.ResolveRemote(cmd.config); err != nil {
+        return err
+    }
+
     return nil
 }
 
