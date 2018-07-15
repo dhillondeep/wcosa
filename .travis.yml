@@ -10,7 +10,7 @@ before_install:
   - source wenv
 
 install:
-  - wmake linux-setup
+  - wmake travis-setup
 
 script:
   - go test -v ./...

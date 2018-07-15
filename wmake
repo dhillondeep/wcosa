@@ -24,6 +24,7 @@ HEREDOC
 
 #### Variables ####
 GO_VERSION=1.10.2
+TRAVIS=false
 
 _build() {
     make build
@@ -62,7 +63,9 @@ _linux_setup() {
     printf "Done!\n"
 
     printf "Installing gotools..."
-    sudo apt-get install golang-golang-x-tools
+    if [ "$TRAVIS" = false ] ; then
+        sudo apt-get install golang-golang-x-tools
+    fi
     printf "Done!\n"
 
     printf "Linking toolchain... "
@@ -112,6 +115,10 @@ _simple() {
         _get
     elif [ "$1" == 'linux-setup' ] ; then
         echo "Setting up environment for Linux"
+        _linux_setup
+    elif [ "$1" == 'travis-setup' ] ; then
+        echo "Setting up environment for Travis CI"
+        TRAVIS=true
         _linux_setup
     elif [ "$1" == 'format' ] ; then
         echo "Formatting wio codebase"
