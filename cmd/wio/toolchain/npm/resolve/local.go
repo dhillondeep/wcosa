@@ -67,7 +67,8 @@ func tryFindConfig(name string, ver string, dir string) (*types.PkgConfig, error
     return config, nil
 }
 
-func tryGetConfig(wioPath string) (*types.PkgConfig, error) {
+func tryGetConfig(path string) (*types.PkgConfig, error) {
+    wioPath := io.Path(path, io.Config)
     if !io.Exists(wioPath) {
         return nil, nil
     }

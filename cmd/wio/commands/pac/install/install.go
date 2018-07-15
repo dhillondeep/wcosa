@@ -52,7 +52,8 @@ func (cmd Cmd) AddDependency() error {
     if err != nil {
         return err
     }
-    log.Infoln(log.Cyan, "Adding dependency %s@%s", name, ver)
+    log.Info(log.Cyan, "Adding dependency: ")
+    log.Infoln(log.Green, "%s@%s", name, ver)
     deps := cmd.config.GetDependencies()
     if prev, exists := deps[name]; exists && prev.Version != ver {
         log.Warnln("Replacing previous version %s", prev.Version)
