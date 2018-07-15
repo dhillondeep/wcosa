@@ -40,3 +40,10 @@ func (list List) Insert(v *Version) List {
     list.Sort()
     return list
 }
+
+func (list List) Last() *Version {
+    if len(list) == 0 {
+        return nil
+    }
+    return list[len(list)-1]
+}

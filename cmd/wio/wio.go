@@ -14,6 +14,8 @@ import (
     "wio/cmd/wio/commands/create"
     "wio/cmd/wio/commands/devices"
     "wio/cmd/wio/commands/pac"
+    "wio/cmd/wio/commands/pac/install"
+    "wio/cmd/wio/commands/pac/vendor"
     "wio/cmd/wio/commands/run"
     "wio/cmd/wio/config"
     "wio/cmd/wio/constants"
@@ -182,7 +184,7 @@ var cmd = []cli.Command{
                 Usage:     "Add a vendored package as a dependency.",
                 UsageText: "wio vendor add [package]",
                 Action: func(c *cli.Context) {
-                    command = pac.Vendor{Context: c, Op: pac.Add}
+                    command = vendor.Cmd{Context: c, Op: vendor.Remove}
                 },
             },
             {
@@ -190,8 +192,17 @@ var cmd = []cli.Command{
                 Usage:     "Remove a vendor dependency.",
                 UsageText: "wio vendor rm [package]",
                 Action: func(c *cli.Context) {
+                    command = vendor.Cmd{Context: c, Op: vendor.Add}
                 },
             },
+        },
+    },
+    {
+        Name:      "install",
+        Usage:     "Install packages from remote server.",
+        UsageText: "wio install [name] [version]",
+        Action: func(c *cli.Context) {
+            command = install.Cmd{Context: c}
         },
     },
 

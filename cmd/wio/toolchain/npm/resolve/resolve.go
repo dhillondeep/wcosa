@@ -5,6 +5,25 @@ import (
     "wio/cmd/wio/toolchain/npm/semver"
 )
 
+const (
+    Latest = "latest"
+)
+
+func (i *Info) GetLatest(name string) (string, error) {
+    data, err := i.GetData(name)
+    if err != nil {
+        return "", err
+    }
+    if ver, exists := data.DistTags[Latest]; exists {
+        return ver, nil
+    }
+    list, err := i.GetList(name)
+    if err != nil {
+        return "", err
+    }
+    return list.Last().Str(), nil
+}
+
 func (i *Info) ResolveTree(root *Node) error {
     if ret := i.GetRes(root.name, root.ver); ret != nil {
         root.resolve = ret
