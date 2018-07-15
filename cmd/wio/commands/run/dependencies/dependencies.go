@@ -246,6 +246,25 @@ func CreateCMakeDependencyTargets(
 
         fullName := dependencyName + "@" + packageVersions[dependencyName]
 
+        // replace flags and definitions placeholder syntax for the main package
+        if projectType == constants.PKG && dependencyName != projectName {
+            // replace placeholder flags for the main project
+            filledFlags, err := fillPlaceholderFlags(projectDependencies[projectName].Flags,
+                projectDependency.Flags, fullName)
+            if err != nil {
+                return err
+            }
+            projectDependency.Flags = filledFlags
+
+            // replace placeholder definitions for the main project
+            filledDefinitions, err := fillPlaceholderFlags(projectDependencies[projectName].Definitions,
+                projectDependency.Definitions, fullName)
+            if err != nil {
+                return err
+            }
+            projectDependency.Definitions = filledDefinitions
+        }
+
         if projectDependency.Vendor {
             dependencyTargetName = dependencyName + "__vendor"
         } else {

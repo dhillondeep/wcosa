@@ -50,9 +50,8 @@ _linux_setup() {
         exit 1;
     fi
 
-    printf "Retrieving dependencies... "
+    printf "Retrieving dependencies...\n"
     make get
-    printf "Done!\n"
 
     printf "Installing system library... "
     go get golang.org/x/sys/unix
@@ -64,7 +63,7 @@ _linux_setup() {
 
     printf "Installing gotools..."
     if [ "$TRAVIS" = false ] ; then
-        sudo apt-get install golang-golang-x-tools
+        go get -u golang.org/x/tools/...
     fi
     printf "Done!\n"
 
@@ -115,6 +114,9 @@ _simple() {
         _get
     elif [ "$1" == 'linux-setup' ] ; then
         echo "Setting up environment for Linux"
+        _linux_setup
+    elif [ "$1" == 'mac-setup' ]; then
+        echo "Setting up environment for Mac OS"
         _linux_setup
     elif [ "$1" == 'travis-setup' ] ; then
         echo "Setting up environment for Travis CI"
