@@ -15,11 +15,13 @@ import (
 )
 
 const (
-    Config  = "wio.yml"
-    Folder  = ".wio"
-    Modules = "node_modules"
-    Vendor  = "vendor"
-    Package = "pkg_module"
+    Folder   = ".wio"
+    Temp     = ".tmp"
+    Config   = "wio.yml"
+    Modules  = "node_modules"
+    Vendor   = "vendor"
+    Package  = "pkg_module"
+    Download = "cache"
 )
 
 const (

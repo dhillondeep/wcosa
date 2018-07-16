@@ -43,8 +43,7 @@ func (cmd Cmd) Execute() error {
     if err := cmd.info.ResolveRemote(cmd.config); err != nil {
         return err
     }
-
-    return nil
+	return cmd.info.InstallResolved()
 }
 
 func (cmd Cmd) AddDependency() error {
