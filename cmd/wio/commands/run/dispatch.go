@@ -11,6 +11,8 @@ import (
     "wio/cmd/wio/log"
     "wio/cmd/wio/types"
     "wio/cmd/wio/utils/io"
+
+    "github.com/thoas/go-funk"
 )
 
 type dispatchCmakeFunc func(info *runInfo, target *types.Target) error
@@ -46,7 +48,8 @@ func dispatchCmakeAvr(info *runInfo, target *types.Target) error {
 
     // this means framework was not specified at all
     if framework == "" {
-        message := fmt.Sprintf("No Framework specified by the [%s] target", (*target).GetName())
+        message := fmt.Sprintf("No Framework specified by the [%s] target. Try one of %s",
+            (*target).GetName(), funk.Keys(dispatchCmakeFuncAvrFramework))
         return errors.String(message)
     }
 
@@ -68,7 +71,7 @@ func dispatchCmakeNative(info *runInfo, target *types.Target) error {
     frameworkProvided := strings.Trim(strings.ToLower((*target).GetFramework()), " ")
 
     if frameworkProvided == "" {
-        return errors.Stringf("Framework not provided. You can try c++11, c, or c++11,c11")
+        return errors.Stringf("Framework not provided. You can try c++11, c, or c++11,c11, etc")
     }
 
     return dispatchCmakeNativeGeneric(info, target)

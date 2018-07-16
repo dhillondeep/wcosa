@@ -13,10 +13,10 @@ package-lock.json
 cmd/wio/utils/io/bindata.go
 
 # Toolchain symlink
-toolchain/toolchain
+bin/toolchain
 
 # Test package vendors
-vendor/
+tests/**/*/vendor/
 
 # Test folders
 wio-test/
