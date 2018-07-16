@@ -50,6 +50,9 @@ _linux_setup() {
         exit 1;
     fi
 
+    printf "Initiating submodules...\n"
+    git submodule update --init
+
     printf "Retrieving dependencies...\n"
     make get
 

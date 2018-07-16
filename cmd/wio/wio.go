@@ -395,5 +395,6 @@ func main() {
     err := wio()
     if err != nil {
         log.Errln(err.Error())
+        os.Exit(1)
     }
 }

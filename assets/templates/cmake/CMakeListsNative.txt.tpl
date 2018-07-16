@@ -17,6 +17,16 @@ set(ENTRY {{ENTRY}})
 cmake_minimum_required(VERSION ${CMAKE_VERSION})
 project(${PROJECT_NAME} C CXX ASM)
 
+# Variables
+set(PLATFORM {{PLATFORM}})
+set(FRAMEWORK {{FRAMEWORK}})
+set(BOARD {{BOARD}})
+
+# Ensure uppercase
+string(TOUPPER ${PLATFORM} PLATFORM)
+string(TOUPPER ${FRAMEWORK} FRAMEWORK)
+string(TOUPPER ${BOARD} BOARD)
+
 file(GLOB_RECURSE ${TARGET_NAME}_files
     ${PROJECT_PATH}/${ENTRY}/*.cpp
     ${PROJECT_PATH}/${ENTRY}/*.cc

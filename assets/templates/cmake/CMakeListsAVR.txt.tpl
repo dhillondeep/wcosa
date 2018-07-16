@@ -23,9 +23,14 @@ endif()
 
 # properties
 set(TARGET_NAME {{TARGET_NAME}})
-set(BOARD {{BOARD}})
+set(PLATFORM {{PLATFORM}})
 set(FRAMEWORK {{FRAMEWORK}})
+set(BOARD {{BOARD}})
 set(ENTRY {{ENTRY}})
+
+# ensure uppercase
+string(TOUPPER ${PLATFORM} PLATFORM)
+string(TOUPPER ${FRAMEWORK} FRAMEWORK)
 
 cmake_minimum_required(VERSION ${CMAKE_VERSION})
 project(${PROJECT_NAME} C CXX ASM)

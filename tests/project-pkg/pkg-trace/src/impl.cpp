@@ -1,14 +1,13 @@
 #include <trace.h>
 #include <uart.h>
 
-using namespace serial;
-
-det::trace_t &operator<<(det::trace_t &, const char *str) {
+trace::det::trace_t &operator<<(trace::det::trace_t &, const char *str) {
     serial::printf(str);
-    return serial::trace;
+    return trace::trace;
 }
 
-det::trace_t &operator<<(det::trace_t &, det::endl_t) {
+trace::det::trace_t &operator<<(trace::det::trace_t &, trace::det::endl_t) {
     serial::printf("\n");
-    return serial::trace;
+    return trace::trace;
 }
+

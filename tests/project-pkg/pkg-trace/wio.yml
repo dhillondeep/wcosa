@@ -13,6 +13,7 @@ pkg:
   config:
     minimum_wio_version: 0.3.2
     supported_platforms:
+    - native
     - avr
     supported_frameworks:
     - cosa
@@ -30,10 +31,10 @@ pkg:
     visibility: PRIVATE
 
 targets:
-  default: tests
+  default: cosa-tests
   create:
-    tests:
-      src: tests
+    cosa-tests:
+      src: tests/cosa-tests
       platform: avr
       framework: cosa
       board: uno
@@ -45,6 +46,6 @@ dependencies:
   pkg-uart:
     version: 0.0.1
     vendor: true
-    link_visibility: PRIVATE
+    link_visibility: PUBLIC
     definitions:
     - $(BUFFER_SIZE)
