@@ -64,10 +64,10 @@ _test4() {
 
 _test5() {
     cd ./project-pkg/pkg-list
-    wio clean --hard
+    wio clean --all --hard
     wio update
     wio build --all
-    wio clean
+    wio clean native-tests
     wio build native-tests
     wio build avr-tests
     wio run native-tests
@@ -86,6 +86,9 @@ source ./wenv
 ./wmake clean
 ./wmake build
 cd ./tests
+
+# Remove all build folders
+find ./ -maxdepth 3 -name ".wio" -type d -exec rm -rf {} \;
 
 # Run each test
 for i in `seq 1 $num_tests`; do
