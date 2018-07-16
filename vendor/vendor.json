@@ -4,10 +4,9 @@
 	"package": [
 		{
 			"checksumSHA1": "MgrZY7/hnfr/5Ef0dRgHa5pYua4=",
-			"origin": "go.bug.st/serial.v1/vendor/github.com/creack/goselect",
 			"path": "github.com/creack/goselect",
-			"revision": "eae1344f9f90101f887b08d13391c34399f97873",
-			"revisionTime": "2017-07-28T08:12:30Z"
+			"revision": "58854f77ee8d858ce751b0a9bcc5533fef7bfa9e",
+			"revisionTime": "2018-05-01T19:52:33Z"
 		},
 		{
 			"checksumSHA1": "1xK7ycc1ICRInk/S9iiyB9Rpv50=",
@@ -154,13 +153,6 @@
 			"path": "golang.org/x/sys/unix",
 			"revision": "13d03a9a82fba647c21a0ef8fba44a795d0f0835",
 			"revisionTime": "2018-03-26T12:16:02Z"
-		},
-		{
-			"checksumSHA1": "+mZiO0TdI05VboObjo18vs4sEbg=",
-			"origin": "go.bug.st/serial.v1/vendor/golang.org/x/sys/windows",
-			"path": "golang.org/x/sys/windows",
-			"revision": "eae1344f9f90101f887b08d13391c34399f97873",
-			"revisionTime": "2017-07-28T08:12:30Z"
 		},
 		{
 			"checksumSHA1": "HmUAWd1Jm25cGH4Pyf3Zgp2RhkI=",
