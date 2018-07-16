@@ -2,7 +2,6 @@ package run
 
 import (
     "fmt"
-    "regexp"
     "strings"
     "wio/cmd/wio/commands/run/cmake"
     "wio/cmd/wio/commands/run/dependencies"
@@ -67,13 +66,6 @@ func dispatchCmakeAvr(info *runInfo, target *types.Target) error {
 }
 
 func dispatchCmakeNative(info *runInfo, target *types.Target) error {
-    // perform a check for frameworks
-    frameworkProvided := strings.Trim(strings.ToLower((*target).GetFramework()), " ")
-
-    if frameworkProvided == "" {
-        return errors.Stringf("Framework not provided. You can try c++11, c, or c++11,c11, etc")
-    }
-
     return dispatchCmakeNativeGeneric(info, target)
 }
 
@@ -103,29 +95,7 @@ func dispatchCmakeNativeGeneric(info *runInfo, target *types.Target) error {
     projectName := info.config.GetMainTag().GetName()
     projectPath := info.directory
 
-    frameworks := strings.Split((*target).GetFramework(), ",")
-
-    cDetectionPat := regexp.MustCompile(`c[0-9][0-9]`)
-    cppDetectionPat := regexp.MustCompile(`c\+\+[0-9][0-9]`)
-
-    var cppStandard string
-    var cStandard string
-
-    for _, framework := range frameworks {
-        if cppDetectionPat.MatchString(framework) {
-            cppStandard = strings.Split(framework, "++")[1]
-            framework = strings.Replace(framework, "++", "PP", 1) // use CPP instead of C++
-        } else if framework == "c" {
-            cStandard = "11"
-        } else if cDetectionPat.MatchString(framework) {
-            cStandard = strings.Split(framework, "c")[1]
-        } else {
-            return errors.Stringf("Framework [%s] is not valid. You can try c++11, c, or c++11,c11", framework)
-        }
-    }
-
-    return cmake.GenerateNativeCmakeLists(target, strings.Join(frameworks, ""), cppStandard, cStandard,
-        projectName, projectPath)
+    return cmake.GenerateNativeCmakeLists(target, projectName, projectPath)
 }
 
 func dispatchCmakeDependencies(info *runInfo, target *types.Target) error {
