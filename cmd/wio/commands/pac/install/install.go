@@ -13,8 +13,8 @@ import (
 type Cmd struct {
     Context *cli.Context
 
-    dir string
-    info *resolve.Info
+    dir    string
+    info   *resolve.Info
     config types.IConfig
 }
 
@@ -43,7 +43,7 @@ func (cmd Cmd) Execute() error {
     if err := cmd.info.ResolveRemote(cmd.config); err != nil {
         return err
     }
-	return cmd.info.InstallResolved()
+    return cmd.info.InstallResolved()
 }
 
 func (cmd Cmd) AddDependency() error {

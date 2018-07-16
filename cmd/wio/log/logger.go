@@ -80,7 +80,7 @@ func DisableWarnings() {
 
 // Generic Write function
 func Write(args ...interface{}) bool {
-	a := GetArgs(args...)
+    a := GetArgs(args...)
     if a.newline {
         a.message = a.message + "\n"
     }
@@ -92,12 +92,12 @@ func Write(args ...interface{}) bool {
 }
 
 func write(a *Args) bool {
-	if a.level == VERB && !IsVerbose() {
-		return false
-	}
-	if a.level == WARN && !showWarnings() {
-		return false
-	}
+    if a.level == VERB && !IsVerbose() {
+        return false
+    }
+    if a.level == WARN && !showWarnings() {
+        return false
+    }
     if a.color == nil {
         a.color = Default
     }
@@ -111,21 +111,21 @@ func write(a *Args) bool {
     }
 
     str := fmt.Sprintf(a.message, a.args...)
-	buf := buffer{}
+    buf := buffer{}
     if a.level == WARN || a.level == ERR {
         logTypeColors[a.level].Fprintf(&buf, "%s", logTypeTags[a.level])
         str = " " + str
     }
     a.color.Fprintf(&buf, "%s", str)
 
-	data := []byte(buf)
-	if a.writer != nil {
-		a.writer.Write(data)
-	} else if a.level == WARN || a.level == ERR {
-		logErr.Write(data)
-	} else {
-		logOut.Write(data)
-	}
+    data := []byte(buf)
+    if a.writer != nil {
+        a.writer.Write(data)
+    } else if a.level == WARN || a.level == ERR {
+        logErr.Write(data)
+    } else {
+        logOut.Write(data)
+    }
     return true
 }
 
