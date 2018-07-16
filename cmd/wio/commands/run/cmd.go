@@ -65,6 +65,12 @@ func hardClean(dir string, errChan chan error) {
 func Execute(dir string, name string, args ...string) error {
     cmd := exec.Command(name, args...)
     cmd.Dir = dir
+
+    stdIn, err := cmd.StdinPipe()
+    if err != nil {
+        return err
+    }
+
     stdoutIn, err := cmd.StdoutPipe()
     if err != nil {
         return err
@@ -73,10 +79,12 @@ func Execute(dir string, name string, args ...string) error {
     if err != nil {
         return err
     }
+
     err = cmd.Start()
     if err != nil {
         return err
     }
+    go func() { sysio.Copy(stdIn, os.Stdin) }()
     go func() { sysio.Copy(os.Stdout, stdoutIn) }()
     go func() { sysio.Copy(os.Stderr, stderrIn) }()
     err = cmd.Wait()
