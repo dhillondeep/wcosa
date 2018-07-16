@@ -198,7 +198,7 @@ func CreateCMakeTargets(queue *log.Queue, parentTargetName string, parentTargetH
     sort.Strings(allDefinitions)
     hash := dependencyTargetName + strings.Join(allFlags, "") + strings.Join(allDefinitions, "")
 
-    linkVisibility := strings.ToUpper(configDependency.LinkVisibility)
+    linkVisibility := strings.ToUpper(targetDependency.LinkVisibility)
 
     if val, exists := cmakeTargets[hash]; exists {
         linkVisibility = linkVisibilityVerify(linkVisibility, parentTargetHeaderOnly)

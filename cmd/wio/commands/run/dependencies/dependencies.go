@@ -263,6 +263,8 @@ func CreateCMakeDependencyTargets(
                 return err
             }
             projectDependency.Definitions = filledDefinitions
+
+            continue
         }
 
         if projectDependency.Vendor {
