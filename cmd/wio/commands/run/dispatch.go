@@ -20,8 +20,8 @@ var dispatchCmakeFuncPlatform = map[string]dispatchCmakeFunc{
     constants.NATIVE: dispatchCmakeNative,
 }
 var dispatchCmakeFuncAvrFramework = map[string]dispatchCmakeFunc{
-    constants.COSA: dispatchCmakeAvrGeneric,
-    //constants.ARDUINO: dispatchCmakeAvrGeneric,
+    constants.COSA:    dispatchCmakeAvrCosa,
+    constants.ARDUINO: dispatchCmakeAvrArduino,
 }
 
 func dispatchCmake(info *runInfo, target *types.Target) error {
@@ -74,14 +74,26 @@ func dispatchCmakeNative(info *runInfo, target *types.Target) error {
     return dispatchCmakeNativeGeneric(info, target)
 }
 
-func dispatchCmakeAvrGeneric(info *runInfo, target *types.Target) error {
+func dispatchCmakeAvrCosa(info *runInfo, target *types.Target) error {
     projectName := info.config.GetMainTag().GetName()
     projectPath := info.directory
     port, err := getPort(info)
     if err != nil && info.runType == TypeRun {
         return err
     }
-    return cmake.GenerateAvrCmakeLists(target, projectName, projectPath, port)
+    return cmake.GenerateAvrCmakeLists("toolchain/cmake/CosaToolchain.cmake", target,
+        projectName, projectPath, port)
+}
+
+func dispatchCmakeAvrArduino(info *runInfo, target *types.Target) error {
+    projectName := info.config.GetMainTag().GetName()
+    projectPath := info.directory
+    port, err := getPort(info)
+    if err != nil && info.runType == TypeRun {
+        return err
+    }
+    return cmake.GenerateAvrCmakeLists("toolchain/cmake/ArduinoToolchain.cmake", target,
+        projectName, projectPath, port)
 }
 
 func dispatchCmakeNativeGeneric(info *runInfo, target *types.Target) error {

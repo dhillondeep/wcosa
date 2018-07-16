@@ -18,7 +18,7 @@ __  _  _______ _/  |_  ___________|  |   ____   ____ ______
  \\     /  / __ \\|  | \\  ___/|  | \\/  |_(  <_> |  <_> )  |_> >
   \\/\\_/  (____  /__|  \\___  >__|  |____/\\____/ \\____/|   __/
               \\/          \\/                         |__|
-The Embedded C++ code base builder
+Waterloop code base builder
 HEREDOC
 }
 
@@ -67,8 +67,13 @@ _linux_setup() {
     fi
     printf "Done!\n"
 
+    printf "Getting toolchain (Submodules)... "
+    git submodule update --init --recursive
+    printf "Done!\n"
+
     printf "Linking toolchain... "
     mkdir -p ./bin
+    rm -rf $(pwd)/bin/toolchain
     ln -s -f $(pwd)/toolchain $(pwd)/bin/toolchain
     printf "Done!\n"
 

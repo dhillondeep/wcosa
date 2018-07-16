@@ -32,6 +32,7 @@ func generateCmakeLists(
 
 // This creates the main CMakeLists.txt file for AVR app type project
 func GenerateAvrCmakeLists(
+    toolchainPath string,
     target *types.Target,
     projectName string,
     projectPath string,
@@ -42,7 +43,6 @@ func GenerateAvrCmakeLists(
     framework := (*target).GetFramework()
     buildPath := BuildPath(projectPath) + io.Sep + (*target).GetName()
     templateFile := "CMakeListsAVR"
-    toolchainPath := "toolchain/cmake/CosaToolchain.cmake"
     executablePath, err := io.NormalIO.GetRoot()
     if err != nil {
         return err
