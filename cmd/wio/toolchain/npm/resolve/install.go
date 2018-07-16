@@ -1,14 +1,16 @@
 package resolve
 
 import (
-    "io"
+    sysio "io"
     "net/http"
     "os"
     "path/filepath"
     "strconv"
     "wio/cmd/wio/errors"
     "wio/cmd/wio/toolchain/npm"
-    util "wio/cmd/wio/utils/io"
+    "wio/cmd/wio/utils/io"
+
+    "github.com/mholt/archiver"
 )
 
 func (i *Info) InstallResolved() error {
@@ -36,25 +38,35 @@ func (i *Info) install(name string, ver string, data *npm.Version) error {
     }
 
     file := name + "__" + ver
-    dst := util.Path(i.dir, util.Folder, util.Download, file+".tgz")
-    if util.Exists(dst) {
-        return nil
+    tar := io.Path(i.dir, io.Folder, io.Download, file+".tgz")
+    if !io.Exists(tar) {
+        url := data.Dist.Tarball
+        total, err := contentSize(url)
+        if err != nil {
+            return err
+        }
+        cb := &counter{total: total, cb: installCallback(name, ver)}
+        if err := download(url, tar, cb); err != nil {
+            return err
+        }
     }
 
-    url := data.Dist.Tarball
-    total, err := contentSize(url)
-    if err != nil {
+    modules := io.Path(i.dir, io.Folder, io.Modules)
+    pkg := io.Path(modules, "package")
+    if err := os.RemoveAll(pkg); err != nil {
         return err
     }
-    cb := &counter{total: total, cb: installCallback(name, ver)}
-    return download(url, dst, cb)
+    if err := untar(tar, modules); err != nil {
+        return err
+    }
+    return os.Rename(pkg, io.Path(modules, file))
 }
 
-func download(url string, dst string, cb io.Writer) error {
+func download(url string, dst string, cb sysio.Writer) error {
     if err := os.MkdirAll(filepath.Dir(dst), os.ModePerm); err != nil {
         return err
     }
-    out, err := os.Create(dst + util.Temp)
+    out, err := os.Create(dst + io.Temp)
     if err != nil {
         return err
     }
@@ -64,10 +76,14 @@ func download(url string, dst string, cb io.Writer) error {
         return err
     }
     defer resp.Body.Close()
-    if _, err := io.Copy(out, io.TeeReader(resp.Body, cb)); err != nil {
+    if _, err := sysio.Copy(out, sysio.TeeReader(resp.Body, cb)); err != nil {
         return err
     }
-    return os.Rename(dst+util.Temp, dst)
+    return os.Rename(dst+io.Temp, dst)
+}
+
+func untar(src string, dst string) error {
+    return archiver.TarGz.Open(src, dst)
 }
 
 func installCallback(name string, ver string) callback {
