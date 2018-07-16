@@ -24,6 +24,7 @@ endif()
 # properties
 set(TARGET_NAME {{TARGET_NAME}})
 set(BOARD {{BOARD}})
+set(PLATFORM {{PLATFORM}})
 set(FRAMEWORK {{FRAMEWORK}})
 set(ENTRY {{ENTRY}})
 

@@ -10,6 +10,33 @@ import (
     "wio/cmd/wio/utils/template"
 )
 
+// when all tag is specified, platform will become "" so it can be omitted
+func getPlatform(platformProvided string) string {
+    if platformProvided == "all" {
+        return ""
+    } else {
+        return platformProvided
+    }
+}
+
+// when all tag is specified, framework will become "" so it can be omitted
+func getFramework(frameworkProvided string) string {
+    if frameworkProvided == "all" {
+        return ""
+    } else {
+        return frameworkProvided
+    }
+}
+
+// when all tag is specified, board will become "" so it can be omitted
+func getBoard(boardProvided string) string {
+    if boardProvided == "all" {
+        return ""
+    } else {
+        return boardProvided
+    }
+}
+
 func (info createInfo) fillReadMe(queue *log.Queue, readmeFile string) error {
     log.Verb(queue, "filling README file ... ")
     if err := template.IOReplace(readmeFile, map[string]string{

@@ -91,9 +91,9 @@ func (definitions *AppTargetDefinitions) GetPkgDefinitions() []string {
 // Structure to handle individual target inside targets for project of app AVR type
 type AppTarget struct {
     Src         string
-    Platform    string
-    Framework   string
-    Board       string
+    Platform    string               `yaml:"platform,omitempty"`
+    Framework   string               `yaml:"framework,omitempty"`
+    Board       string               `yaml:"board,omitempty"`
     Flags       AppTargetFlags       `yaml:"flags,omitempty"`
     Definitions AppTargetDefinitions `yaml:"definitions,omitempty"`
 
@@ -193,7 +193,7 @@ func (definitions *PkgTargetDefinitions) GetPkgDefinitions() []string {
 // Structure to handle individual target inside targets for project of pkg type
 type PkgTarget struct {
     Src         string
-    Platform    string
+    Platform    string               `yaml:"platform,omitempty"`
     Framework   string               `yaml:"framework,omitempty"`
     Board       string               `yaml:"board,omitempty"`
     Flags       PkgTargetFlags       `yaml:"flags,omitempty"`

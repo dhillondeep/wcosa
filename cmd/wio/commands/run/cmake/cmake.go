@@ -66,6 +66,9 @@ func GenerateAvrCmakeLists(
 
 func GenerateNativeCmakeLists(
     target *types.Target,
+    framework string,
+    cppStandard string,
+    cStandard string,
     projectName string,
     projectPath string) error {
 
@@ -77,9 +80,11 @@ func GenerateNativeCmakeLists(
     return generateCmakeLists(templateFile, buildPath, map[string]string{
         "PROJECT_PATH":               filepath.ToSlash(projectPath),
         "PROJECT_NAME":               projectName,
+        "CPP_STANDARD":               cppStandard,
+        "C_STANDARD":                 cStandard,
         "TARGET_NAME":                (*target).GetName(),
-        "FRAMEWORK":                  (*target).GetFramework(),
-        "BOARD":                      (*target).GetBoard(),
+        "FRAMEWORK":                  framework,
+        "HARDWARE":                   (*target).GetBoard(),
         "ENTRY":                      (*target).GetSrc(),
         "PLATFORM":                   constants.NATIVE,
         "TARGET_COMPILE_FLAGS":       strings.Join(flags, " "),
