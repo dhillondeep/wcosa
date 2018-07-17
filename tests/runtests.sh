@@ -95,6 +95,14 @@ _test8() {
     wio run main --args "cat wio.yml"
 }
 
+_test9() {
+    cd ./project-app/app-stdout
+    wio clean --hard
+    wio update
+    wio build
+    wio run main --args "15 7"
+}
+
 # Source and build
 cd ./../
 source ./wenv
