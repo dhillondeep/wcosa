@@ -82,6 +82,10 @@ _linux_setup() {
     printf "Done!\n"
 }
 
+_avr_setup() {
+    sudo apt-get install gcc-avr avr-libc avrdude
+}
+
 _format() {
     command -v goimports > /dev/null 2>&1 || {
         echo 'goimports is not installed';
@@ -125,6 +129,10 @@ _simple() {
         echo "Setting up environment for Travis CI"
         TRAVIS=true
         _linux_setup
+        _avr_setup
+    elif [ "$1" == 'avr-setup' ] ; then
+        echo "Installing AVR development dependencies"
+        _avr_setup
     elif [ "$1" == 'format' ] ; then
         echo "Formatting wio codebase"
         _format
