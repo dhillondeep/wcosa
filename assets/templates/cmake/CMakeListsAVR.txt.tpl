@@ -37,10 +37,6 @@ set(FRAMEWORK {{FRAMEWORK}})
 set(BOARD {{BOARD}})
 set(ENTRY {{ENTRY}})
 
-# ensure uppercase
-string(TOUPPER ${PLATFORM} PLATFORM)
-string(TOUPPER ${FRAMEWORK} FRAMEWORK)
-
 cmake_minimum_required(VERSION ${CMAKE_VERSION})
 project(${PROJECT_NAME} C CXX ASM)
 cmake_policy(SET CMP0023 OLD)

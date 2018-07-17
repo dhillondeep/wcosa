@@ -20,7 +20,7 @@ set(CMAKE_C_EXTENSIONS OFF)
 
 # Properties
 set(TARGET_NAME {{TARGET_NAME}})
-set(HARDWARE {{HARDWARE}})
+set(OS {{OS}})
 set(PLATFORM {{PLATFORM}})
 set(FRAMEWORK {{FRAMEWORK}})
 set(ENTRY {{ENTRY}})
@@ -34,11 +34,6 @@ set(PLATFORM {{PLATFORM}})
 set(FRAMEWORK {{FRAMEWORK}})
 set(BOARD {{BOARD}})
 
-# Ensure uppercase
-string(TOUPPER ${PLATFORM} PLATFORM)
-string(TOUPPER ${FRAMEWORK} FRAMEWORK)
-string(TOUPPER ${BOARD} BOARD)
-
 file(GLOB_RECURSE ${TARGET_NAME}_files
     ${PROJECT_PATH}/${ENTRY}/*.cpp
     ${PROJECT_PATH}/${ENTRY}/*.cc
@@ -51,7 +46,7 @@ target_compile_definitions(
     PRIVATE
     WIO_PLATFORM_${PLATFORM}
     WIO_FRAMEWORK_${FRAMEWORK}
-    WIO_HARDWARE_${HARDWARE}
+    WIO_OS_${OS}
     {{TARGET_COMPILE_DEFINITIONS}})
 
 target_compile_options(
