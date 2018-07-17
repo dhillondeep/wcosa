@@ -115,7 +115,7 @@ func GenerateAvrCmakeLists(
         "PORT":                       port,
         "PLATFORM":                   strings.ToUpper(constants.AVR),
         "FRAMEWORK":                  strings.ToUpper(framework),
-        "BOARD":                      strings.ToUpper((*target).GetBoard()),
+        "BOARD":                      (*target).GetBoard(),
         "TARGET_NAME":                (*target).GetName(),
         "ENTRY":                      (*target).GetSrc(),
         "TARGET_COMPILE_FLAGS":       strings.Join(flags, " "),
