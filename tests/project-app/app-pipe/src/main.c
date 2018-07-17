@@ -2,14 +2,15 @@
 #error "BUFFER_SIZE must be defined"
 #endif
 
+#define static_assert(cond, msg) typedef char __static_assertion[(cond) ? 1 : -1]
+
 #include <stdio.h>
 
-static constexpr int buffer_size = BUFFER_SIZE;
-static_assert(buffer_size == 80, "Expected BUFFER_SIZE == 80");
+static_assert(BUFFER_SIZE == 80, "Expected BUFFER_SIZE == 80");
 
 int main(int argc, char *argv[]) {
     FILE *pipe_fp, *infile;
-    static char readbuf[buffer_size];
+    static char readbuf[BUFFER_SIZE];
 
     if (argc != 3) {
         fprintf(stderr, "USAGE: app-pipe [command] [filename]\n");
@@ -25,7 +26,7 @@ int main(int argc, char *argv[]) {
         return 1;
     }
     do {
-        fgets(readbuf, buffer_size, infile);
+        fgets(readbuf, BUFFER_SIZE, infile);
         if (feof(infile)) { break; }
         fputs(readbuf, pipe_fp);
     } while (!feof(infile));

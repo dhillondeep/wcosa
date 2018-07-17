@@ -22,3 +22,6 @@ targets:
       platform: native
       framework: all
       board: all
+      definitions:
+        target_definitions:
+        - BUFFER_SIZE=80

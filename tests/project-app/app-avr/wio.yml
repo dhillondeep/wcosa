@@ -28,6 +28,8 @@ dependencies:
     version: 0.0.1
     vendor: true
     link_visibility: PRIVATE
+    definitions:
+    - STACK_SIZE=256
   pkg-uart:
     version: 0.0.1
     vendor: true
