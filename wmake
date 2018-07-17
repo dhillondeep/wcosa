@@ -134,7 +134,6 @@ _simple() {
         echo "Setting up environment for Travis CI"
         TRAVIS=true
         _linux_setup
-        _avr_setup
     elif [ "$1" == 'avr-setup' ] ; then
         echo "Installing AVR development dependencies"
         _avr_setup

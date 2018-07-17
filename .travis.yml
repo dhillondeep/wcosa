@@ -8,6 +8,8 @@ go_import_path: wio
 
 before_install:
   - source wenv
+  - sudo apt-get update
+  - sudo apt-get install gcc-avr avr-libc avrdude
 
 install:
   - wmake travis-setup
