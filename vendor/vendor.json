@@ -9,13 +9,6 @@
 			"revisionTime": "2018-05-01T19:52:33Z"
 		},
 		{
-			"checksumSHA1": "dvabztWVQX8f6oMLRyv4dLH+TGY=",
-			"origin": "github.com/stretchr/testify/vendor/github.com/davecgh/go-spew/spew",
-			"path": "github.com/davecgh/go-spew/spew",
-			"revision": "f35b8ab0b5a2cef36673838d662e249dd9c94686",
-			"revisionTime": "2018-05-06T18:05:49Z"
-		},
-		{
 			"checksumSHA1": "1xK7ycc1ICRInk/S9iiyB9Rpv50=",
 			"path": "github.com/deckarep/golang-set",
 			"revision": "504e848d77ea4752b3057b8fb46da0e7f746ccf3",
@@ -112,12 +105,6 @@
 			"path": "github.com/pierrec/lz4/internal/xxh32",
 			"revision": "6b9367c9ff401dbc54fabce3fb8d972e799b702d",
 			"revisionTime": "2018-06-10T16:27:16Z"
-		},
-		{
-			"checksumSHA1": "c6pbpF7eowwO59phRTpF8cQ80Z0=",
-			"path": "github.com/stretchr/testify/assert",
-			"revision": "f35b8ab0b5a2cef36673838d662e249dd9c94686",
-			"revisionTime": "2018-05-06T18:05:49Z"
 		},
 		{
 			"checksumSHA1": "js4eiu1ykukY+gSLLDSbJvGqK1c=",
