@@ -51,7 +51,7 @@ _linux_setup() {
     fi
 
     printf "Initiating submodules...\n"
-    git submodule update --init
+    git submodule update --init --recursive
 
     printf "Retrieving dependencies...\n"
     make get
@@ -68,10 +68,6 @@ _linux_setup() {
     if [ "$TRAVIS" = false ] ; then
         go get -u golang.org/x/tools/...
     fi
-    printf "Done!\n"
-
-    printf "Getting toolchain (Submodules)... "
-    git submodule update --init --recursive
     printf "Done!\n"
 
     printf "Linking toolchain... "
