@@ -270,7 +270,7 @@ func (targets *PkgAVRTargets) GetTargets() map[string]Target {
 // Structure to handle individual library inside libraries
 type DependencyTag struct {
     Version               string
-    Vendor                bool
+    Vendor                bool                `yaml:"vendor,omitempty"`
     LinkVisibility        string              `yaml:"link_visibility"`
     Flags                 []string            `yaml:"flags,omitempty"`
     Definitions           []string            `yaml:"definitions"`
