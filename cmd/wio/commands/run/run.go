@@ -145,12 +145,12 @@ func getTargetArgs(info *runInfo) ([]types.Target, error) {
             targets = append(targets, target)
         }
     } else {
-        for _, targetName := range info.targets {
-            if _, exists := projectTargets[targetName]; exists {
-                projectTargets[targetName].SetName(targetName)
-                targets = append(targets, projectTargets[targetName])
+        for _, name := range info.targets {
+            if _, exists := projectTargets[name]; exists {
+                projectTargets[name].SetName(name)
+                targets = append(targets, projectTargets[name])
             } else {
-                log.Warnln("Unrecognized target name: [%s]", targetName)
+				return nil, errors.Stringf("unrecognized target %s", name)
             }
         }
         if len(info.targets) <= 0 {

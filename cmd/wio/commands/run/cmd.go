@@ -6,6 +6,7 @@ import (
     "os"
     "os/exec"
     "runtime"
+    "strings"
     "wio/cmd/wio/log"
     "wio/cmd/wio/utils/io"
 )
@@ -24,8 +25,12 @@ func uploadTarget(dir string) error {
     return Execute(dir, "make", "upload")
 }
 
-func runTarget(dir string, file string) error {
-    return Execute(dir, file)
+func runTarget(dir, file, args string) error {
+    var argv []string
+    if args != "" {
+        argv = strings.Split(args, " ")
+    }
+    return Execute(dir, file, argv...)
 }
 
 func cleanTarget(dir string) error {

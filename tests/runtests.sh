@@ -4,7 +4,7 @@ set -e
 
 test_folder="wio-test"
 base_folder=$(pwd)
-num_tests=6
+num_tests=9
 
 # Check that working directory contains script
 if [ ! -f $(pwd)/`basename "$0"` ]; then
@@ -65,10 +65,10 @@ _test4() {
 _test5() {
     cd ./project-pkg/pkg-list
     wio clean --all --hard
-    wio update
+    wio update --verbose
     wio build --all
-    wio clean native-tests
-    wio build native-tests
+    wio clean native-tests --verbose
+    wio build native-tests --disable-warnings
     wio build avr-tests
     wio run native-tests
 }
@@ -78,6 +78,21 @@ _test6() {
     wio clean --hard
     wio update
     wio build cosa-tests
+}
+
+_test7() {
+    cd ./project-app/app-avr
+    wio clean --hard
+    wio update
+    wio build
+}
+
+_test8() {
+    cd ./project-app/app-pipe
+    wio clean --hard
+    wio update
+    wio build
+    wio run main --args "cat wio.yml"
 }
 
 # Source and build

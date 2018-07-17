@@ -18,6 +18,7 @@ int main(int argc, char *argv[]) {
 
     for (long i = 0; i < count; ++i)
     { fprintf(stdout, "%li", val); }
+    printf("\n");
 
     return 0;
 }
