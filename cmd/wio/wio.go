@@ -101,10 +101,10 @@ var runFlags = []cli.Flag{
         Name:  "port",
         Usage: "Specify upload port",
     },
-	cli.StringFlag{
-		Name: "args",
-		Usage: "Arguments passed to executable",
-	},
+    cli.StringFlag{
+        Name:  "args",
+        Usage: "Arguments passed to executable",
+    },
     cli.BoolFlag{
         Name:  "verbose",
         Usage: "Turns verbose mode on to show detailed errors and commands being executed.",
