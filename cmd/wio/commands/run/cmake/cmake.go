@@ -9,13 +9,12 @@ import (
     "wio/cmd/wio/types"
     "wio/cmd/wio/utils/io"
     "wio/cmd/wio/utils/template"
-
-    "github.com/thoas/go-funk"
 )
 
-var validCppStandard = map[string]string{
+var cppStandards = map[string]string{
     "c++98": "98",
     "c++03": "98",
+    "c++0x": "11",
     "c++11": "11",
     "c++14": "14",
     "c++17": "17",
@@ -23,7 +22,7 @@ var validCppStandard = map[string]string{
     "c++20": "20",
 }
 
-var validCStandard = map[string]string{
+var cStandards = map[string]string{
     "iso9899:1990": "90",
     "c90":          "90",
     "iso9899:1999": "99",
@@ -39,24 +38,27 @@ var validCStandard = map[string]string{
 
 // Reads standard provided by user and returns CMake standard
 func GetStandard(target *types.Target) (string, string, error) {
-    standard := strings.ToLower(strings.Trim((*target).GetStandard(), " "))
-    var cppStandard string
-    var cStandard string
+    stdString := strings.Trim((*target).GetStandard(), " ")
+    stdString = strings.ToLower(stdString)
+    cppStandard := ""
+    cStandard := ""
 
-    for _, currStandard := range strings.Split(standard, ",") {
-        currStandard = strings.Trim(currStandard, " ")
-
-        if funk.Contains(validCppStandard, currStandard) {
-            cppStandard = validCppStandard[currStandard]
-            cStandard = validCStandard["c11"]
-        } else if funk.Contains(validCppStandard, currStandard) {
-            cStandard = validCStandard[currStandard]
-            cppStandard = validCppStandard["c++11"]
+    for _, std := range strings.Split(stdString, ",") {
+        std = strings.Trim(std, " ")
+        if val, exists := cppStandards[std]; exists {
+            cppStandard = val
+        } else if val, exists := cStandards[std]; exists {
+            cStandard = val
         } else {
-            return "", "", errors.Stringf("[%s] standard is not valid for ISO standard", currStandard)
+            return "", "", errors.Stringf("invalid ISO C/C++ standard [%s]", std)
         }
     }
-
+    if cppStandard == "" {
+        cppStandard = "11"
+    }
+    if cStandard == "" {
+        cStandard = "99"
+    }
     return cppStandard, cStandard, nil
 }
 
