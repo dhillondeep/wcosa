@@ -142,7 +142,7 @@ func GenerateNativeCmakeLists(
         "CPP_STANDARD":               cppStandard,
         "C_STANDARD":                 cStandard,
         "TARGET_NAME":                (*target).GetName(),
-        "FRAMEWORK":                  "CPP",
+        "FRAMEWORK":                  (*target).GetFramework(),
         "HARDWARE":                   (*target).GetBoard(),
         "ENTRY":                      (*target).GetSrc(),
         "PLATFORM":                   constants.NATIVE,
