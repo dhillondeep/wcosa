@@ -10,6 +10,8 @@ import (
     "wio/cmd/wio/log"
     "wio/cmd/wio/types"
     "wio/cmd/wio/utils/io"
+
+    "github.com/thoas/go-funk"
 )
 
 type dispatchCmakeFunc func(info *runInfo, target *types.Target) error
@@ -19,12 +21,19 @@ var dispatchCmakeFuncPlatform = map[string]dispatchCmakeFunc{
     constants.NATIVE: dispatchCmakeNative,
 }
 var dispatchCmakeFuncAvrFramework = map[string]dispatchCmakeFunc{
-    constants.COSA: dispatchCmakeAvrGeneric,
-    //constants.ARDUINO: dispatchCmakeAvrGeneric,
+    constants.COSA:    dispatchCmakeAvrCosa,
+    constants.ARDUINO: dispatchCmakeAvrArduino,
 }
 
 func dispatchCmake(info *runInfo, target *types.Target) error {
     platform := strings.ToLower((*target).GetPlatform())
+
+    // this means platform was not specified at all
+    if strings.Trim(platform, " ") == "" {
+        message := fmt.Sprintf("No Platform specified by the [%s] target", (*target).GetName())
+        return errors.String(message)
+    }
+
     if _, exists := dispatchCmakeFuncPlatform[platform]; !exists {
         message := fmt.Sprintf("Platform [%s] is not supported", platform)
         return errors.String(message)
@@ -33,7 +42,22 @@ func dispatchCmake(info *runInfo, target *types.Target) error {
 }
 
 func dispatchCmakeAvr(info *runInfo, target *types.Target) error {
-    framework := strings.ToLower((*target).GetFramework())
+    framework := strings.Trim(strings.ToLower((*target).GetFramework()), " ")
+    board := strings.Trim(strings.ToUpper((*target).GetBoard()), " ")
+
+    // this means framework was not specified at all
+    if framework == "" {
+        message := fmt.Sprintf("No Framework specified by the [%s] target. Try one of %s",
+            (*target).GetName(), funk.Keys(dispatchCmakeFuncAvrFramework))
+        return errors.String(message)
+    }
+
+    // this means board was not specified at all
+    if board == "" {
+        message := fmt.Sprintf("No Board specified by the [%s] target", (*target).GetName())
+        return errors.String(message)
+    }
+
     if _, exists := dispatchCmakeFuncAvrFramework[framework]; !exists {
         message := fmt.Sprintf("Framework [%s] not supported", framework)
         return errors.String(message)
@@ -45,19 +69,32 @@ func dispatchCmakeNative(info *runInfo, target *types.Target) error {
     return dispatchCmakeNativeGeneric(info, target)
 }
 
-func dispatchCmakeAvrGeneric(info *runInfo, target *types.Target) error {
+func dispatchCmakeAvrCosa(info *runInfo, target *types.Target) error {
     projectName := info.config.GetMainTag().GetName()
     projectPath := info.directory
     port, err := getPort(info)
     if err != nil && info.runType == TypeRun {
         return err
     }
-    return cmake.GenerateAvrCmakeLists(target, projectName, projectPath, port)
+    return cmake.GenerateAvrCmakeLists("toolchain/cmake/CosaToolchain.cmake", target,
+        projectName, projectPath, port)
+}
+
+func dispatchCmakeAvrArduino(info *runInfo, target *types.Target) error {
+    projectName := info.config.GetMainTag().GetName()
+    projectPath := info.directory
+    port, err := getPort(info)
+    if err != nil && info.runType == TypeRun {
+        return err
+    }
+    return cmake.GenerateAvrCmakeLists("toolchain/cmake/ArduinoToolchain.cmake", target,
+        projectName, projectPath, port)
 }
 
 func dispatchCmakeNativeGeneric(info *runInfo, target *types.Target) error {
     projectName := info.config.GetMainTag().GetName()
     projectPath := info.directory
+
     return cmake.GenerateNativeCmakeLists(target, projectName, projectPath)
 }
 
@@ -85,7 +122,7 @@ func dispatchRunTarget(info *runInfo, target *types.Target) error {
 		args := info.context.String("args")
         return runTarget(info.directory, io.Path(binDir, (*target).GetName()), args)
     default:
-        return errors.Stringf("platform [%s] is not supported", platform)
+        return errors.Stringf("Platform [%s] is not supported", platform)
     }
 }
 

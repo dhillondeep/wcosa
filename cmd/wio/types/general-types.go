@@ -24,9 +24,10 @@ import (
 type Target interface {
     GetSrc() string
     GetName() string
-    GetBoard() string
-    GetFramework() string
     GetPlatform() string
+    GetFramework() string
+    GetBoard() string
+    GetStandard() string
     GetFlags() TargetFlags
     GetDefinitions() TargetDefinitions
 
@@ -91,9 +92,10 @@ func (definitions *AppTargetDefinitions) GetPkgDefinitions() []string {
 // Structure to handle individual target inside targets for project of app AVR type
 type AppTarget struct {
     Src         string
-    Platform    string
-    Framework   string
-    Board       string
+    Platform    string               `yaml:"platform,omitempty"`
+    Framework   string               `yaml:"framework,omitempty"`
+    Standard    string               `yaml:"standard,omitempty"`
+    Board       string               `yaml:"board,omitempty"`
     Flags       AppTargetFlags       `yaml:"flags,omitempty"`
     Definitions AppTargetDefinitions `yaml:"definitions,omitempty"`
 
@@ -114,6 +116,10 @@ func (target *AppTarget) GetBoard() string {
 
 func (target *AppTarget) GetFramework() string {
     return target.Framework
+}
+
+func (target *AppTarget) GetStandard() string {
+    return target.Standard
 }
 
 func (target *AppTarget) GetPlatform() string {
@@ -193,8 +199,9 @@ func (definitions *PkgTargetDefinitions) GetPkgDefinitions() []string {
 // Structure to handle individual target inside targets for project of pkg type
 type PkgTarget struct {
     Src         string
-    Platform    string
+    Platform    string               `yaml:"platform,omitempty"`
     Framework   string               `yaml:"framework,omitempty"`
+    Standard    string               `yaml:"standard,omitempty"`
     Board       string               `yaml:"board,omitempty"`
     Flags       PkgTargetFlags       `yaml:"flags,omitempty"`
     Definitions PkgTargetDefinitions `yaml:"definitions,omitempty"`
@@ -224,6 +231,10 @@ func (target *PkgTarget) GetPlatform() string {
 
 func (target *PkgTarget) GetFramework() string {
     return target.Framework
+}
+
+func (target *PkgTarget) GetStandard() string {
+    return target.Standard
 }
 
 func (target *PkgTarget) GetDefinitions() TargetDefinitions {

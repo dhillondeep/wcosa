@@ -130,9 +130,9 @@ func fillAppConfig(queue *log.Queue, info *createInfo) error {
             Targets: map[string]*types.AppTarget{
                 config.ProjectDefaults.AppTargetName: {
                     Src:         "src",
-                    Platform:    info.platform,
-                    Framework:   info.framework,
-                    Board:       info.board,
+                    Board:       getBoard(info.board),
+                    Framework:   getFramework(info.framework),
+                    Platform:    getPlatform(info.platform),
                     Flags:       types.AppTargetFlags{},
                     Definitions: types.AppTargetDefinitions{},
                 },
@@ -185,9 +185,9 @@ func fillPackageConfig(queue *log.Queue, info *createInfo) error {
             Targets: map[string]*types.PkgTarget{
                 target: {
                     Src:       target,
-                    Platform:  info.platform,
-                    Framework: info.framework,
-                    Board:     info.board,
+                    Platform:  getPlatform(info.platform),
+                    Framework: getFramework(info.framework),
+                    Board:     getBoard(info.board),
                 },
             },
         },

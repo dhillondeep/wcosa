@@ -18,12 +18,12 @@ __  _  _______ _/  |_  ___________|  |   ____   ____ ______
  \\     /  / __ \\|  | \\  ___/|  | \\/  |_(  <_> |  <_> )  |_> >
   \\/\\_/  (____  /__|  \\___  >__|  |____/\\____/ \\____/|   __/
               \\/          \\/                         |__|
-The Embedded C++ code base builder
+Waterloop code base builder
 HEREDOC
 }
 
 #### Variables ####
-GO_VERSION=1.10.2
+GO_VERSION=1.10
 TRAVIS=false
 
 _build() {
@@ -46,7 +46,7 @@ _linux_setup() {
     }
     go version | grep ${GO_VERSION} &> /dev/null
     if [ $? != 0 ] ; then
-        echo 'go version 1.10.2 is required';
+        echo 'go version 1.10.x is required';
         exit 1;
     fi
 
@@ -70,8 +70,13 @@ _linux_setup() {
     fi
     printf "Done!\n"
 
+    printf "Getting toolchain (Submodules)... "
+    git submodule update --init --recursive
+    printf "Done!\n"
+
     printf "Linking toolchain... "
     mkdir -p ./bin
+    rm -rf $(pwd)/bin/toolchain
     ln -s -f $(pwd)/toolchain $(pwd)/bin/toolchain
     printf "Done!\n"
 
