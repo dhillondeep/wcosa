@@ -15,8 +15,10 @@ cmd/wio/utils/io/bindata.go
 # Toolchain symlink
 bin/toolchain
 
-# Test package vendors
+# vendor directories
 tests/**/*/vendor/
+vendor/*
+!vendor/vendor.json
 
 # Test folders
 wio-test/
