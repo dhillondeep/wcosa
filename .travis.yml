@@ -15,3 +15,5 @@ install:
 script:
   - wmake build
   - go test -v ./...
+  - cd tests
+  - ./runtests.sh
