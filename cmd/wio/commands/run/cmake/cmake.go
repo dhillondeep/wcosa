@@ -49,7 +49,7 @@ func GetStandard(target *types.Target) (string, string, error) {
             cppStandard = val
         } else if val, exists := cStandards[std]; exists {
             cStandard = val
-        } else {
+        } else if val != "" {
             return "", "", errors.Stringf("invalid ISO C/C++ standard [%s]", std)
         }
     }
