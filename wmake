@@ -88,7 +88,7 @@ _linux_setup() {
 }
 
 _avr_setup() {
-    sudo apt-get install gcc-avr avr-libc avrdude
+    apt-get install gcc-avr avr-libc avrdude
 }
 
 _format() {
