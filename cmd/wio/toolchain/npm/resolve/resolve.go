@@ -99,7 +99,7 @@ func (i *Info) ResolveRemote(config types.IConfig) error {
     deps := config.Dependencies()
     for name, ver := range deps {
         // only worry about remotes
-        if ver == io.Vendor+ver {
+        if strings.Contains(ver, io.Vendor) {
             continue
         }
 
