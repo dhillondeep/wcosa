@@ -98,7 +98,13 @@ func (i *Info) ResolveRemote(config types.IConfig) error {
     // remotes from main config file
     deps := config.Dependencies()
     for name, ver := range deps {
-        name = strings.Split(name, "__")[0]
+        splitData := strings.Split(name, "__")
+        name := splitData[0]
+
+        // only worry about remotes
+        if splitData[1] == io.Vendor {
+            continue
+        }
 
         node := &Node{name: name, ver: ver}
         root.deps = append(root.deps, node)

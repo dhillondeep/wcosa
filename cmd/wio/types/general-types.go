@@ -286,6 +286,8 @@ func (deps DependenciesTag) collect() map[string]string {
     for name, dep := range deps {
         if !dep.Vendor {
             depMap[name+"__"+dep.Version] = dep.Version
+        } else {
+            depMap[name+"__"+io.Vendor] = dep.Version
         }
     }
     return depMap
