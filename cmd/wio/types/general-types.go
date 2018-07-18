@@ -284,7 +284,9 @@ type DependenciesTag map[string]*DependencyTag
 func (deps DependenciesTag) collect() map[string]string {
     depMap := map[string]string{}
     for name, dep := range deps {
-        depMap[name] = dep.Version
+        if !dep.Vendor {
+            depMap[name+"__"+dep.Version] = dep.Version
+        }
     }
     return depMap
 }

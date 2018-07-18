@@ -1,6 +1,7 @@
 package resolve
 
 import (
+    "strings"
     "wio/cmd/wio/errors"
     "wio/cmd/wio/toolchain/npm"
     "wio/cmd/wio/types"
@@ -28,43 +29,33 @@ func configToVersion(config *types.PkgConfig) *npm.Version {
     }
 }
 
-// This function searched local filesystem for the `wio.yml` of the
-// desired package and version. The function looks in the places
-// -- $BASE_DIR/vendor/[name]
-// -- $BASE_DIR/vendor/[name]__[version]
-// -- $BASE_DIR/.wio/node_modules/[name]__[version]
-//
-// Function returns nil error and nil result if not found.
-// Vendor is preferred to allow overrides.
+// This function searches remote packages location (node_modules) for the `wio.yml` of the
+// desired package and version.
 func tryFindConfig(name string, ver string, dir string) (*types.PkgConfig, error) {
-    paths := []string{
-        io.Path(dir, io.Vendor, name),
-        io.Path(dir, io.Vendor, name+"__"+ver),
-        io.Path(dir, io.Folder, io.Modules, name+"__"+ver),
+    path := io.Path(dir, io.Folder, io.Modules, name) + "__" + ver
+
+    if !utils.PathExists(path) {
+        return nil, nil
     }
-    var config *types.PkgConfig = nil
-    for i := 0; config == nil && i < len(paths); i++ {
-        tryConfig, err := tryGetConfig(paths[i])
-        if err != nil {
-            return nil, err
-        }
-        if tryConfig == nil {
-            continue
-        }
-        if tryConfig.Name() != name {
-            return nil, errors.Stringf("config %s has wrong name", paths[i])
-        }
-        if tryConfig.Version() != ver {
-            if i != 0 {
-                return nil, errors.Stringf("config %s has wrong version", paths[i])
-            } else {
-                // version-less path
-                continue
-            }
-        }
-        config = tryConfig
+
+    tryConfig, err := tryGetConfig(path)
+    if err != nil {
+        return nil, err
     }
-    return config, nil
+
+    if tryConfig.Name() != name {
+        // this happens when wio.yml is of unsupported type
+        if strings.Trim(tryConfig.GetMainTag().GetConfigurations().WioVersion, " ") == "" {
+            return nil, errors.Stringf("config [%s] => unsupported wio version: < 0.3.0", path)
+        } else {
+            return nil, errors.Stringf("config [%s] has wrong name: %s", path, tryConfig.Name())
+        }
+    }
+
+    if tryConfig.Version() != ver {
+        return nil, errors.Stringf("config [%s] has wrong version: %s", path, tryConfig.Version())
+    }
+    return tryConfig, nil
 }
 
 func tryGetConfig(path string) (*types.PkgConfig, error) {

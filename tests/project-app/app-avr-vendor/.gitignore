@@ -1,0 +1,36 @@
+# wio
+.wio/
+
+# Mac OS
+.DS_Store
+.DS_Store?
+.AppleDouble
+.LSOverride
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# Windows
+ehthumbs_vista.db
+[Dd]esktop.ini
+
+
+# C++ Prerequisites
+*.d
+
+# C++ Compiled Object files
+*.slo
+*.lo
+*.o
+*.obj
+
+# C++ Precompiled Headers
+*.gch
+*.pch
+
+# C++ Compiled Dynamic libraries
+*.so
+*.dylib
+*.dll
