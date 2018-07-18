@@ -17,7 +17,7 @@ func traverseDependencies(queue *log.Queue, parentName string, parentHeaderOnly 
     globalFlags []string, requiredFlags []string, gblDefs []string, requiredDefinitions []string,
     projectDependency *types.DependencyTag) error {
     for depName, depPkg := range dependencies {
-		depVer := packageVersions[depName]
+        depVer := packageVersions[depName]
 
         var err error
         var depTgtName string
@@ -44,7 +44,7 @@ func traverseDependencies(queue *log.Queue, parentName string, parentHeaderOnly 
         }
 
         if depTgt = depPkgs[depTgtName]; depTgt == nil {
-			return errors.Stringf("missing dependency %s@%s", depName, depVer)
+            return errors.Stringf("missing dependency %s@%s", depName, depVer)
         }
         log.Verb(queue, "creating cmake target for %s@%s ...", depName, depVer)
 
@@ -61,7 +61,7 @@ func traverseDependencies(queue *log.Queue, parentName string, parentHeaderOnly 
             log.CopyQueue(subQueue, queue, log.NO_SPACES)
         }
 
-		log.Verb(queue, "creating cmake targets for %s@%s", depName, depVer)
+        log.Verb(queue, "creating cmake targets for %s@%s", depName, depVer)
         subQueue = log.GetQueue()
         if err := traverseDependencies(queue, depTgtName,
             depTgt.MainTag.GetCompileOptions().IsHeaderOnly(), depPkgs,
@@ -104,7 +104,7 @@ func CreateCMakeTargets(queue *log.Queue, parentTargetName string, parentTargetH
     var depReqDefn []string
     var optionalFlags []string
     var optionalDefinitions []string
-	mainTag := depTgt.MainTag
+    mainTag := depTgt.MainTag
 
     // match global flags
     dependencyTargetGlobalFlags, err := fillGlobal(globalFlags, mainTag.Flags.GlobalFlags)
