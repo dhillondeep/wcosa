@@ -7,148 +7,81 @@ import (
     "wio/cmd/wio/utils"
 )
 
-// Verifies the placeholder syntax
-func placeholderSyntaxValid(flag string) bool {
-    pat := regexp.MustCompile(`\$\([a-zA-Z0-9=_-]+\)`)
-    s := pat.FindString(flag)
+var placeholderMatch = regexp.MustCompile(`^\$\([a-zA-Z_][a-zA-Z0-9_]*\)$`)
 
-    return s != ""
+// Verifies the placeholder syntax
+func IsPlaceholder(flag string) bool {
+    return placeholderMatch.MatchString(flag)
 }
 
 // matches a flag by the requested flag
-func matchFlag(providedFlag string, requestedFlag string) string {
-    pat := regexp.MustCompile(`^` + requestedFlag + `\b`)
-    s := pat.FindString(providedFlag)
-
-    return s
+func TryMatch(key, given string) (string, bool) {
+    pat := regexp.MustCompile(`^` + key + `(=|->).*$`)
+    if !pat.MatchString(given) {
+        return "", false
+    }
+    if strings.Contains(given, "->") {
+        return strings.Split(given, "->")[1], true
+    }
+    return given, true
 }
 
-// fills placeholder flags and errors out if flag is not valid
-func fillPlaceholderFlags(providedFlags []string, desiredFlags []string, dependencyName string) ([]string, error) {
-    var newFlags []string
-    for _, desiredFlag := range desiredFlags {
-        if desiredFlag[0] != '$' || !placeholderSyntaxValid(desiredFlag) {
-            newFlags = append(newFlags, desiredFlag)
+// fill placeholder flags and error if some are left unfilled
+func fillPlaceholders(givenFlags, requiredFlags []string) ([]string, error) {
+    var ret []string
+    for _, required := range requiredFlags {
+        if !IsPlaceholder(required) {
+            ret = append(ret, required)
             continue
         }
-
-        oldLength := len(newFlags)
-
-        for _, providedFlag := range providedFlags {
-            newFlag := strings.Replace(desiredFlag, "$", "", 1)
-            newFlag = strings.Replace(newFlag, "(", "", 1)
-            newFlag = strings.Replace(newFlag, ")", "", 1)
-
-            s := matchFlag(providedFlag, newFlag)
-
-            if s != "" {
-                newFlags = append(newFlags, providedFlag)
-                break
+        // look for a match
+        for _, given := range givenFlags {
+            key := required[2 : len(required)-1]
+            if res, match := TryMatch(key, given); match {
+                ret = append(ret, res)
+                goto Continue
             }
         }
+        return nil, errors.Stringf("placeholder flag %s unfilled", required)
 
-        if len(newFlags) == oldLength {
-            err := errors.InvalidPlaceholderReferenceError{
-                DependencyName: dependencyName,
-                Placeholder:    desiredFlag,
-            }
-
-            return nil, err
-        }
+    Continue:
+        continue
     }
-
-    return newFlags, nil
+    return ret, nil
 }
 
 // this fills global flags if they are requested
-func fillGlobalFlags(globalFlags []string, dependencyGlobalFlagsRequired []string, dependencyName string) ([]string, error) {
-    var filledFlags []string
-    var notFilledFlags []string
-
-    if len(globalFlags) == 0 {
-        notFilledFlags = dependencyGlobalFlagsRequired
-    } else {
-        for _, requiredGlobalFlag := range dependencyGlobalFlagsRequired {
-            numFilledFlags := len(filledFlags)
-
-            for _, givenGlobalFlag := range globalFlags {
-                s := matchFlag(givenGlobalFlag, requiredGlobalFlag)
-
-                if s != "" {
-                    filledFlags = append(filledFlags, givenGlobalFlag)
-                    break
-                }
-            }
-
-            // this means any of the global flag did not match
-            if len(filledFlags) == numFilledFlags {
-                notFilledFlags = append(notFilledFlags, requiredGlobalFlag)
+func fillGlobal(givenFlags, requiredFlags []string) ([]string, error) {
+    var ret []string
+    for _, required := range requiredFlags {
+        for _, given := range givenFlags {
+            if res, match := TryMatch(required, given); match {
+                ret = append(ret, res)
+                goto Continue
             }
         }
+        return nil, errors.Stringf("global flag %s unfilled", required)
+
+    Continue:
+        continue
     }
-
-    // print errors when global flags are not provided
-    if len(dependencyGlobalFlagsRequired) != len(filledFlags) {
-        err := errors.GlobalFlagsMissingError{
-            DependencyName: dependencyName,
-            ProvidedFlags:  filledFlags,
-            MissingFlags:   notFilledFlags,
-        }
-
-        return nil, err
-    }
-
-    return filledFlags, nil
+    return ret, nil
 }
 
 // this fills required flags if they are requested
-func fillRequiredFlags(providedFlags []string, dependencyFlagsRequired []string,
-    dependencyName string, fromName string, isTarget bool) ([]string, []string, error) {
-    var filledFlags []string
-    var nonFilledRequiredFlags []string
-
-    if len(providedFlags) == 0 {
-        nonFilledRequiredFlags = dependencyFlagsRequired
-    } else {
-        for _, requiredFlag := range dependencyFlagsRequired {
-            numFilledFlags := len(filledFlags)
-
-            for _, givenFlag := range providedFlags {
-                s := matchFlag(givenFlag, requiredFlag)
-
-                if s != "" {
-                    filledFlags = append(filledFlags, givenFlag)
-                }
+func fillRequired(givenFlags []string, requiredFlags []string) ([]string, []string, error) {
+    var ret []string
+    for _, required := range requiredFlags {
+        for _, given := range givenFlags {
+            if res, match := TryMatch(required, given); match {
+                ret = append(ret, res)
+                goto Continue
             }
+            return nil, nil, errors.Stringf("required flag %s unfilled", required)
 
-            if len(filledFlags) == numFilledFlags {
-                nonFilledRequiredFlags = append(nonFilledRequiredFlags, requiredFlag)
-            }
+        Continue:
+            continue
         }
     }
-
-    // print errors when global flags are not provided
-    if len(dependencyFlagsRequired) != len(filledFlags) {
-        var from string
-        var to string
-
-        if isTarget {
-            from = "Target::" + fromName
-            to = "Package::" + dependencyName
-        } else {
-            from = "Package::" + fromName
-            to = "Package::" + dependencyName
-        }
-
-        err := errors.RequiredFlagsMissingError{
-            From:          from,
-            To:            to,
-            ProvidedFlags: filledFlags,
-            MissingFlags:  nonFilledRequiredFlags,
-        }
-
-        return nil, nil, err
-    }
-
-    return filledFlags, utils.Difference(providedFlags, filledFlags), nil
+    return ret, utils.Difference(givenFlags, ret), nil
 }
