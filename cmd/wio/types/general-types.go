@@ -281,13 +281,16 @@ type DependencyTag struct {
 // type for the libraries tag in the main wio.yml file
 type DependenciesTag map[string]*DependencyTag
 
+// creates a map of name and version for dependencies
+// for vendor dependency, value looks like: vendor<version> :: ex: vendor0.0.1
+// for remote dependencies, value looks like: <version> :: ex: 1.0.0
 func (deps DependenciesTag) collect() map[string]string {
     depMap := map[string]string{}
     for name, dep := range deps {
-        if !dep.Vendor {
-            depMap[name+"__"+dep.Version] = dep.Version
+        if dep.Vendor {
+            depMap[name] = io.Vendor + dep.Version
         } else {
-            depMap[name+"__"+io.Vendor] = dep.Version
+            depMap[name] = dep.Version
         }
     }
     return depMap
