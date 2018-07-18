@@ -48,6 +48,7 @@ _test2() {
 _test3() {
     cd ./project-pkg/pkg-malloc
     wio clean --hard
+    wio install
     wio update
     wio build
     wio run
