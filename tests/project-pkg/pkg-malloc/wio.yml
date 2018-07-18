@@ -40,3 +40,9 @@ targets:
       definitions:
         pkg_definitions:
         - STACK_SIZE=256
+
+dependencies:
+  cosa-servo:
+    version: 1.0.0
+    vendor: false
+    link_visibility: PRIVATE

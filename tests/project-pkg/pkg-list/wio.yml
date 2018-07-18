@@ -55,3 +55,7 @@ dependencies:
     link_visibility: PRIVATE
     definitions:
     - $(STACK_SIZE)
+  cosa-fart:
+    version: 0.0.1
+    vendor: false
+    link_visibility: PRIVATE

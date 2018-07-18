@@ -24,11 +24,7 @@ targets:
       board: uno
 
 dependencies:
-  jojo:
-    version: 0.0.1
-    vendor: true
-    link_visibility: PRIVATE
-  vendor1:
+  pkg-list:
     version: 0.0.1
     vendor: true
     link_visibility: PRIVATE
