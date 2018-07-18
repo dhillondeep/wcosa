@@ -15,21 +15,21 @@ fi
 # Pre and Post test functions
 _pre() {
     printf "======== RUNNING TEST $1 ========\n"
-    cd $base_folder
-    rm -rf $test_folder
+    cd ${base_folder}
+    rm -rf ${test_folder}
 }
 
 _post() {
     printf "========== DONE TEST $1 =========\n"
     printf "\n"
-    cd $base_folder
-    rm -rf $test_folder
+    cd ${base_folder}
+    rm -rf ${test_folder}
 }
 
 # Functional tests
 _test1() {
-    cp -r ./project-pkg/pkg-fives ./$test_folder
-    cd $test_folder
+    cp -r ./project-pkg/pkg-fives ./${test_folder}
+    cd ${test_folder}
     rm wio.yml
     wio create pkg --platform native --only-config
     wio build
@@ -37,8 +37,8 @@ _test1() {
 }
 
 _test2() {
-    cp -r ./project-pkg/pkg-square ./$test_folder
-    cd $test_folder
+    cp -r ./project-pkg/pkg-square ./${test_folder}
+    cd ${test_folder}
     rm wio.yml
     wio create pkg --platform native --only-config
     wio build
@@ -120,9 +120,9 @@ cd ./tests
 find ./ -maxdepth 3 -name ".wio" -type d -exec rm -rf {} \;
 
 # Run each test
-for i in `seq 1 $num_tests`; do
+for i in `seq 1 ${num_tests}`; do
     test_func="_test$i"
     _pre "$i"
-    $test_func
+    ${test_func}
     _post "$i"
 done
