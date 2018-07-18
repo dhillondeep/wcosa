@@ -123,7 +123,7 @@ target_compile_definitions(
     PRIVATE
     WIO_PLATFORM_${PLATFORM}
     WIO_FRAMEWORK_${FRAMEWORK}
-    WIO_BOARD_${BOARD})
+    WIO_OS_${OS})
 
 target_compile_options(
     {{DEPENDENCY_NAME}}

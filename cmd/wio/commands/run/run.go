@@ -150,7 +150,7 @@ func getTargetArgs(info *runInfo) ([]types.Target, error) {
                 projectTargets[name].SetName(name)
                 targets = append(targets, projectTargets[name])
             } else {
-				return nil, errors.Stringf("unrecognized target %s", name)
+                return nil, errors.Stringf("unrecognized target %s", name)
             }
         }
         if len(info.targets) <= 0 {
