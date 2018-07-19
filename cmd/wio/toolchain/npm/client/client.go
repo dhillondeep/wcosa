@@ -65,11 +65,11 @@ func urlResolve(values ...string) string {
 func FetchPackageData(name string) (*npm.Data, error) {
     var data npm.Data
     url := urlResolve(registryBaseUrl, name)
-	req, err := http.NewRequest("GET", url, nil)
-	if err != nil {
-		return nil, err
-	}
-	req.Header.Set("Accept", "application/vnd.npm.install-v1+json")
+    req, err := http.NewRequest("GET", url, nil)
+    if err != nil {
+        return nil, err
+    }
+    req.Header.Set("Accept", "application/vnd.npm.install-v1+json")
     status, err := getJson(npmClient, req, &data)
     if err != nil {
         return nil, err
@@ -87,10 +87,10 @@ func FetchPackageVersion(name string, versionStr string) (*npm.Version, error) {
     // assumes `versionStr` is a hard version
     var version npm.Version
     url := urlResolve(registryBaseUrl, name, versionStr)
-	req, err := http.NewRequest("GET", url, nil)
-	if err != nil {
-		return nil, err
-	}
+    req, err := http.NewRequest("GET", url, nil)
+    if err != nil {
+        return nil, err
+    }
     status, err := getJson(npmClient, req, &version)
     if err != nil {
         return nil, err

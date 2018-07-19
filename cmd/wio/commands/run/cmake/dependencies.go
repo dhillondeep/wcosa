@@ -1,7 +1,7 @@
 package cmake
 
 import (
-	"path/filepath"
+    "path/filepath"
     "strings"
     "wio/cmd/wio/utils/template"
 )
