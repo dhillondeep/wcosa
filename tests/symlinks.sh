@@ -23,3 +23,13 @@ ln -s -f $(pwd)/project-pkg/pkg-malloc $(pwd)/project-app/app-avr/vendor/pkg-mal
 mkdir -p $(pwd)/project-pkg/pkg-trace/vendor
 rm -f $(pwd)/project-pkg/pkg-trace/vendor/pkg-uart
 ln -s -f $(pwd)/project-pkg/pkg-uart $(pwd)/project-pkg/pkg-trace/vendor/pkg-uart
+
+mkdir -p $(pwd)/project-app/app-alloc/vendor
+mkdir -p $(pwd)/project-app/app-alloc/vendor/alloc-one/vendor
+mkdir -p $(pwd)/project-app/app-alloc/vendor/alloc-two/vendor
+rm -f $(pwd)/project-app/app-alloc/vendor/pkg-malloc
+rm -f $(pwd)/project-app/app-alloc/vendor/alloc-one/vendor/pkg-malloc
+rm -f $(pwd)/project-app/app-alloc/vendor/alloc-two/vendor/pkg-malloc
+ln -s -f $(pwd)/project-pkg/pkg-malloc $(pwd)/project-app/app-alloc/vendor/pkg-malloc
+ln -s -f $(pwd)/project-pkg/pkg-malloc $(pwd)/project-app/app-alloc/vendor/alloc-one/vendor/pkg-malloc
+ln -s -f $(pwd)/project-pkg/pkg-malloc $(pwd)/project-app/app-alloc/vendor/alloc-two/vendor/pkg-malloc

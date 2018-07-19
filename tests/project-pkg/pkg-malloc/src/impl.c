@@ -6,7 +6,7 @@
 
 #include <pkg-malloc.h>
 
-static_assert(STACK_SIZE == 256, "Expected STACK_SIZE to be 256");
+static_assert(STACK_SIZE >= 256, "Expected STACK_SIZE to be at least 256");
 
 typedef unsigned char byte;
 static byte memory[STACK_SIZE];

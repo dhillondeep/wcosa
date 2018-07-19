@@ -1,0 +1,48 @@
+pkg:
+  ide: none
+
+  meta:
+    name: alloc-one
+    version: 0.0.1
+    keywords:
+    - native
+    - all
+    - wio
+    license: MIT
+
+  config:
+    minimum_wio_version: 0.3.2
+    supported_platforms:
+    - native
+    supported_frameworks:
+    - all
+    supported_boards:
+    - all
+
+  compile_options:
+    header_only: false
+    platform: native
+  flags:
+    visibility: PRIVATE
+  definitions:
+    visibility: PRIVATE
+    required_definitions:
+    - STACK_SIZE
+
+targets:
+  default: tests
+  create:
+    tests:
+      src: tests
+      platform: native
+      definitions:
+        pkg_definitions:
+        - STACK_SIZE=256
+
+dependencies:
+  pkg-malloc:
+    version: 0.0.1
+    vendor: true
+    link_visibility: PRIVATE
+    definitions:
+    - $(STACK_SIZE)
