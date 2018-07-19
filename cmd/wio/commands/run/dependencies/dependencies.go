@@ -175,7 +175,7 @@ func CreateCMakeDependencyTargets(
     projectFlags := (*target).GetFlags()
     projectDefinitions := (*target).GetDefinitions()
 
-    remotePackagesPath := io.Path(projectPath, io.Folder)
+    remotePackagesPath := io.Path(projectPath, io.Folder, io.Modules)
     vendorPackagesPath := io.Path(projectPath, io.Vendor)
 
     scannedDependencies := map[string]*DependencyScanStructure{}
