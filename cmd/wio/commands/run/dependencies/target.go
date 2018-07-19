@@ -4,7 +4,6 @@ import (
     "hash/fnv"
     "strconv"
     "strings"
-    "wio/cmd/wio/commands/run"
     "wio/cmd/wio/toolchain/npm/semver"
 )
 
@@ -39,7 +38,7 @@ type targetSet struct {
 
 // It creates 64-bit FNV-1a hash from name, version, flags, definitions, and headerOnly
 func (target *Target) hash() uint64 {
-    structStr := target.Name + run.SemverVersionToString(target.Version) + strings.Join(target.Flags, "") +
+    structStr := target.Name + SemverVersionToString(target.Version) + strings.Join(target.Flags, "") +
         strings.Join(target.Definitions, "") + target.FlagsVisibility + target.DefinitionsVisibility +
         strconv.FormatBool(target.HeaderOnly)
 

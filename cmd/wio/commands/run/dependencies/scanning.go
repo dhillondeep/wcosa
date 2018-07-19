@@ -3,7 +3,6 @@ package dependencies
 import (
     "io/ioutil"
     "strings"
-    "wio/cmd/wio/commands/run"
     "wio/cmd/wio/constants"
     "wio/cmd/wio/errors"
     "wio/cmd/wio/toolchain/npm/semver"
@@ -60,7 +59,7 @@ func scanDependencies(directory string, dependencies map[string]*DependencyInfo)
                     from, currDir.Name(), config.Version())
             }
 
-            dependencies[config.Name()+"__"+run.SemverVersionToString(depVersion)] = &DependencyInfo{
+            dependencies[config.Name()+"__"+SemverVersionToString(depVersion)] = &DependencyInfo{
                 Name:         config.Name(),
                 Directory:    currDirPath,
                 Version:      depVersion,
@@ -99,7 +98,7 @@ func GatherDependencies(projectPath string, projectConfig types.IConfig) (map[st
                 projectConfig.Version())
         }
 
-        dependencies[projectConfig.Name()+"__"+run.SemverVersionToString(pkgVersion)] = &DependencyInfo{
+        dependencies[projectConfig.Name()+"__"+SemverVersionToString(pkgVersion)] = &DependencyInfo{
             Name:         projectConfig.Name(),
             Directory:    projectPath,
             Version:      pkgVersion,
