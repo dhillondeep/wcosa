@@ -66,13 +66,9 @@ func BuildPath(projectPath string) string {
     return projectPath + io.Sep + io.Folder + io.Sep + constants.TargetDir
 }
 
-func generateCmakeLists(
-    templateFile string,
-    buildPath string,
-    values map[string]string) error {
-
-    templatePath := "templates/cmake/" + templateFile + ".txt.tpl"
-    cmakeListsPath := buildPath + io.Sep + "CMakeLists.txt"
+func generateCmakeLists(templateFile string, buildPath string, values map[string]string) error {
+    templatePath := io.Path("templates", "cmake", templateFile+".txt.tpl")
+    cmakeListsPath := io.Path(buildPath, "CMakeLists.txt")
     if err := os.MkdirAll(buildPath, os.ModePerm); err != nil {
         return err
     }

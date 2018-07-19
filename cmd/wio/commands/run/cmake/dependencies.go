@@ -1,6 +1,7 @@
 package cmake
 
 import (
+	"path/filepath"
     "strings"
     "wio/cmd/wio/utils/template"
 )
@@ -35,8 +36,8 @@ func GenerateDependencies(platform string, targets map[string]*Target, links []T
         finalString := libraryStrings[platform][target.HeaderOnly]
 
         finalString = template.Replace(finalString, map[string]string{
+            "DEPENDENCY_PATH":        filepath.ToSlash(target.Path),
             "DEPENDENCY_NAME":        target.TargetName,
-            "DEPENDENCY_PATH":        target.Path,
             "DEPENDENCY_FLAGS":       strings.Join(target.Flags, " "),
             "DEPENDENCY_DEFINITIONS": strings.Join(target.Definitions, " "),
             "FLAGS_VISIBILITY":       target.FlagsVisibility,
