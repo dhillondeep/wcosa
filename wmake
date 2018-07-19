@@ -57,7 +57,7 @@ _linux_setup() {
     make get
 
     printf "Installing system library... "
-    go get golang.org/x/sys/unix
+    go get -u golang.org/x/sys/unix
     printf "Done!\n"
 
     printf "Getting govendor dependencies... "
@@ -71,7 +71,7 @@ _linux_setup() {
     printf "Done!\n"
 
     printf "Linking toolchain... "
-    mkdir -p ./bin
+    mkdir -p $(pwd)/bin
     rm -rf $(pwd)/bin/toolchain
     ln -s -f $(pwd)/toolchain $(pwd)/bin/toolchain
     printf "Done!\n"
