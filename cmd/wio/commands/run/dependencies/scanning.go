@@ -1,25 +1,28 @@
 package dependencies
 
 import (
-    "wio/cmd/wio/types"
     "io/ioutil"
     "strings"
-    "wio/cmd/wio/utils/io"
-    "wio/cmd/wio/utils"
-    "wio/cmd/wio/errors"
+    "wio/cmd/wio/commands/run"
     "wio/cmd/wio/constants"
+    "wio/cmd/wio/errors"
+    "wio/cmd/wio/toolchain/npm/semver"
+    "wio/cmd/wio/types"
+    "wio/cmd/wio/utils"
+    "wio/cmd/wio/utils/io"
 )
 
 type DependencyInfo struct {
     Name         string
     Directory    string
-    Version      string
+    Version      *semver.Version
     Vendor       bool
     MainTag      types.MainTag
     Dependencies types.DependenciesTag
 }
 
-func ScanDependencies(directory string, dependencies map[string]*DependencyInfo) error {
+// scans a directory and creates a DependencyInfo for each valid package and add that to given map
+func scanDependencies(directory string, dependencies map[string]*DependencyInfo) error {
     if dirs, err := ioutil.ReadDir(directory); err != nil {
         return err
     } else if len(dirs) > 0 {
@@ -47,19 +50,64 @@ func ScanDependencies(directory string, dependencies map[string]*DependencyInfo)
 
             // confirm if config is a package type
             if config.GetType() == constants.APP {
-                errors.Stringf("%s dependency named \"%s\" is an application not a package",
+                return errors.Stringf("%s dependency named \"%s\" is an application not a package",
                     from, currDir.Name())
             }
 
-            dependencies[config.Name() + "__" + config.Version()] = &DependencyInfo{
-                Name: config.Name(),
-                Version: config.Version(),
-                Vendor: !isRemoteDependency,
-                MainTag: config.GetMainTag(),
+            depVersion := semver.Parse(config.Version())
+            if depVersion == nil {
+                return errors.Stringf("%s dependency named \"%s\" does not have a valid version: %s",
+                    from, currDir.Name(), config.Version())
+            }
+
+            dependencies[config.Name()+"__"+run.SemverVersionToString(depVersion)] = &DependencyInfo{
+                Name:         config.Name(),
+                Directory:    currDirPath,
+                Version:      depVersion,
+                Vendor:       !isRemoteDependency,
+                MainTag:      config.GetMainTag(),
                 Dependencies: config.GetDependencies(),
             }
         }
     }
 
     return nil
+}
+
+// This gathers dependency info for the whole project. Vendor packages override remote packages if they have
+// the same name and version
+func GatherDependencies(projectPath string, projectConfig types.IConfig) (map[string]*DependencyInfo, error) {
+    dependencies := make(map[string]*DependencyInfo)
+
+    // gather from remote folder
+    err := scanDependencies(io.Path(projectPath, io.Folder, io.Modules), dependencies)
+    if err != nil {
+        return nil, err
+    }
+
+    // gather from vendor folder (will override if names are the same
+    err = scanDependencies(io.Path(projectPath, io.Vendor), dependencies)
+    if err != nil {
+        return nil, err
+    }
+
+    // if package add that as an dependency
+    if projectConfig.GetType() == constants.PKG {
+        pkgVersion := semver.Parse(projectConfig.Version())
+        if pkgVersion == nil {
+            return nil, errors.Stringf("Project package does not have a valid version: %s",
+                projectConfig.Version())
+        }
+
+        dependencies[projectConfig.Name()+"__"+run.SemverVersionToString(pkgVersion)] = &DependencyInfo{
+            Name:         projectConfig.Name(),
+            Directory:    projectPath,
+            Version:      pkgVersion,
+            Vendor:       false,
+            MainTag:      projectConfig.GetMainTag(),
+            Dependencies: projectConfig.GetDependencies(),
+        }
+    }
+
+    return dependencies, nil
 }

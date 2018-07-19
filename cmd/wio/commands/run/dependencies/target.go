@@ -1,44 +1,46 @@
 package dependencies
 
 import (
-    "strings"
     "hash/fnv"
     "strconv"
+    "strings"
+    "wio/cmd/wio/commands/run"
+    "wio/cmd/wio/toolchain/npm/semver"
 )
 
 type linkNode struct {
-    From *Target
-    To *Target
+    From     *Target
+    To       *Target
     LinkInfo *TargetLinkInfo
 }
 
 type TargetLinkInfo struct {
     Visibility string
-    Flags []string
+    Flags      []string
 }
 
 type Target struct {
-    Name string
-    Version string
-    Path string
-    Vendor bool
-    HeaderOnly bool
-    Flags []string
-    FlagsVisibility string
-    Definitions []string
+    Name                  string
+    Version               *semver.Version
+    Path                  string
+    Vendor                bool
+    HeaderOnly            bool
+    Flags                 []string
+    FlagsVisibility       string
+    Definitions           []string
     DefinitionsVisibility string
-    hashValue uint64
+    hashValue             uint64
 }
 
 type targetSet struct {
-    tMap map[uint64]*Target
+    tMap  map[uint64]*Target
     links []*linkNode
 }
 
 // It creates 64-bit FNV-1a hash from name, version, flags, definitions, and headerOnly
 func (target *Target) hash() uint64 {
-    structStr := target.Name + target.Version + strings.Join(target.Flags, "") +
-        strings.Join(target.Definitions, "") +  target.FlagsVisibility + target.DefinitionsVisibility +
+    structStr := target.Name + run.SemverVersionToString(target.Version) + strings.Join(target.Flags, "") +
+        strings.Join(target.Definitions, "") + target.FlagsVisibility + target.DefinitionsVisibility +
         strconv.FormatBool(target.HeaderOnly)
 
     h := fnv.New64a()
@@ -60,12 +62,11 @@ func (targetSet *targetSet) Add(value *Target) {
     targetSet.tMap[value.hashValue] = value
 }
 
-
 // Links one target to another
 func (targetSet *targetSet) Link(fromTarget *Target, toTarget *Target, linkInfo *TargetLinkInfo) {
     linkNode := &linkNode{
-        From: fromTarget,
-        To: toTarget,
+        From:     fromTarget,
+        To:       toTarget,
         LinkInfo: linkInfo,
     }
 
@@ -89,14 +90,14 @@ func (targetSet *targetSet) linkIterate(c chan<- *linkNode) {
 }
 
 // Public iterator uses channels to return targetValues
-func (targetSet *targetSet) TargetIterator() <- chan *Target {
+func (targetSet *targetSet) TargetIterator() <-chan *Target {
     c := make(chan *Target)
     go targetSet.targetIterate(c)
     return c
 }
 
 // Public iterator uses channels to return Links between targets
-func (targetSet *targetSet) LinkIterator() <- chan *linkNode {
+func (targetSet *targetSet) LinkIterator() <-chan *linkNode {
     c := make(chan *linkNode)
     go targetSet.linkIterate(c)
     return c

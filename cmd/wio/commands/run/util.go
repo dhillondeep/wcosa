@@ -2,8 +2,10 @@ package run
 
 import (
     "os"
+    "strconv"
     "wio/cmd/wio/commands/run/cmake"
     "wio/cmd/wio/constants"
+    "wio/cmd/wio/toolchain/npm/semver"
     "wio/cmd/wio/types"
     "wio/cmd/wio/utils/io"
 )
@@ -45,4 +47,9 @@ func platformExtension(platform string) string {
     default:
         return ""
     }
+}
+
+// Converts semver version to a string "Major.Minor.Patch"
+func SemverVersionToString(version *semver.Version) string {
+    return strconv.Itoa(version.Major) + "." + strconv.Itoa(version.Minor) + "." + strconv.Itoa(version.Patch)
 }
