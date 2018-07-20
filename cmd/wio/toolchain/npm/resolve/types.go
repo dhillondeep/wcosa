@@ -1,11 +1,13 @@
 package resolve
 
 import (
-	"wio/cmd/wio/utils/io"
+    "wio/cmd/wio/errors"
     "wio/cmd/wio/toolchain/npm"
     "wio/cmd/wio/toolchain/npm/client"
     "wio/cmd/wio/toolchain/npm/semver"
     "wio/cmd/wio/types"
+    "wio/cmd/wio/utils"
+    "wio/cmd/wio/utils/io"
 )
 
 type DataCache map[string]*npm.Data
@@ -19,12 +21,12 @@ type Info struct {
     data DataCache
     ver  VerCache
     res  ResCache
-	pkg  PkgCache
+    pkg  PkgCache
 
     resolve ListMap
     lists   ListMap
 
-	root *Node
+    root *Node
 }
 
 type Node struct {
@@ -35,10 +37,10 @@ type Node struct {
 }
 
 type Package struct {
-	Vendor bool
-	Path string
-	Config *types.PkgConfig
-	Version *npm.Version
+    Vendor  bool
+    Path    string
+    Config  *types.PkgConfig
+    Version *npm.Version
 }
 
 func NewInfo(dir string) *Info {
@@ -47,7 +49,7 @@ func NewInfo(dir string) *Info {
         data:    DataCache{},
         ver:     VerCache{},
         res:     ResCache{},
-		pkg:     PkgCache{},
+        pkg:     PkgCache{},
         resolve: ListMap{},
         lists:   ListMap{},
     }
@@ -162,54 +164,75 @@ func (i *Info) StoreVer(name string, ver *semver.Version) {
 }
 
 func (i *Info) GetLocalVersion(name, ver string) (*npm.Version, error) {
-	pkg, err := i.GetPkg(name, ver)
-	if err != nil {
-		return nil, err
-	}
-	if pkg == nil {
-		return nil, nil
-	}
-	return pkg.Version, nil
+    pkg, err := i.GetPkg(name, ver)
+    if err != nil {
+        return nil, err
+    }
+    if pkg == nil {
+        return nil, nil
+    }
+    return pkg.Version, nil
 }
 
 func (i *Info) GetPkg(name, ver string) (*Package, error) {
-	if data, exists := i.pkg[name]; exists {
-		if pkg, exists := data[ver]; exists {
-			return pkg, nil
-		}
-	}
+    if data, exists := i.pkg[name]; exists {
+        if pkg, exists := data[ver]; exists {
+            return pkg, nil
+        }
+    }
 
-	vendor := []bool{true, true, false}
-	strict := []bool{false, true, true}
-	paths := []string{
-		io.Path(i.dir, io.Vendor, name),
-		io.Path(i.dir, io.Vendor, name+"__"+ver),
-		io.Path(i.dir, io.Folder, io.Modules, name+"__"+ver),
-	}
-	for n, path := range paths {
-		ret, err := tryFindConfig(name, ver, path, strict[n])
-		if err != nil {
-			return nil, err
-		}
-		if ret == nil {
-			continue
-		}
-		pkg := &Package{Vendor: vendor[n], Path: path, Config: ret}
-		pkg.Version = &npm.Version{
-			Name: ret.Name(),
-			Version: ret.Version(),
-			Dependencies: ret.Dependencies(),
-		}
-		i.SetPkg(name, ver, pkg)
-		return pkg, nil
-	}
-	return nil, nil
+    vendor := []bool{true, true, false}
+    strict := []bool{false, true, true}
+    paths := []string{
+        io.Path(i.dir, io.Vendor, name),
+        io.Path(i.dir, io.Vendor, name+"__"+ver),
+        io.Path(i.dir, io.Folder, io.Modules, name+"__"+ver),
+    }
+    for n, path := range paths {
+        ret, err := tryFindConfig(name, ver, path, strict[n])
+        if err != nil {
+            return nil, err
+        }
+        if ret == nil {
+            continue
+        }
+        pkg := &Package{Vendor: vendor[n], Path: path, Config: ret}
+        pkg.Version = &npm.Version{
+            Name:         ret.Name(),
+            Version:      ret.Version(),
+            Dependencies: ret.Dependencies(),
+        }
+        i.SetPkg(name, ver, pkg)
+        return pkg, nil
+    }
+    return nil, nil
 }
 
 func (i *Info) SetPkg(name, ver string, pkg *Package) {
-	if data, exists := i.pkg[name]; exists {
-		data[ver] = pkg
-	} else {
-		i.pkg[name] = map[string]*Package{ver: pkg}
-	}
+    if data, exists := i.pkg[name]; exists {
+        data[ver] = pkg
+    } else {
+        i.pkg[name] = map[string]*Package{ver: pkg}
+    }
+}
+
+func (i *Info) LoadLocal() error {
+    paths, err := findLocalConfigs(i.dir)
+    if err != nil {
+        return err
+    }
+    for _, path := range paths {
+        cfg, err := utils.ReadWioConfig(path)
+        if err != nil {
+            return err
+        }
+        pkg, err := i.GetPkg(cfg.Name(), cfg.Version())
+        if err != nil {
+            return err
+        }
+        if pkg == nil {
+            return errors.Stringf("package %s missing in lookup", cfg.Name())
+        }
+    }
+    return nil
 }

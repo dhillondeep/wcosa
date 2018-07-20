@@ -40,6 +40,9 @@ func (i *Info) Exists(name string, ver string) (bool, error) {
 func (i *Info) ResolveRemote(config types.IConfig) error {
     logResolveStart(config)
 
+	if err := i.LoadLocal(); err != nil {
+		return err
+	}
 	i.root = &Node{
 		Name: config.Name(),
 		ConfigVersion: config.Version(),

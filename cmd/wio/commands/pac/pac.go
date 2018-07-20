@@ -46,7 +46,7 @@ func (pac Pac) Execute() error {
     if err != nil {
         return err
     }
-    if !utils.PathExists(directory + io.Sep + io.Config) {
+    if !io.Exists(directory + io.Sep + io.Config) {
         return errors.ConfigMissing{}
     }
     log.Info("updating package.json ... ")
@@ -82,7 +82,7 @@ func (pac Pac) handleInstall(directory string) error {
     if pac.Context.Bool("clean") {
         log.Info(log.Cyan, "cleaning npm packages ... ")
 
-        if !utils.PathExists(remoteDirectory) || !utils.PathExists(wioPath) {
+        if !io.Exists(remoteDirectory) || !io.Exists(wioPath) {
             log.WriteSuccess()
         } else {
             if err := os.RemoveAll(remoteDirectory); err != nil {
@@ -197,7 +197,7 @@ func (pac Pac) handleUninstall(directory string) error {
 
         packageName := strip[0]
 
-        if !utils.PathExists(remoteDirectory + io.Sep + packageName) {
+        if !io.Exists(remoteDirectory + io.Sep + packageName) {
             log.Writeln(log.INFO, color.New(color.FgYellow), "does not exist")
             continue
         }

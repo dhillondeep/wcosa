@@ -5,7 +5,6 @@ import (
     "path/filepath"
     "strings"
     "wio/cmd/wio/log"
-    "wio/cmd/wio/utils"
     "wio/cmd/wio/utils/io"
     "wio/cmd/wio/utils/template"
 )
@@ -96,7 +95,7 @@ func copyProjectAssets(queue *log.Queue, info *createInfo, data *StructureTypeDa
             continue
         }
 
-        if !utils.PathExists(directoryPath) {
+        if !io.Exists(directoryPath) {
             if err := os.MkdirAll(directoryPath, os.ModePerm); err != nil {
                 return err
             }

@@ -60,7 +60,7 @@ func createDependencyScanStructure(name string, depPath string, fromVendor bool)
 func recursiveDependencyScan(queue *log.Queue, currDirectory string,
     dependencies map[string]*DependencyScanStructure, packageDependencies types.DependenciesTag) error {
     // if directory does not exist, do not do anything
-    if !utils.PathExists(currDirectory) {
+    if !io.Exists(currDirectory) {
         log.Verbln(queue, "% does not exist, skipping", currDirectory)
         return nil
     }
@@ -85,7 +85,7 @@ func recursiveDependencyScan(queue *log.Queue, currDirectory string,
             log.Verbln(queue, "Passed %s", dir.Name())
 
             dirPath := currDirectory + io.Sep + dir.Name()
-            if !utils.PathExists(dirPath + io.Sep + io.Config) {
+            if !io.Exists(dirPath + io.Sep + io.Config) {
                 return goerr.New("wio.yml file missing")
             }
 
@@ -116,12 +116,12 @@ func recursiveDependencyScan(queue *log.Queue, currDirectory string,
 
             modulePath := io.Path(dirPath, io.Modules)
             vendorPath := io.Path(dirPath, io.Vendor)
-            if utils.PathExists(modulePath) {
+            if io.Exists(modulePath) {
                 // if remote directory exists
                 if err := recursiveDependencyScan(queue, modulePath, dependencies, newPackageDependencies); err != nil {
                     return err
                 }
-            } else if utils.PathExists(vendorPath) {
+            } else if io.Exists(vendorPath) {
                 // if vendor directory exists
                 if err := recursiveDependencyScan(queue, vendorPath, dependencies, newPackageDependencies); err != nil {
                     return err
@@ -138,14 +138,14 @@ func recursiveDependencyScan(queue *log.Queue, currDirectory string,
 // When we are building for pkg type, we will copy the files into the remote directory
 // This will be picked up while scanning and hence the rest of build process stays the same
 func convertPkgToDependency(pkgPath string, projectName string, projectDir string) error {
-    if !utils.PathExists(pkgPath) {
+    if !io.Exists(pkgPath) {
         if err := os.MkdirAll(pkgPath, os.ModePerm); err != nil {
             return err
         }
     }
 
     pkgDir := pkgPath + io.Sep + projectName
-    if utils.PathExists(pkgDir) {
+    if io.Exists(pkgDir) {
         if err := os.RemoveAll(pkgDir); err != nil {
             return err
         }

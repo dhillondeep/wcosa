@@ -13,14 +13,6 @@ import (
     wio "wio/cmd/wio/utils/io"
 )
 
-// Checks if path exists and returns true and false based on that
-func PathExists(path string) bool {
-    if _, err := os.Stat(path); err != nil {
-        return false
-    }
-    return true
-}
-
 // Checks if the give path is a director and based on the returns
 // true or false. If path does not exist, it throws an error
 func IsDir(path string) (bool, error) {
@@ -80,7 +72,7 @@ func AppendIfMissing(slice []string, slice2 []string) []string {
 // of the source file. The file mode will be copied from the source and
 // the copied data is synced/flushed to stable storage.
 func CopyFile(src, dst string) error {
-    if !PathExists(src) {
+    if !wio.Exists(src) {
         msg := fmt.Sprintf("Path [%s] does not exist", src)
         return errors.String(msg)
     }
@@ -142,7 +134,7 @@ func Copy(src string, dst string) error {
 // Source directory must exist, destination directory must *not* exist.
 // Symlinks are ignored and skipped.
 func CopyDir(src string, dst string) (err error) {
-    if !PathExists(src) {
+    if !wio.Exists(src) {
         return
     }
 
