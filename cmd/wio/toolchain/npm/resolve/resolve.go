@@ -37,16 +37,25 @@ func (i *Info) Exists(name string, ver string) (bool, error) {
     return exists, nil
 }
 
-func (i *Info) ResolveRemote(config types.IConfig, root *Node) error {
+func (i *Info) ResolveRemote(config types.IConfig, vendor bool, root *Node) error {
     logResolveStart(config)
 
-    root = &Node{Name: config.Name(), ConfigVersion: config.Version()}
+    if root == nil {
+        root = &Node{}
+    }
+
+    root.Vendor = vendor
+    root.Name = config.Name()
+    root.ConfigVersion = config.Version()
+    //root.Config = config.(*types.PkgConfig)
+
     if root.ResolvedVersion = semver.Parse(root.ConfigVersion); root.ResolvedVersion == nil {
         return errors.Stringf("project has invalid version %s", root.ConfigVersion)
     }
     deps := config.Dependencies()
+
     for name, ver := range deps {
-        node := &Node{Name: name, ConfigVersion: ver}
+        node := &Node{Vendor: config.GetDependencies()[name].Vendor, Name: name, ConfigVersion: ver}
         root.Dependencies = append(root.Dependencies, node)
     }
     for _, dep := range root.Dependencies {
@@ -72,7 +81,7 @@ func (i *Info) ResolveTree(root *Node) error {
     }
     root.ResolvedVersion = ver
     i.SetRes(root.Name, root.ConfigVersion, ver)
-    data, err := i.GetVersion(root.Name, ver.Str())
+    data, err := i.GetVersion(root)
     if err != nil {
         return err
     }

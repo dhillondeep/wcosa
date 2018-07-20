@@ -4,6 +4,7 @@ import (
     "wio/cmd/wio/toolchain/npm"
     "wio/cmd/wio/toolchain/npm/client"
     "wio/cmd/wio/toolchain/npm/semver"
+    "wio/cmd/wio/types"
 )
 
 type DataCache map[string]*npm.Data
@@ -26,6 +27,10 @@ type Node struct {
     ConfigVersion   string
     ResolvedVersion *semver.Version
     Dependencies    []*Node
+
+    Vendor bool
+    Path   string
+    Config *types.PkgConfig
 }
 
 func NewInfo(dir string) *Info {
@@ -96,29 +101,29 @@ func (i *Info) GetData(name string) (*npm.Data, error) {
     return ret, nil
 }
 
-func (i *Info) GetVersion(name string, ver string) (*npm.Version, error) {
-    if ret := i.getVer(name, ver); ret != nil {
+func (i *Info) GetVersion(node *Node) (*npm.Version, error) {
+    if ret := i.getVer(node.Name, node.ResolvedVersion.Str()); ret != nil {
         return ret, nil
     }
-    if data := i.getData(name); data != nil {
-        if ret, exists := data.Versions[ver]; exists {
-            i.setVer(name, ver, &ret)
+    if data := i.getData(node.Name); data != nil {
+        if ret, exists := data.Versions[node.ResolvedVersion.Str()]; exists {
+            i.setVer(node.Name, node.ResolvedVersion.Str(), &ret)
             return &ret, nil
         }
     }
-    ret, err := findVersion(name, ver, i.dir)
+    ret, err := findVersion(node, i.dir)
     if err != nil {
         return nil, err
     }
     if ret != nil {
-        i.setVer(name, ver, ret)
+        i.setVer(node.Name, node.ResolvedVersion.Str(), ret)
         return ret, nil
     }
-    ret, err = client.FetchPackageVersion(name, ver)
+    ret, err = client.FetchPackageVersion(node.Name, node.ResolvedVersion.Str())
     if err != nil {
         return nil, err
     }
-    i.setVer(name, ver, ret)
+    i.setVer(node.Name, node.ResolvedVersion.Str(), ret)
     return ret, nil
 }
 

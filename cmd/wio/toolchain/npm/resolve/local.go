@@ -8,8 +8,8 @@ import (
     "wio/cmd/wio/utils/io"
 )
 
-func findVersion(name string, ver string, dir string) (*npm.Version, error) {
-    config, err := tryFindConfig(name, ver, dir)
+func findVersion(node *Node, dir string) (*npm.Version, error) {
+    config, err := tryFindConfig(node, dir)
     if err != nil {
         return nil, err
     }
@@ -36,7 +36,10 @@ func configToVersion(config *types.PkgConfig) *npm.Version {
 //
 // Function returns nil error and nil result if not found.
 // Vendor is preferred to allow overrides.
-func tryFindConfig(name string, ver string, dir string) (*types.PkgConfig, error) {
+func tryFindConfig(node *Node, dir string) (*types.PkgConfig, error) {
+    name := node.Name
+    ver := node.ResolvedVersion.Str()
+
     paths := []string{
         io.Path(dir, io.Vendor, name),
         io.Path(dir, io.Vendor, name+"__"+ver),
@@ -55,14 +58,19 @@ func tryFindConfig(name string, ver string, dir string) (*types.PkgConfig, error
             return nil, errors.Stringf("config %s has wrong name", paths[i])
         }
         if tryConfig.Version() != ver {
-            if i != 0 {
-                return nil, errors.Stringf("config %s has wrong version", paths[i])
-            } else {
-                // version-less path
-                continue
-            }
+            return nil, errors.Stringf("config %s has wrong version", paths[i])
         }
         config = tryConfig
+
+        if i == 0 || i == 1 {
+            // package is found in vendor directory
+            node.Vendor = true
+        } else {
+            node.Vendor = false
+        }
+
+        node.Path = paths[i]
+        node.Config = config
     }
     return config, nil
 }
