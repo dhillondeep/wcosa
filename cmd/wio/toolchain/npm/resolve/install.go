@@ -10,6 +10,8 @@ import (
     "wio/cmd/wio/toolchain/npm"
     "wio/cmd/wio/utils/io"
 
+    "wio/cmd/wio/toolchain/npm/semver"
+
     "github.com/mholt/archiver"
 )
 
@@ -29,7 +31,7 @@ func (i *Info) InstallResolved() error {
 }
 
 func (i *Info) install(name string, ver string, data *npm.Version) error {
-    local, err := tryFindConfig(name, ver, i.dir)
+    local, err := tryFindConfig(&Node{Name: name, ResolvedVersion: semver.Parse(ver)}, i.dir)
     if err != nil {
         return err
     }
