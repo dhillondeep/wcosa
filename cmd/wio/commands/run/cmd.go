@@ -2,7 +2,6 @@ package run
 
 import (
     "fmt"
-    sysio "io"
     "os"
     "os/exec"
     "runtime"
@@ -70,31 +69,8 @@ func hardClean(dir string, errChan chan error) {
 func Execute(dir string, name string, args ...string) error {
     cmd := exec.Command(name, args...)
     cmd.Dir = dir
-
-    stdIn, err := cmd.StdinPipe()
-    if err != nil {
-        return err
-    }
-
-    stdoutIn, err := cmd.StdoutPipe()
-    if err != nil {
-        return err
-    }
-    stderrIn, err := cmd.StderrPipe()
-    if err != nil {
-        return err
-    }
-
-    err = cmd.Start()
-    if err != nil {
-        return err
-    }
-    go func() { sysio.Copy(stdIn, os.Stdin) }()
-    go func() { sysio.Copy(os.Stdout, stdoutIn) }()
-    go func() { sysio.Copy(os.Stderr, stderrIn) }()
-    err = cmd.Wait()
-    if err != nil {
-        return err
-    }
-    return nil
+	cmd.Stdin = os.Stdin
+	cmd.Stdout = os.Stdout
+	cmd.Stderr = os.Stderr
+	return cmd.Run()
 }
