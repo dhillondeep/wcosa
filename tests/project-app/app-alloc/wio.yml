@@ -20,3 +20,17 @@ targets:
     main:
       src: src
       platform: native
+
+dependencies:
+  alloc-one:
+    version: 0.0.1
+    vendor: true
+    link_visibility: PRIVATE
+    definitions:
+    - STACK_SIZE=256
+  alloc-two:
+    version: 0.0.1
+    vendor: true
+    link_visibility: PRIVATE
+    definitions:
+    - STACK_SIZE=512

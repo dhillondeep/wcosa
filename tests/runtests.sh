@@ -4,7 +4,7 @@ set -e
 
 test_folder="wio-test"
 base_folder=$(pwd)
-num_tests=9
+num_tests=11
 
 # Check that working directory contains script
 if [ ! -f $(pwd)/`basename "$0"` ]; then
@@ -101,6 +101,20 @@ _test9() {
     wio update
     wio build
     wio run main --args "15 7"
+}
+
+_test10() {
+    cd ./project-app/app-alloc/vendor/alloc-one
+    wio clean --hard
+    wio build
+    wio run
+}
+
+_test11() {
+    cd ./project-app/app-alloc/vendor/alloc-two
+    wio clean --hard
+    wio build
+    wio run
 }
 
 # Source and build

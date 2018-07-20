@@ -1,7 +1,3 @@
-#ifndef STACK_SIZE
-#error "STACK_SIZE must be defined"
-#endif
-
 #define static_assert(cond, msg) typedef char __static_assertion[(cond) ? 1 : -1]
 
 #include <pkg-malloc.h>

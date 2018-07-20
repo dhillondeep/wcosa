@@ -33,3 +33,7 @@ rm -f $(pwd)/project-app/app-alloc/vendor/alloc-two/vendor/pkg-malloc
 ln -s -f $(pwd)/project-pkg/pkg-malloc $(pwd)/project-app/app-alloc/vendor/pkg-malloc
 ln -s -f $(pwd)/project-pkg/pkg-malloc $(pwd)/project-app/app-alloc/vendor/alloc-one/vendor/pkg-malloc
 ln -s -f $(pwd)/project-pkg/pkg-malloc $(pwd)/project-app/app-alloc/vendor/alloc-two/vendor/pkg-malloc
+
+mkdir -p $(pwd)/project-pkg/pkg-singleton/vendor
+rm -f $(pwd)/project-pkg/pkg-singleton/vendor/pkg-malloc
+ln -s -f $(pwd)/project-pkg/pkg-malloc $(pwd)/project-pkg/pkg-singleton/vendor/pkg-malloc
