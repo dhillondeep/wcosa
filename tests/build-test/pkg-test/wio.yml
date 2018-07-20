@@ -1,0 +1,63 @@
+pkg:
+  ide: none
+
+  meta:
+    name: pkg-test
+    version: 0.0.1
+    keywords:
+    - avr
+    - cosa
+    - wio
+    license: MIT
+
+  config:
+    minimum_wio_version: 0.3.2
+    supported_platforms:
+    - avr
+    supported_frameworks:
+    - cosa
+    supported_boards:
+    - uno
+
+  compile_options:
+    header_only: false
+    platform: avr
+  flags:
+    required_flags:
+    - -DNoWay
+    visibility: PRIVATE
+  definitions:
+    visibility: PRIVATE
+
+targets:
+  default: tests
+  create:
+    tests:
+      src: tests
+      platform: avr
+      framework: cosa
+      board: uno
+      flags:
+        pkg_flags:
+        - -DNoWay=20
+
+dependencies:
+  cosa-fart:
+    version: 0.0.1
+    link_visibility: PRIVATE
+  cosa-servo:
+    version: 1.0.0
+    link_visibility: PRIVATE
+  pkg-list:
+    version: 0.0.1
+    link_visibility: PRIVATE
+    definitions:
+    - STACK_SIZE=256
+  pkg-uart:
+    version: 0.0.1
+    link_visibility: PRIVATE
+    definitions:
+    - BUFFER_SIZE=256
+  wlib-tmp:
+    version: 1.0.0
+    link_visibility: PRIVATE

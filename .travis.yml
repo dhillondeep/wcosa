@@ -10,6 +10,7 @@ before_install:
   - source wenv
   - sudo apt-get update
   - sudo apt-get install gcc-avr avr-libc avrdude
+  - sudo apt-get install unzip
 
 install:
   - wmake travis-setup

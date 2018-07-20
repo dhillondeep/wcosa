@@ -1,0 +1,45 @@
+app:
+  name: app-test
+  ide: none
+
+  config:
+    minimum_wio_version: 0.3.2
+    supported_platforms:
+    - avr
+    supported_frameworks:
+    - cosa
+    supported_boards:
+    - uno
+
+  compile_options:
+    platform: avr
+
+targets:
+  default: main
+  create:
+    main:
+      src: src
+      platform: avr
+      framework: cosa
+      board: uno
+
+dependencies:
+  cosa-fart:
+    version: 0.0.1
+    link_visibility: PRIVATE
+  cosa-servo:
+    version: 1.0.0
+    link_visibility: PRIVATE
+  pkg-list:
+    version: 0.0.1
+    link_visibility: PRIVATE
+    definitions:
+    - STACK_SIZE=256
+  pkg-uart:
+    version: 0.0.1
+    link_visibility: PRIVATE
+    definitions:
+    - BUFFER_SIZE=256
+  wlib-tmp:
+    version: 1.0.0
+    link_visibility: PRIVATE
