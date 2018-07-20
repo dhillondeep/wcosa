@@ -37,10 +37,10 @@ func (i *Info) Exists(name string, ver string) (bool, error) {
     return exists, nil
 }
 
-func (i *Info) ResolveRemote(config types.IConfig) error {
+func (i *Info) ResolveRemote(config types.IConfig, root *Node) error {
     logResolveStart(config)
 
-    root := &Node{Name: config.Name(), ConfigVersion: config.Version()}
+    root = &Node{Name: config.Name(), ConfigVersion: config.Version()}
     if root.ResolvedVersion = semver.Parse(root.ConfigVersion); root.ResolvedVersion == nil {
         return errors.Stringf("project has invalid version %s", root.ConfigVersion)
     }
