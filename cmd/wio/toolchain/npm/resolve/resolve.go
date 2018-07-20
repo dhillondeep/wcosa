@@ -1,7 +1,6 @@
 package resolve
 
 import (
-    "wio/cmd/wio/constants"
     "wio/cmd/wio/errors"
     "wio/cmd/wio/toolchain/npm/semver"
     "wio/cmd/wio/types"
@@ -38,36 +37,29 @@ func (i *Info) Exists(name string, ver string) (bool, error) {
     return exists, nil
 }
 
-func (i *Info) ResolveRemote(config types.IConfig, vendor bool, root *Node) error {
+func (i *Info) ResolveRemote(config types.IConfig) error {
     logResolveStart(config)
 
-    if root == nil {
-        root = &Node{}
-    }
-
-    root.Name = config.Name()
-    root.ConfigVersion = config.Version()
-    if config.GetType() == constants.PKG {
-        root.Vendor = vendor
-        root.Config = config.(*types.PkgConfig)
-    }
-
-    if root.ResolvedVersion = semver.Parse(root.ConfigVersion); root.ResolvedVersion == nil {
-        return errors.Stringf("project has invalid version %s", root.ConfigVersion)
+	i.root = &Node{
+		Name: config.Name(),
+		ConfigVersion: config.Version(),
+		ResolvedVersion: semver.Parse(config.Version()),
+	}
+    if i.root.ResolvedVersion == nil {
+        return errors.Stringf("project has invalid version %s", i.root.ConfigVersion)
     }
     deps := config.Dependencies()
-
     for name, ver := range deps {
-        node := &Node{Vendor: config.GetDependencies()[name].Vendor, Name: name, ConfigVersion: ver}
-        root.Dependencies = append(root.Dependencies, node)
+        node := &Node{Name: name, ConfigVersion: ver}
+        i.root.Dependencies = append(i.root.Dependencies, node)
     }
-    for _, dep := range root.Dependencies {
+    for _, dep := range i.root.Dependencies {
         if err := i.ResolveTree(dep); err != nil {
             return err
         }
     }
 
-    logResolveDone(root)
+    logResolveDone(i.root)
     return nil
 }
 
@@ -84,7 +76,7 @@ func (i *Info) ResolveTree(root *Node) error {
     }
     root.ResolvedVersion = ver
     i.SetRes(root.Name, root.ConfigVersion, ver)
-    data, err := i.GetVersion(root)
+    data, err := i.GetVersion(root.Name, ver.Str())
     if err != nil {
         return err
     }

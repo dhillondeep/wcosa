@@ -1,6 +1,7 @@
 package resolve
 
 import (
+	"wio/cmd/wio/utils/io"
     "wio/cmd/wio/toolchain/npm"
     "wio/cmd/wio/toolchain/npm/client"
     "wio/cmd/wio/toolchain/npm/semver"
@@ -10,6 +11,7 @@ import (
 type DataCache map[string]*npm.Data
 type VerCache map[string]map[string]*npm.Version
 type ResCache map[string]map[string]*semver.Version
+type PkgCache map[string]map[string]*Package
 type ListMap map[string]semver.List
 
 type Info struct {
@@ -17,9 +19,12 @@ type Info struct {
     data DataCache
     ver  VerCache
     res  ResCache
+	pkg  PkgCache
 
     resolve ListMap
     lists   ListMap
+
+	root *Node
 }
 
 type Node struct {
@@ -27,10 +32,13 @@ type Node struct {
     ConfigVersion   string
     ResolvedVersion *semver.Version
     Dependencies    []*Node
+}
 
-    Vendor bool
-    Path   string
-    Config *types.PkgConfig
+type Package struct {
+	Vendor bool
+	Path string
+	Config *types.PkgConfig
+	Version *npm.Version
 }
 
 func NewInfo(dir string) *Info {
@@ -39,6 +47,7 @@ func NewInfo(dir string) *Info {
         data:    DataCache{},
         ver:     VerCache{},
         res:     ResCache{},
+		pkg:     PkgCache{},
         resolve: ListMap{},
         lists:   ListMap{},
     }
@@ -101,29 +110,29 @@ func (i *Info) GetData(name string) (*npm.Data, error) {
     return ret, nil
 }
 
-func (i *Info) GetVersion(node *Node) (*npm.Version, error) {
-    if ret := i.getVer(node.Name, node.ResolvedVersion.Str()); ret != nil {
+func (i *Info) GetVersion(name, ver string) (*npm.Version, error) {
+    if ret := i.getVer(name, ver); ret != nil {
         return ret, nil
     }
-    if data := i.getData(node.Name); data != nil {
-        if ret, exists := data.Versions[node.ResolvedVersion.Str()]; exists {
-            i.setVer(node.Name, node.ResolvedVersion.Str(), &ret)
+    if data := i.getData(name); data != nil {
+        if ret, exists := data.Versions[ver]; exists {
+            i.setVer(name, ver, &ret)
             return &ret, nil
         }
     }
-    ret, err := findVersion(node, i.dir)
+    ret, err := i.GetLocalVersion(name, ver)
     if err != nil {
         return nil, err
     }
     if ret != nil {
-        i.setVer(node.Name, node.ResolvedVersion.Str(), ret)
+        i.setVer(name, ver, ret)
         return ret, nil
     }
-    ret, err = client.FetchPackageVersion(node.Name, node.ResolvedVersion.Str())
+    ret, err = client.FetchPackageVersion(name, ver)
     if err != nil {
         return nil, err
     }
-    i.setVer(node.Name, node.ResolvedVersion.Str(), ret)
+    i.setVer(name, ver, ret)
     return ret, nil
 }
 
@@ -150,4 +159,57 @@ func (i *Info) GetList(name string) (semver.List, error) {
 
 func (i *Info) StoreVer(name string, ver *semver.Version) {
     i.resolve[name] = i.resolve[name].Insert(ver)
+}
+
+func (i *Info) GetLocalVersion(name, ver string) (*npm.Version, error) {
+	pkg, err := i.GetPkg(name, ver)
+	if err != nil {
+		return nil, err
+	}
+	if pkg == nil {
+		return nil, nil
+	}
+	return pkg.Version, nil
+}
+
+func (i *Info) GetPkg(name, ver string) (*Package, error) {
+	if data, exists := i.pkg[name]; exists {
+		if pkg, exists := data[ver]; exists {
+			return pkg, nil
+		}
+	}
+
+	vendor := []bool{true, true, false}
+	strict := []bool{false, true, true}
+	paths := []string{
+		io.Path(i.dir, io.Vendor, name),
+		io.Path(i.dir, io.Vendor, name+"__"+ver),
+		io.Path(i.dir, io.Folder, io.Modules, name+"__"+ver),
+	}
+	for n, path := range paths {
+		ret, err := tryFindConfig(name, ver, path, strict[n])
+		if err != nil {
+			return nil, err
+		}
+		if ret == nil {
+			continue
+		}
+		pkg := &Package{Vendor: vendor[n], Path: path, Config: ret}
+		pkg.Version = &npm.Version{
+			Name: ret.Name(),
+			Version: ret.Version(),
+			Dependencies: ret.Dependencies(),
+		}
+		i.SetPkg(name, ver, pkg)
+		return pkg, nil
+	}
+	return nil, nil
+}
+
+func (i *Info) SetPkg(name, ver string, pkg *Package) {
+	if data, exists := i.pkg[name]; exists {
+		data[ver] = pkg
+	} else {
+		i.pkg[name] = map[string]*Package{ver: pkg}
+	}
 }
