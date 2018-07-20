@@ -15,7 +15,7 @@ const addExecutable = `add_executable({{TARGET}} {{FILES}})`
 const generateArduinoFirmware = `genreate_arduino_firmware({{TARGET}} SRCS {{FILES}} BOARD {{BOARD}} PORT {{PORT}})`
 
 // This for header only AVR dependency
-const avrHeader = `
+const AvrHeader = `
 add_library({{DEPENDENCY_NAME}} INTERFACE)
 
 target_compile_definitions(
@@ -35,7 +35,7 @@ target_include_directories(
 `
 
 // This is for header only AVR dependency
-const avrLibrary = `
+const AvrLibrary = `
 file(GLOB_RECURSE
     {{DEPENDENCY_NAME}}_files
     "{{DEPENDENCY_PATH}}/src/*.cpp"
@@ -81,7 +81,7 @@ target_include_directories(
 `
 
 // This for header only desktop dependency
-const desktopHeader = `
+const DesktopHeader = `
 add_library({{DEPENDENCY_NAME}} INTERFACE)
 
 target_compile_definitions(
@@ -101,7 +101,7 @@ target_include_directories(
 `
 
 // This is for header only desktop dependency
-const desktopLibrary = `
+const DesktopLibrary = `
 file(GLOB_RECURSE
     {{DEPENDENCY_NAME}}_files
     "{{DEPENDENCY_PATH}}/src/*.cpp"
@@ -144,7 +144,5 @@ target_include_directories(
 /////////////////////////////////////////////// Linking ////////////////////////////////////////////
 
 // This is for linking dependencies
-const linkString = `
-target_link_libraries({{LINKER_NAME}} {{LINK_VISIBILITY}} {{DEPENDENCY_NAME}})
-
-`
+const LinkString = `
+target_link_libraries({{LINKER_NAME}} {{LINK_VISIBILITY}} {{DEPENDENCY_NAME}})`

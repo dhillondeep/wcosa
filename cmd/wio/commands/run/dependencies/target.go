@@ -1,10 +1,7 @@
 package dependencies
 
 import (
-    "hash/fnv"
-    "strconv"
     "strings"
-    "wio/cmd/wio/toolchain/npm/semver"
 )
 
 type linkNode struct {
@@ -20,49 +17,45 @@ type TargetLinkInfo struct {
 
 type Target struct {
     Name                  string
-    Version               *semver.Version
+    Version               string
     Path                  string
-    Vendor                bool
+    FromVendor            bool
     HeaderOnly            bool
     Flags                 []string
     FlagsVisibility       string
     Definitions           []string
     DefinitionsVisibility string
-    hashValue             uint64
+    hashValue             string
 }
 
-type targetSet struct {
-    tMap  map[uint64]*Target
+type TargetSet struct {
+    tMap  map[string]*Target
     links []*linkNode
 }
 
-// It creates 64-bit FNV-1a hash from name, version, flags, definitions, and headerOnly
-func (target *Target) hash() uint64 {
-    structStr := target.Name + SemverVersionToString(target.Version) + strings.Join(target.Flags, "") +
-        strings.Join(target.Definitions, "") + target.FlagsVisibility + target.DefinitionsVisibility +
-        strconv.FormatBool(target.HeaderOnly)
+// creates a hash from target struct
+func (target *Target) hash() string {
+    structStr := target.Name + target.Version + strings.Join(target.Flags, "") +
+        strings.Join(target.Definitions, "") + target.FlagsVisibility + target.DefinitionsVisibility
 
-    h := fnv.New64a()
-    h.Write([]byte(structStr))
-
-    return h.Sum64()
+    return structStr
 }
 
 // Creates a hash set for dependency targets
-func NewTargetSet() *targetSet {
-    return &targetSet{
-        tMap: make(map[uint64]*Target),
+func NewTargetSet() *TargetSet {
+    return &TargetSet{
+        tMap: make(map[string]*Target),
     }
 }
 
 // Add Target values to TargetSet
-func (targetSet *targetSet) Add(value *Target) {
+func (targetSet *TargetSet) Add(value *Target) {
     value.hashValue = value.hash()
     targetSet.tMap[value.hashValue] = value
 }
 
 // Links one target to another
-func (targetSet *targetSet) Link(fromTarget *Target, toTarget *Target, linkInfo *TargetLinkInfo) {
+func (targetSet *TargetSet) Link(fromTarget *Target, toTarget *Target, linkInfo *TargetLinkInfo) {
     linkNode := &linkNode{
         From:     fromTarget,
         To:       toTarget,
@@ -73,7 +66,7 @@ func (targetSet *targetSet) Link(fromTarget *Target, toTarget *Target, linkInfo 
 }
 
 // Function used to iterate over targets
-func (targetSet *targetSet) targetIterate(c chan<- *Target) {
+func (targetSet *TargetSet) targetIterate(c chan<- *Target) {
     for _, b := range targetSet.tMap {
         c <- b
     }
@@ -81,7 +74,7 @@ func (targetSet *targetSet) targetIterate(c chan<- *Target) {
 }
 
 // Function used to iterate over link nodes
-func (targetSet *targetSet) linkIterate(c chan<- *linkNode) {
+func (targetSet *TargetSet) linkIterate(c chan<- *linkNode) {
     for _, b := range targetSet.links {
         c <- b
     }
@@ -89,14 +82,14 @@ func (targetSet *targetSet) linkIterate(c chan<- *linkNode) {
 }
 
 // Public iterator uses channels to return targetValues
-func (targetSet *targetSet) TargetIterator() <-chan *Target {
+func (targetSet *TargetSet) TargetIterator() <-chan *Target {
     c := make(chan *Target)
     go targetSet.targetIterate(c)
     return c
 }
 
 // Public iterator uses channels to return Links between targets
-func (targetSet *targetSet) LinkIterator() <-chan *linkNode {
+func (targetSet *TargetSet) LinkIterator() <-chan *linkNode {
     c := make(chan *linkNode)
     go targetSet.linkIterate(c)
     return c

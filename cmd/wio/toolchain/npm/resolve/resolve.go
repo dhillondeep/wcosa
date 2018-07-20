@@ -1,6 +1,7 @@
 package resolve
 
 import (
+    "wio/cmd/wio/constants"
     "wio/cmd/wio/errors"
     "wio/cmd/wio/toolchain/npm/semver"
     "wio/cmd/wio/types"
@@ -51,6 +52,16 @@ func (i *Info) ResolveRemote(config types.IConfig) error {
     if i.root.ResolvedVersion == nil {
         return errors.Stringf("project has invalid version %s", i.root.ConfigVersion)
     }
+
+    // adds pkg config for the initial package
+    if config.GetType() == constants.PKG {
+        i.SetPkg(i.root.Name, i.root.ResolvedVersion.Str(), &Package{
+            Vendor: false,
+            Path:   i.dir,
+            Config: config.(*types.PkgConfig),
+        })
+    }
+
     deps := config.Dependencies()
     for name, ver := range deps {
         node := &Node{Name: name, ConfigVersion: ver}

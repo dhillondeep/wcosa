@@ -69,8 +69,8 @@ func hardClean(dir string, errChan chan error) {
 func Execute(dir string, name string, args ...string) error {
     cmd := exec.Command(name, args...)
     cmd.Dir = dir
-	cmd.Stdin = os.Stdin
-	cmd.Stdout = os.Stdout
-	cmd.Stderr = os.Stderr
-	return cmd.Run()
+    cmd.Stdin = os.Stdin
+    cmd.Stdout = os.Stdout
+    cmd.Stderr = os.Stderr
+    return cmd.Run()
 }

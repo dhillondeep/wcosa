@@ -109,13 +109,11 @@ func (info *runInfo) clean(targets []types.Target) error {
 }
 
 func (info *runInfo) build(targets []types.Target) error {
-    log.Info(log.Cyan, "Generating files ... ")
+    log.Infoln(log.Cyan, "Generating files ... ")
     targetDirs, err := configureTargets(info, targets)
     if err != nil {
-        log.WriteFailure()
         return err
     }
-    log.WriteSuccess()
 
     log.Infoln(log.Cyan.Add(color.Underline), "Building targets")
     log.Infoln(log.Magenta, "Running with JOBS=%d", runtime.NumCPU()+2)

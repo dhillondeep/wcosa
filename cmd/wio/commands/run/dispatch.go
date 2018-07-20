@@ -3,13 +3,14 @@ package run
 import (
     "fmt"
     "strings"
-    "wio/cmd/wio/commands/run/cmake"
     "wio/cmd/wio/commands/run/dependencies"
     "wio/cmd/wio/constants"
     "wio/cmd/wio/errors"
     "wio/cmd/wio/log"
     "wio/cmd/wio/types"
     "wio/cmd/wio/utils/io"
+
+    "wio/cmd/wio/commands/run/cmake"
 
     "github.com/thoas/go-funk"
 )
@@ -99,11 +100,20 @@ func dispatchCmakeNativeGeneric(info *runInfo, target *types.Target) error {
 }
 
 func dispatchCmakeDependencies(info *runInfo, target *types.Target) error {
-    path := info.directory
-    queue := log.NewQueue(16)
-    err := dependencies.CreateCMakeDependencyTargets(info.config, target, path, queue)
+    cmakePath := cmake.BuildPath(info.directory) + io.Sep + (*target).GetName()
+    cmakePath += io.Sep + "dependencies.cmake"
+
+    buildTargets, err := dependencies.CreateBuildTargets(info.directory, target)
+    if err != nil {
+        return err
+    } else {
+        err := dependencies.GenerateCMakeDependencies(cmakePath, (*target).GetPlatform(), buildTargets)
+        if err != nil {
+            return err
+        }
+    }
+
     log.Verbln()
-    log.PrintQueue(queue, log.TWO_SPACES)
     return err
 }
 
