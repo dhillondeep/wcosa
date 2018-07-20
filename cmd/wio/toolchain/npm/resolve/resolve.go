@@ -40,16 +40,16 @@ func (i *Info) Exists(name string, ver string) (bool, error) {
 func (i *Info) ResolveRemote(config types.IConfig) error {
     logResolveStart(config)
 
-    root := &Node{name: config.Name(), ver: config.Version()}
-    if root.resolve = semver.Parse(root.ver); root.resolve == nil {
-        return errors.Stringf("project has invalid version %s", root.ver)
+    root := &Node{Name: config.Name(), ConfigVersion: config.Version()}
+    if root.ResolvedVersion = semver.Parse(root.ConfigVersion); root.ResolvedVersion == nil {
+        return errors.Stringf("project has invalid version %s", root.ConfigVersion)
     }
     deps := config.Dependencies()
     for name, ver := range deps {
-        node := &Node{name: name, ver: ver}
-        root.deps = append(root.deps, node)
+        node := &Node{Name: name, ConfigVersion: ver}
+        root.Dependencies = append(root.Dependencies, node)
     }
-    for _, dep := range root.deps {
+    for _, dep := range root.Dependencies {
         if err := i.ResolveTree(dep); err != nil {
             return err
         }
@@ -62,25 +62,25 @@ func (i *Info) ResolveRemote(config types.IConfig) error {
 func (i *Info) ResolveTree(root *Node) error {
     logResolve(root)
 
-    if ret := i.GetRes(root.name, root.ver); ret != nil {
-        root.resolve = ret
+    if ret := i.GetRes(root.Name, root.ConfigVersion); ret != nil {
+        root.ResolvedVersion = ret
         return nil
     }
-    ver, err := i.resolveVer(root.name, root.ver)
+    ver, err := i.resolveVer(root.Name, root.ConfigVersion)
     if err != nil {
         return err
     }
-    root.resolve = ver
-    i.SetRes(root.name, root.ver, ver)
-    data, err := i.GetVersion(root.name, ver.Str())
+    root.ResolvedVersion = ver
+    i.SetRes(root.Name, root.ConfigVersion, ver)
+    data, err := i.GetVersion(root.Name, ver.Str())
     if err != nil {
         return err
     }
     for name, ver := range data.Dependencies {
-        node := &Node{name: name, ver: ver}
-        root.deps = append(root.deps, node)
+        node := &Node{Name: name, ConfigVersion: ver}
+        root.Dependencies = append(root.Dependencies, node)
     }
-    for _, node := range root.deps {
+    for _, node := range root.Dependencies {
         if err := i.ResolveTree(node); err != nil {
             return err
         }

@@ -22,11 +22,10 @@ type Info struct {
 }
 
 type Node struct {
-    name string
-    ver  string
-    deps []*Node
-
-    resolve *semver.Version
+    Name            string
+    ConfigVersion   string
+    ResolvedVersion *semver.Version
+    Dependencies    []*Node
 }
 
 func NewInfo(dir string) *Info {

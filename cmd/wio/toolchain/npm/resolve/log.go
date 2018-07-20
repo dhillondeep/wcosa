@@ -22,7 +22,7 @@ func logResolve(n *Node) {
     line.Write("resolve", log.Magenta)
     line.Write("]", log.Cyan)
     line.Write(" ")
-    line.Write("%s@%s", n.name, n.ver, log.Green)
+    line.Write("%s@%s", n.Name, n.ConfigVersion, log.Green)
     line.End()
 }
 
@@ -33,14 +33,14 @@ func logResolveDone(root *Node) {
 }
 
 func printTree(node *Node, pre string) {
-    log.Infoln(log.Green, "%s@%s", node.name, node.resolve.Str())
-    for i := 0; i < len(node.deps)-1; i++ {
+    log.Infoln(log.Green, "%s@%s", node.Name, node.ResolvedVersion.Str())
+    for i := 0; i < len(node.Dependencies)-1; i++ {
         log.Info("%s|_ ", pre)
-        printTree(node.deps[i], pre+"|  ")
+        printTree(node.Dependencies[i], pre+"|  ")
     }
-    if len(node.deps) > 0 {
+    if len(node.Dependencies) > 0 {
         log.Info("%s\\_ ", pre)
-        printTree(node.deps[len(node.deps)-1], pre+"   ")
+        printTree(node.Dependencies[len(node.Dependencies)-1], pre+"   ")
     }
 }
 
