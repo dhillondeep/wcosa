@@ -105,13 +105,6 @@ func updatePackageConfig(queue *log.Queue, config *types.PkgConfig, info *create
     if config.MainTag.GetName() != filepath.Base(info.directory) {
         log.Warnln(queue, "Base directory different from project name")
     }
-    if config.MainTag.CompileOptions.HeaderOnly {
-        config.MainTag.Flags.Visibility = "INTERFACE"
-        config.MainTag.Definitions.Visibility = "INTERFACE"
-    } else {
-        config.MainTag.Flags.Visibility = "PRIVATE"
-        config.MainTag.Definitions.Visibility = "PRIVATE"
-    }
     if strings.Trim(config.MainTag.Meta.Version, " ") == "" {
         config.MainTag.Meta.Version = "0.0.1"
     }

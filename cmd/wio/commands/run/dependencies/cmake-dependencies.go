@@ -185,12 +185,11 @@ func CreateCMakeTargets(queue *log.Queue, parentTargetName string, parentTargetH
     // this is to make sure when a flag or a definition is unique, we create a new target
     sort.Strings(allFlags)
     sort.Strings(allDefinitions)
-    hash := depTgtName + strings.Join(allFlags, "") + strings.Join(allDefinitions, "")
+    hash := depTgtName + strings.Join(allFlags, "|") + strings.Join(allDefinitions, "|")
 
     linkVisibility := strings.ToUpper(target.LinkVisibility)
 
     if val, exists := cmakeTargets[hash]; exists {
-        linkVisibility = linkVisibilityVerify(linkVisibility, parentTargetHeaderOnly)
         cmakeTargetsLink = append(cmakeTargetsLink, cmake.TargetLink{From: parentTargetName, To: val.TargetName, Visibility: linkVisibility})
     } else {
         dependencyNameToUse := depTgtName
@@ -211,9 +210,6 @@ func CreateCMakeTargets(queue *log.Queue, parentTargetName string, parentTargetH
         // add include definitions
         allDefinitions = utils.AppendIfMissing(allDefinitions, mainTag.Definitions.IncludedDefinitions)
 
-        // verify linker visibility
-        linkVisibility = linkVisibilityVerify(linkVisibility, parentTargetHeaderOnly)
-
         cmakeTargets[hash] = &cmake.Target{TargetName: dependencyNameToUse,
             Path: depTgt.Directory, Flags: allFlags, Definitions: allDefinitions,
             HeaderOnly: mainTag.CompileOptions.HeaderOnly}
@@ -224,47 +220,7 @@ func CreateCMakeTargets(queue *log.Queue, parentTargetName string, parentTargetH
         cmakeTargetNames[dependencyNameToUse] = true
     }
 
-    cmakeTargets[hash].FlagsVisibility = flagsDefinitionsVisibility(
-        mainTag.Flags.Visibility, mainTag.CompileOptions.HeaderOnly)
-
-    cmakeTargets[hash].DefinitionsVisibility = flagsDefinitionsVisibility(
-        mainTag.Definitions.Visibility, mainTag.CompileOptions.HeaderOnly)
-
+    cmakeTargets[hash].FlagsVisibility = mainTag.Flags.Visibility
+    cmakeTargets[hash].DefinitionsVisibility = mainTag.Definitions.Visibility
     return depReqFlags, depReqDefn, nil
-}
-
-// This checks and verifies flag/definition visibility to make sure it is valid
-func flagsDefinitionsVisibility(givenVisibility string, headerOnly bool) string {
-    if givenVisibility != "PRIVATE" && givenVisibility != "PUBLIC" && givenVisibility != "INTERFACE" {
-        if headerOnly {
-            givenVisibility = "INTERFACE"
-        } else {
-            givenVisibility = "PRIVATE"
-        }
-    } else {
-        if headerOnly {
-            givenVisibility = "INTERFACE"
-        }
-    }
-
-    return givenVisibility
-}
-
-// This checks and verifies link visibility to make sure it is valid
-func linkVisibilityVerify(givenVisibility string, headerOnly bool) string {
-    givenVisibility = strings.ToUpper(givenVisibility)
-
-    if givenVisibility != "PRIVATE" && givenVisibility != "PUBLIC" && givenVisibility != "INTERFACE" {
-        if headerOnly {
-            givenVisibility = "INTERFACE"
-        } else {
-            givenVisibility = "PRIVATE"
-        }
-    } else {
-        if headerOnly && givenVisibility != "INTERFACE" {
-            givenVisibility = "INTERFACE"
-        }
-    }
-
-    return givenVisibility
 }
