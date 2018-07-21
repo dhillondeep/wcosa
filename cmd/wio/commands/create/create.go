@@ -122,7 +122,7 @@ func fillAppConfig(info *createInfo) error {
                 Version: config.ProjectMeta.Version,
             },
         },
-        Targets: map[string]types.Target{
+        Targets: map[string]*types.TargetImpl{
             "main": &types.TargetImpl{
                 Source:    "src",
                 Platform:  getPlatform(info.platform),
@@ -147,7 +147,7 @@ func fillPackageConfig(info *createInfo) error {
                 Version: config.ProjectMeta.Version,
             },
         },
-        Targets: map[string]types.Target{
+        Targets: map[string]*types.TargetImpl{
             "tests": &types.TargetImpl{
                 Source:    "tests",
                 Platform:  getPlatform(info.platform),

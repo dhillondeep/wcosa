@@ -159,7 +159,7 @@ type InfoImpl struct {
     Keywords    []string         `yaml:"keywords,omitempty"`
     License     string           `yaml:"license,omitempty"`
     Options     *OptionsImpl     `yaml:"compile_options"`
-    Definitions *DefinitionsImpl `yaml:"definitions"`
+    Definitions *DefinitionsImpl `yaml:"definitions,omitempty"`
 }
 
 func (i *InfoImpl) GetName() string {
@@ -187,10 +187,10 @@ func (i *InfoImpl) GetDefinitions() Definitions {
 }
 
 type ConfigImpl struct {
-    Type         string                `yaml:"type"`
-    Info         *InfoImpl             `yaml:"project"`
-    Targets      map[string]Target     `yaml:"targets"`
-    Dependencies map[string]Dependency `yaml:"dependencies"`
+    Type         string                     `yaml:"type"`
+    Info         *InfoImpl                  `yaml:"project"`
+    Targets      map[string]*TargetImpl     `yaml:"targets"`
+    Dependencies map[string]*DependencyImpl `yaml:"dependencies"`
 }
 
 func (c *ConfigImpl) GetType() string {
@@ -210,14 +210,29 @@ func (c *ConfigImpl) GetInfo() Info {
 }
 
 func (c *ConfigImpl) GetTargets() map[string]Target {
-    return c.Targets
+    if c.Targets == nil {
+        c.Targets = map[string]*TargetImpl{}
+    }
+
+    s := map[string]Target{}
+
+    for name, value := range c.Targets {
+        s[name] = value
+    }
+    return s
 }
 
 func (c *ConfigImpl) GetDependencies() map[string]Dependency {
     if c.Dependencies == nil {
-        c.Dependencies = map[string]Dependency{}
+        c.Dependencies = map[string]*DependencyImpl{}
     }
-    return c.Dependencies
+
+    s := map[string]Dependency{}
+
+    for name, value := range c.Dependencies {
+        s[name] = value
+    }
+    return s
 }
 
 func (c *ConfigImpl) DependencyMap() map[string]string {
