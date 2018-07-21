@@ -1,36 +1,24 @@
-app:
+type: app
+project:
   name: app-alloc
-  ide: none
-
-  config:
-    minimum_wio_version: 0.3.2
-    supported_platforms:
-    - native
-    supported_frameworks:
-    - all
-    supported_boards:
-    - all
-
+  version: 0.0.1
+  keywords:
+  - wio
   compile_options:
-    platform: native
-
+    wio_version: 0.3.2
+    default_target: tests
 targets:
-  default: main
-  create:
-    main:
-      src: src
-      platform: native
-
+  tests:
+    src: src
+    platform: native
 dependencies:
   alloc-one:
-    version: 0.0.1
     vendor: true
-    link_visibility: PRIVATE
+    version: 0.0.1
     definitions:
     - STACK_SIZE=256
   alloc-two:
-    version: 0.0.1
     vendor: true
-    link_visibility: PRIVATE
+    version: 0.0.1
     definitions:
     - STACK_SIZE=512

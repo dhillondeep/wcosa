@@ -1,48 +1,29 @@
-pkg:
-  ide: none
-
-  meta:
-    name: alloc-two
-    version: 0.0.1
-    keywords:
-    - native
-    - all
-    - wio
-    license: MIT
-
-  config:
-    minimum_wio_version: 0.3.2
-    supported_platforms:
-    - native
-    supported_frameworks:
-    - all
-    supported_boards:
-    - all
-
+type: pkg
+project:
+  name: alloc-two
+  version: 0.0.1
+  keywords:
+  - wio
   compile_options:
-    header_only: false
-    platform: native
-  flags:
-    visibility: PRIVATE
+    wio_version: 0.3.2
+    default_target: tests
   definitions:
-    visibility: PRIVATE
-    required_definitions:
-    - STACK_SIZE
-
+    singleton: false
+    global: null
+    required:
+      private:
+      - STACK_SIZE
+    optional: null
 targets:
-  default: tests
-  create:
-    tests:
-      src: tests
-      platform: native
-      definitions:
-        pkg_definitions:
-        - STACK_SIZE=256
-
+  tests:
+    src: tests
+    platform: native
+    definitions:
+      package:
+      - STACK_SIZE=256
 dependencies:
   pkg-malloc:
-    version: 0.0.1
     vendor: true
-    link_visibility: PRIVATE
+    version: 0.0.1
     definitions:
     - $(STACK_SIZE)

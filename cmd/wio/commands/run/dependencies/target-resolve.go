@@ -101,19 +101,20 @@ func resolveTree(i *resolve.Info, currNode *resolve.Node, parentTarget *Target, 
         CStandard:   cStandard,
     }
 
+    definitions := pkg.Config.GetInfo().GetDefinitions()
     defGlobals := map[string][]string{
-        types.Private: pkg.Config.GetInfo().GetDefinitions().GetGlobal().GetPrivate(),
-        types.Public:  pkg.Config.GetInfo().GetDefinitions().GetGlobal().GetPublic(),
+        types.Private: definitions.GetGlobal().GetPrivate(),
+        types.Public:  definitions.GetGlobal().GetPublic(),
     }
 
     defRequired := map[string][]string{
-        types.Private: pkg.Config.GetInfo().GetDefinitions().GetRequired().GetPrivate(),
-        types.Public:  pkg.Config.GetInfo().GetDefinitions().GetRequired().GetPublic(),
+        types.Private: definitions.GetRequired().GetPrivate(),
+        types.Public:  definitions.GetRequired().GetPublic(),
     }
 
     defOptional := map[string][]string{
-        types.Private: pkg.Config.GetInfo().GetDefinitions().GetOptional().GetPrivate(),
-        types.Public:  pkg.Config.GetInfo().GetDefinitions().GetOptional().GetPublic(),
+        types.Private: definitions.GetOptional().GetPrivate(),
+        types.Public:  definitions.GetOptional().GetPublic(),
     }
 
     // resolve definitions
@@ -125,7 +126,7 @@ func resolveTree(i *resolve.Info, currNode *resolve.Node, parentTarget *Target, 
             globals:      defGlobals,
             required:     defRequired,
             optional:     defOptional,
-            singleton:    pkg.Config.GetInfo().GetDefinitions().IsSingleton(),
+            singleton:    definitions.IsSingleton(),
         }); err != nil {
         return err
     }

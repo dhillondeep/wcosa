@@ -7,23 +7,23 @@ type PropertiesImpl struct {
 }
 
 func (p *PropertiesImpl) GetGlobal() []string {
-	if p == nil {
-		return []string{}
-	}
+    if p == nil {
+        return []string{}
+    }
     return p.Global
 }
 
 func (p *PropertiesImpl) GetTarget() []string {
-	if p == nil {
-		return []string{}
-	}
+    if p == nil {
+        return []string{}
+    }
     return p.Target
 }
 
 func (p *PropertiesImpl) GetPackage() []string {
-	if p == nil {
-		return []string{}
-	}
+    if p == nil {
+        return []string{}
+    }
     return p.Package
 }
 
@@ -132,16 +132,16 @@ type DefinitionSetImpl struct {
 }
 
 func (d *DefinitionSetImpl) GetPublic() []string {
-	if d == nil {
-		return []string{}
-	}
+    if d == nil {
+        return []string{}
+    }
     return d.Public
 }
 
 func (d *DefinitionSetImpl) GetPrivate() []string {
-	if d == nil {
-		return []string{}
-	}
+    if d == nil {
+        return []string{}
+    }
     return d.Private
 }
 
@@ -153,18 +153,30 @@ type DefinitionsImpl struct {
 }
 
 func (d *DefinitionsImpl) IsSingleton() bool {
+	if d == nil {
+		return false
+	}
     return d.Singleton
 }
 
 func (d *DefinitionsImpl) GetGlobal() DefinitionSet {
+    if d == nil {
+        return &DefinitionSetImpl{}
+    }
     return d.Global
 }
 
 func (d *DefinitionsImpl) GetRequired() DefinitionSet {
+    if d == nil {
+        return &DefinitionSetImpl{}
+    }
     return d.Required
 }
 
 func (d *DefinitionsImpl) GetOptional() DefinitionSet {
+    if d == nil {
+        return &DefinitionSetImpl{}
+    }
     return d.Optional
 }
 
@@ -247,10 +259,10 @@ func (c *ConfigImpl) GetDependencies() map[string]Dependency {
 }
 
 func (c *ConfigImpl) AddDependency(name string, dep Dependency) {
-	if c.Dependencies == nil {
-		c.Dependencies = map[string]*DependencyImpl{}
-	}
-	c.Dependencies[name] = dep.(*DependencyImpl)
+    if c.Dependencies == nil {
+        c.Dependencies = map[string]*DependencyImpl{}
+    }
+    c.Dependencies[name] = dep.(*DependencyImpl)
 }
 
 func (c *ConfigImpl) DependencyMap() map[string]string {
