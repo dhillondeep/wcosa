@@ -101,17 +101,17 @@ func resolveTree(i *resolve.Info, currNode *resolve.Node, parentTarget *Target, 
         CStandard:   cStandard,
     }
 
-    globals := map[string][]string{
+    defGlobals := map[string][]string{
         types.Private: pkg.Config.GetInfo().GetDefinitions().GetGlobal().GetPrivate(),
         types.Public:  pkg.Config.GetInfo().GetDefinitions().GetGlobal().GetPublic(),
     }
 
-    required := map[string][]string{
+    defRequired := map[string][]string{
         types.Private: pkg.Config.GetInfo().GetDefinitions().GetRequired().GetPrivate(),
         types.Public:  pkg.Config.GetInfo().GetDefinitions().GetRequired().GetPublic(),
     }
 
-    optional := map[string][]string{
+    defOptional := map[string][]string{
         types.Private: pkg.Config.GetInfo().GetDefinitions().GetOptional().GetPrivate(),
         types.Public:  pkg.Config.GetInfo().GetDefinitions().GetOptional().GetPublic(),
     }
@@ -122,13 +122,16 @@ func resolveTree(i *resolve.Info, currNode *resolve.Node, parentTarget *Target, 
             name:         currTarget.Name + "__" + currTarget.Version,
             globalsGiven: globalDefinitions,
             otherGiven:   parentGiven.definitions,
-            globals:      globals,
-            required:     required,
-            optional:     optional,
+            globals:      defGlobals,
+            required:     defRequired,
+            optional:     defOptional,
             singleton:    pkg.Config.GetInfo().GetDefinitions().IsSingleton(),
         }); err != nil {
         return err
     }
+
+    // flags
+    currTarget.Flags = utils.AppendIfMissing(pkg.Config.GetInfo().GetOptions().GetFlags(), parentGiven.flags)
 
     targetSet.Add(currTarget)
 
