@@ -5,7 +5,6 @@ import (
     "regexp"
     "strings"
     "wio/cmd/wio/errors"
-    "wio/cmd/wio/utils"
 )
 
 var placeholderMatch = regexp.MustCompile(`^\$\([a-zA-Z_-][a-zA-Z0-9_]*\)$`)
@@ -52,7 +51,7 @@ func fillPlaceholders(givenFlags, requiredFlags []string) ([]string, error) {
 }
 
 // this fills global flags if they are requested
-func fillGlobal(givenFlags, requiredFlags []string) ([]string, error) {
+func fillDefinition(definitionName string, givenFlags, requiredFlags []string) ([]string, error) {
     var ret []string
     for _, required := range requiredFlags {
         for _, given := range givenFlags {
@@ -61,30 +60,12 @@ func fillGlobal(givenFlags, requiredFlags []string) ([]string, error) {
                 goto Continue
             }
         }
-        return nil, errors.String(fmt.Sprintf("global flag/definition \"%s\" unfilled in ", required) + "%s")
+        return nil, errors.String(fmt.Sprintf("%s definition \"%s\" unfilled in ",
+            definitionName, required) + "%s")
 
     Continue:
         continue
     }
 
     return ret, nil
-}
-
-// this fills required flags if they are requested
-func fillRequired(givenFlags []string, requiredFlags []string) ([]string, []string, error) {
-    var ret []string
-    for _, required := range requiredFlags {
-        for _, given := range givenFlags {
-            if res, match := TryMatch(required, given); match {
-                ret = append(ret, res)
-                goto Continue
-            }
-        }
-        return nil, nil, errors.String(fmt.Sprintf("required flag/definition \"%s\" unfilled in ", required) + "%s")
-
-    Continue:
-        continue
-    }
-
-    return ret, utils.Difference(givenFlags, ret), nil
 }

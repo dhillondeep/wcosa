@@ -17,16 +17,14 @@ type TargetLinkInfo struct {
 }
 
 type Target struct {
-    Name                  string
-    Version               string
-    Path                  string
-    FromVendor            bool
-    HeaderOnly            bool
-    Flags                 []string
-    FlagsVisibility       string
-    Definitions           []string
-    DefinitionsVisibility string
-    hashValue             string
+    Name        string
+    Version     string
+    Path        string
+    FromVendor  bool
+    HeaderOnly  bool
+    Flags       []string
+    Definitions map[string][]string
+    hashValue   string
 }
 
 type TargetSet struct {

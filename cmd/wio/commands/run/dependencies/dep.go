@@ -29,29 +29,30 @@ func GenerateCMakeDependencies(cmakePath string, platform string, targets *Targe
     for target := range targets.TargetIterator() {
         finalString := libraryStrings[platform][target.HeaderOnly]
 
-        if target.HeaderOnly && (target.FlagsVisibility != "INTERFACE" || target.DefinitionsVisibility != "INTERFACE") {
-            return errors.Stringf("header library %s@%s must have INTERFACE flag/definition visibility",
-                target.Name, target.Version)
-        } else if strings.Trim(target.FlagsVisibility, " ") == "" {
-            target.FlagsVisibility = "PRIVATE"
-        } else if strings.Trim(target.DefinitionsVisibility, " ") == "" {
-            target.DefinitionsVisibility = "PRIVATE"
+        private := types.Private
+        public := types.Public
+
+        if target.HeaderOnly {
+            private = types.Interface
+            public = types.Interface
         }
 
         finalString = template.Replace(finalString, map[string]string{
-            "DEPENDENCY_PATH":        filepath.ToSlash(target.Path),
-            "DEPENDENCY_NAME":        target.Name + "__" + target.Version,
-            "DEPENDENCY_FLAGS":       strings.Join(target.Flags, " "),
-            "DEPENDENCY_DEFINITIONS": strings.Join(target.Definitions, " "),
-            "FLAGS_VISIBILITY":       target.FlagsVisibility,
-            "DEFINITIONS_VISIBILITY": target.DefinitionsVisibility,
+            "DEPENDENCY_PATH":                 filepath.ToSlash(target.Path),
+            "DEPENDENCY_NAME":                 target.Name + "__" + target.Version,
+            "DEPENDENCY_FLAGS":                strings.Join(target.Flags, " "),
+            "PRIVATE_DEFINITIONS_DEFINITIONS": strings.Join(target.Definitions[types.Private], " "),
+            "PRIVATE_DEFINITIONS_VISIBILITY":  private,
+            "PUBLIC_DEFINITIONS_DEFINITIONS":  strings.Join(target.Definitions[types.Public], " "),
+            "PUBLIC_DEFINITIONS_VISIBILITY":   public,
         })
         cmakeStrings = append(cmakeStrings, finalString+"\n")
     }
 
     for link := range targets.LinkIterator() {
         if link.From.HeaderOnly && link.LinkInfo.Visibility != "INTERFACE" {
-            return errors.Stringf("header library %s@%s must have INTERFACE link visibility", link.From.Name, link.From.Version)
+            return errors.Stringf("header library %s@%s must have INTERFACE link visibility", link.From.Name,
+                link.From.Version)
         } else if strings.Trim(link.LinkInfo.Visibility, " ") == "" {
             link.LinkInfo.Visibility = "PRIVATE"
         }
@@ -73,7 +74,7 @@ func GenerateCMakeDependencies(cmakePath string, platform string, targets *Targe
 }
 
 // Scans the dependency tree and creates build targets that will be converted into CMake targets
-func CreateBuildTargets(projectDir string, target *types.Target) (*TargetSet, error) {
+func CreateBuildTargets(projectDir string, target types.Target) (*TargetSet, error) {
     targetSet := NewTargetSet()
 
     i := resolve.NewInfo(projectDir)
@@ -89,7 +90,7 @@ func CreateBuildTargets(projectDir string, target *types.Target) (*TargetSet, er
 
     if config.GetType() == constants.APP {
         for _, dep := range i.GetRoot().Dependencies {
-            configDependency := &types.DependencyTag{}
+            var configDependency types.Dependency
             var exists bool
 
             if configDependency, exists = config.GetDependencies()[dep.Name]; !exists {
@@ -98,32 +99,32 @@ func CreateBuildTargets(projectDir string, target *types.Target) (*TargetSet, er
             }
 
             parentInfo := &parentGivenInfo{
-                flags:          configDependency.Flags,
-                definitions:    configDependency.Definitions,
-                linkVisibility: configDependency.LinkVisibility,
+                flags:          configDependency.GetFlags(),
+                definitions:    configDependency.GetDefinitions(),
+                linkVisibility: configDependency.GetVisibility(),
             }
 
             // all direct dependencies will link to the main target
             err := resolveTree(i, dep, &Target{
                 Name: MainTarget,
-            }, targetSet, (*target).GetFlags().GetGlobalFlags(),
-                (*target).GetDefinitions().GetGlobalDefinitions(), parentInfo)
+            }, targetSet, target.GetFlags().GetGlobal(),
+                target.GetDefinitions().GetGlobal(), parentInfo)
             if err != nil {
                 return nil, err
             }
         }
     } else {
         parentInfo := &parentGivenInfo{
-            flags:          (*target).GetFlags().GetPkgFlags(),
-            definitions:    (*target).GetDefinitions().GetPkgDefinitions(),
+            flags:          target.GetFlags().GetPackage(),
+            definitions:    target.GetDefinitions().GetPackage(),
             linkVisibility: "PRIVATE",
         }
 
         // this package will link to the main target
         err := resolveTree(i, i.GetRoot(), &Target{
             Name: MainTarget,
-        }, targetSet, (*target).GetFlags().GetGlobalFlags(),
-            (*target).GetDefinitions().GetGlobalDefinitions(), parentInfo)
+        }, targetSet, target.GetFlags().GetGlobal(),
+            target.GetDefinitions().GetGlobal(), parentInfo)
         if err != nil {
             return nil, err
         }

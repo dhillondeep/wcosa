@@ -20,12 +20,17 @@ add_library({{DEPENDENCY_NAME}} INTERFACE)
 
 target_compile_definitions(
     {{DEPENDENCY_NAME}}
-    {{DEFINITIONS_VISIBILITY}}
-    {{DEPENDENCY_DEFINITIONS}})
+    {{PRIVATE_DEFINITIONS_VISIBILITY}}
+    {{PRIVATE_DEFINITIONS_DEFINITIONS}})
+
+target_compile_definitions(
+    {{DEPENDENCY_NAME}}
+    {{PUBLIC_DEFINITIONS_VISIBILITY}}
+    {{PUBLIC_DEFINITIONS_DEFINITIONS}})
 
 target_compile_options(
     {{DEPENDENCY_NAME}}
-    {{FLAGS_VISIBILITY}}
+    PUBLIC
     {{DEPENDENCY_FLAGS}})
 
 target_include_directories(

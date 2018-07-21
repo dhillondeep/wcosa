@@ -43,7 +43,7 @@ type DefinitionSet interface {
 }
 
 type Definitions interface {
-    GetIsSingleton() bool
+    IsSingleton() bool
     GetGlobal() DefinitionSet
     GetRequired() DefinitionSet
     GetOptional() DefinitionSet

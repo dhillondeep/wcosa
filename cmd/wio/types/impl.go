@@ -122,12 +122,12 @@ func (d *DefinitionSetImpl) GetPrivate() []string {
 
 type DefinitionsImpl struct {
     Singleton bool               `yaml:"singleton"`
-    Global    *DefinitionSetImpl `yaml"global"`
+    Global    *DefinitionSetImpl `yaml:"global"`
     Required  *DefinitionSetImpl `yaml:"required"`
     Optional  *DefinitionSetImpl `yaml:"optional"`
 }
 
-func (d *DefinitionsImpl) GetIsSingleton() bool {
+func (d *DefinitionsImpl) IsSingleton() bool {
     return d.Singleton
 }
 
