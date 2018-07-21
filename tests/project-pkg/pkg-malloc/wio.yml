@@ -1,5 +1,4 @@
 type: pkg
-
 project:
   name: pkg-malloc
   version: 0.0.1
@@ -14,7 +13,7 @@ project:
     required:
       public:
       - STACK_SIZE
-
+    optional: null
 targets:
   tests:
     src: tests
@@ -22,3 +21,4 @@ targets:
     definitions:
       package:
       - STACK_SIZE=256
+dependencies: {}

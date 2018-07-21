@@ -1,5 +1,4 @@
 type: pkg
-
 project:
   name: pkg-list
   version: 0.0.1
@@ -9,10 +8,12 @@ project:
     wio_version: 0.3.2
     default_target: avr-tests
   definitions:
+    singleton: false
+    global: null
     required:
       private:
-        - STACK_SIZE
-
+      - STACK_SIZE
+    optional: null
 targets:
   avr-tests:
     src: tests/avr-tests
@@ -22,19 +23,10 @@ targets:
     definitions:
       package:
       - STACK_SIZE=256
-    native-tests:
-      src: tests/native-tests
-      platform: native
-      framework: all
-      board: all
-      definitions:
-        package:
-        - STACK_SIZE=256
-
 dependencies:
   pkg-malloc:
-    version: 0.0.1
     vendor: true
+    version: 0.0.1
     link_visibility: PRIVATE
     definitions:
     - $(STACK_SIZE)

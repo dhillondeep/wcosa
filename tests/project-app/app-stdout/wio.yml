@@ -1,24 +1,16 @@
-app:
+type: app
+
+project:
   name: app-stdout
-  ide: none
-
-  config:
-    minimum_wio_version: 0.3.2
-    supported_platforms:
-    - native
-    supported_frameworks:
-    - all
-    supported_boards:
-    - all
-
+  version: 0.0.1
+  keywords:
+  - wio
   compile_options:
-    platform: native
+    wio_version: 0.3.2
+    default_target: main
 
 targets:
-  default: main
-  create:
-    main:
-      src: src
-      platform: native
-      framework: all
-      board: all
+  main:
+    src: src
+    platform: native
+    framework: all
