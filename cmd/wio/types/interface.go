@@ -19,6 +19,9 @@ type Target interface {
     GetBoard() string
     GetFlags() Properties
     GetDefinitions() Properties
+
+    GetName() string
+    SetName(name string)
 }
 
 type Dependency interface {

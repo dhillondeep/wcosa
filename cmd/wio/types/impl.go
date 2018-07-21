@@ -25,6 +25,8 @@ type TargetImpl struct {
     Board       string          `yaml:"board,omitempty"`
     Flags       *PropertiesImpl `yaml:"flags,omitempty"`
     Definitions *PropertiesImpl `yaml:"definitions,omitempty"`
+
+    name string
 }
 
 func (t *TargetImpl) GetSource() string {
@@ -49,6 +51,14 @@ func (t *TargetImpl) GetFlags() Properties {
 
 func (t *TargetImpl) GetDefinitions() Properties {
     return t.Definitions
+}
+
+func (t *TargetImpl) GetName() string {
+    return t.name
+}
+
+func (t *TargetImpl) SetName(name string) {
+    t.name = name
 }
 
 type DependencyImpl struct {
