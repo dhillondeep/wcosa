@@ -1,51 +1,34 @@
-pkg:
-  ide: none
+type: pkg
 
-  meta:
-    name: pkg-list
-    version: 0.0.1
-    keywords:
-    - native
-    - all
-    - wio
-    license: MIT
-
-  config:
-    minimum_wio_version: 0.3.2
-    supported_platforms:
-    - native
-    supported_frameworks:
-    - all
-    supported_boards:
-    - all
-
+project:
+  name: pkg-list
+  version: 0.0.1
+  keywords:
+  - wio
   compile_options:
-    header_only: false
-    platform: native
-  flags:
-    visibility: PRIVATE
+    wio_version: 0.3.2
+    default_target: avr-tests
   definitions:
-    required_definitions:
-    - STACK_SIZE
-    visibility: PRIVATE
+    required:
+      private:
+        - STACK_SIZE
 
 targets:
-  create:
-    avr-tests:
-      src: tests/avr-tests
-      platform: avr
-      framework: cosa
-      board: uno
-      definitions:
-        pkg_definitions:
-        - STACK_SIZE=256
+  avr-tests:
+    src: tests/avr-tests
+    platform: avr
+    framework: cosa
+    board: uno
+    definitions:
+      package:
+      - STACK_SIZE=256
     native-tests:
       src: tests/native-tests
       platform: native
       framework: all
       board: all
       definitions:
-        pkg_definitions:
+        package:
         - STACK_SIZE=256
 
 dependencies:

@@ -70,7 +70,7 @@ type Config interface {
     GetTargets() map[string]Target
     GetDependencies() map[string]Dependency
 
-	AddDependency(name string, dep Dependency)
+    AddDependency(name string, dep Dependency)
 
     DependencyMap() map[string]string
 }

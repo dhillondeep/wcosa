@@ -39,18 +39,30 @@ type TargetImpl struct {
 }
 
 func (t *TargetImpl) GetSource() string {
+    if t == nil {
+        return ""
+    }
     return t.Source
 }
 
 func (t *TargetImpl) GetPlatform() string {
+    if t == nil {
+        return ""
+    }
     return t.Platform
 }
 
 func (t *TargetImpl) GetFramework() string {
+    if t == nil {
+        return ""
+    }
     return t.Framework
 }
 
 func (t *TargetImpl) GetBoard() string {
+    if t == nil {
+        return ""
+    }
     return t.Board
 }
 
@@ -153,9 +165,9 @@ type DefinitionsImpl struct {
 }
 
 func (d *DefinitionsImpl) IsSingleton() bool {
-	if d == nil {
-		return false
-	}
+    if d == nil {
+        return false
+    }
     return d.Singleton
 }
 

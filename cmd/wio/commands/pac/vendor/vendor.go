@@ -76,7 +76,7 @@ func (info *Info) AddVendorPackage() error {
         Version: vendorConfig.GetVersion(),
         Vendor:  true,
     }
-	config.AddDependency(vendorConfig.GetName(), tag)
+    config.AddDependency(vendorConfig.GetName(), tag)
     if err := utils.WriteWioConfig(info.Dir, config); err != nil {
         return err
     }
