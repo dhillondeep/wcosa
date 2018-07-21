@@ -2,6 +2,7 @@ package resolve
 
 import (
     "io/ioutil"
+    "wio/cmd/wio/constants"
     "wio/cmd/wio/errors"
     "wio/cmd/wio/types"
     "wio/cmd/wio/utils"
@@ -35,7 +36,7 @@ func findLocalConfigs(root string) ([]string, error) {
     return ret, nil
 }
 
-func tryFindConfig(name, ver, path string, strict bool) (*types.PkgConfig, error) {
+func tryFindConfig(name, ver, path string, strict bool) (types.Config, error) {
     config, err := tryGetConfig(path)
     if err != nil {
         return nil, err
@@ -43,10 +44,10 @@ func tryFindConfig(name, ver, path string, strict bool) (*types.PkgConfig, error
     if config == nil {
         return nil, nil
     }
-    if config.Name() != name {
+    if config.GetName() != name {
         return nil, errors.Stringf("config %s has wrong name", path)
     }
-    if config.Version() != ver {
+    if config.GetVersion() != ver {
         if strict {
             return nil, errors.Stringf("config %s has wrong version", path)
         } else {
@@ -56,19 +57,17 @@ func tryFindConfig(name, ver, path string, strict bool) (*types.PkgConfig, error
     return config, nil
 }
 
-func tryGetConfig(path string) (*types.PkgConfig, error) {
+func tryGetConfig(path string) (types.Config, error) {
     wioPath := io.Path(path, io.Config)
     if !io.Exists(wioPath) {
         return nil, nil
     }
-    isApp, err := utils.IsAppType(wioPath)
+    config, err := utils.ReadWioConfig(path)
     if err != nil {
         return nil, err
     }
-    if isApp {
+    if config.GetType() == constants.APP {
         return nil, errors.Stringf("config %s is supposed to be package")
     }
-    config := &types.PkgConfig{}
-    err = io.NormalIO.ParseYml(wioPath, config)
-    return config, err
+    return config, nil
 }

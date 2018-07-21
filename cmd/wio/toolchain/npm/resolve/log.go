@@ -10,9 +10,9 @@ var line = log.NewLine(log.INFO)
 
 const barLength = 30
 
-func logResolveStart(config types.IConfig) {
+func logResolveStart(config types.Config) {
     log.Info(log.Cyan, "Resolving dependencies of: ")
-    log.Infoln(log.Green, "%s@%s", config.Name(), config.Version())
+    log.Infoln(log.Green, "%s@%s", config.GetName(), config.GetVersion())
 }
 
 func logResolve(n *Node) {

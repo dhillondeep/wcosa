@@ -41,7 +41,7 @@ type Node struct {
 type Package struct {
     Vendor  bool
     Path    string
-    Config  *types.PkgConfig
+    Config  types.Config
     Version *npm.Version
 }
 
@@ -204,9 +204,9 @@ func (i *Info) GetPkg(name, ver string) (*Package, error) {
         }
         pkg := &Package{Vendor: vendor[n], Path: path, Config: ret}
         pkg.Version = &npm.Version{
-            Name:         ret.Name(),
-            Version:      ret.Version(),
-            Dependencies: ret.Dependencies(),
+            Name:         ret.GetName(),
+            Version:      ret.GetVersion(),
+            Dependencies: ret.DependencyMap(),
         }
         i.SetPkg(name, ver, pkg)
         return pkg, nil
@@ -232,12 +232,12 @@ func (i *Info) LoadLocal() error {
         if err != nil {
             return err
         }
-        pkg, err := i.GetPkg(cfg.Name(), cfg.Version())
+        pkg, err := i.GetPkg(cfg.GetName(), cfg.GetVersion())
         if err != nil {
             return err
         }
         if pkg == nil {
-            return errors.Stringf("package %s missing in lookup", cfg.Name())
+            return errors.Stringf("package %s missing in lookup", cfg.GetName())
         }
     }
     return nil

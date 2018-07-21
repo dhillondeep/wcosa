@@ -38,16 +38,16 @@ func (i *Info) Exists(name string, ver string) (bool, error) {
     return exists, nil
 }
 
-func (i *Info) ResolveRemote(config types.IConfig) error {
+func (i *Info) ResolveRemote(config types.Config) error {
     logResolveStart(config)
 
     if err := i.LoadLocal(); err != nil {
         return err
     }
     i.root = &Node{
-        Name:            config.Name(),
-        ConfigVersion:   config.Version(),
-        ResolvedVersion: semver.Parse(config.Version()),
+        Name:            config.GetName(),
+        ConfigVersion:   config.GetVersion(),
+        ResolvedVersion: semver.Parse(config.GetVersion()),
     }
     if i.root.ResolvedVersion == nil {
         return errors.Stringf("project has invalid version %s", i.root.ConfigVersion)
@@ -58,11 +58,11 @@ func (i *Info) ResolveRemote(config types.IConfig) error {
         i.SetPkg(i.root.Name, i.root.ResolvedVersion.Str(), &Package{
             Vendor: false,
             Path:   i.dir,
-            Config: config.(*types.PkgConfig),
+			Config: config,
         })
     }
 
-    deps := config.Dependencies()
+    deps := config.DependencyMap()
     for name, ver := range deps {
         node := &Node{Name: name, ConfigVersion: ver}
         i.root.Dependencies = append(i.root.Dependencies, node)
