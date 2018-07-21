@@ -26,7 +26,7 @@ func findLocalConfigs(root string) ([]string, error) {
             if !info.IsDir() {
                 continue
             }
-			dir := io.Path(path, info.Name())
+            dir := io.Path(path, info.Name())
             if io.Exists(io.Path(dir, io.Config)) {
                 ret = append(ret, dir)
             }

@@ -125,33 +125,6 @@ _test12() {
     wio run
 }
 
-_test13() {
-    cd ./build-test/
-
-    rm -rf $(pwd)/pkg-test/.wio
-    rm -rf $(pwd)/pkg-test/vendor
-    mkdir $(pwd)/pkg-test/.wio
-    unzip node_modules.zip -d $(pwd)/pkg-test/.wio
-    unzip vendor.zip -d $(pwd)/pkg-test
-
-    rm -rf $(pwd)/app-test/.wio
-    rm -rf $(pwd)/app-test/vendor
-    mkdir ./app-test/.wio
-    unzip node_modules.zip -d ./app-test/.wio
-    unzip vendor.zip -d ./app-test/
-
-    cd ./pkg-test
-    wio clean --hard
-    wio update
-    wio build
-
-    cd ../
-    cd ./app-test
-    wio clean --hard
-    wio update
-    wio build
-}
-
 # Source and build
 cd ./../
 source ./wenv

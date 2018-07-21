@@ -1,18 +1,14 @@
 package resolve
 
 import (
-<<<<<<< HEAD
     "wio/cmd/wio/errors"
-=======
->>>>>>> new build system finished needs testing
+
     "wio/cmd/wio/toolchain/npm"
     "wio/cmd/wio/toolchain/npm/client"
     "wio/cmd/wio/toolchain/npm/semver"
     "wio/cmd/wio/types"
-<<<<<<< HEAD
     "wio/cmd/wio/utils"
-=======
->>>>>>> new build system finished needs testing
+
     "wio/cmd/wio/utils/io"
 )
 

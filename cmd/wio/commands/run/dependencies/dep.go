@@ -1,7 +1,6 @@
 package dependencies
 
 import (
-    "fmt"
     "path/filepath"
     "strings"
     "wio/cmd/wio/commands/run/cmake"
@@ -38,12 +37,12 @@ func GenerateCMakeDependencies(cmakePath string, platform string, targets *Targe
             return errors.Stringf("%s@%s dependency is header only so definitions visibility can only be INTERFACE",
                 target.Name, target.Version)
         } else if strings.Trim(target.FlagsVisibility, " ") == "" {
-            log.Warnln(fmt.Sprintf("flags visibility not specified for %s@%s dependency. Defaulting to PRIVATE",
-                target.Name, target.Version))
+            log.Warnln("flags visibility not specified for %s@%s dependency. Defaulting to PRIVATE",
+                target.Name, target.Version)
             target.FlagsVisibility = "PRIVATE"
         } else if strings.Trim(target.DefinitionsVisibility, " ") == "" {
-            log.Warnln(fmt.Sprintf("definitions visibility not specified for %s@%s dependency. Defaulting to PRIVATE",
-                target.Name, target.Version))
+            log.Warnln("definitions visibility not specified for %s@%s dependency. Defaulting to PRIVATE",
+                target.Name, target.Version)
             target.DefinitionsVisibility = "PRIVATE"
         }
 
@@ -63,8 +62,8 @@ func GenerateCMakeDependencies(cmakePath string, platform string, targets *Targe
             return errors.Stringf("%s@%s is header only so a linker visibility for a link to %s%s can "+
                 "only be INTERFACE", link.From.Name, link.From.Version, link.To.Name, link.To.Version)
         } else if strings.Trim(link.LinkInfo.Visibility, " ") == "" {
-            log.Warnln(fmt.Sprintf("%s@%s link to %s%s visibility is not specified. Defaulting to PRIVATE",
-                link.From.Name, link.From.Version, link.To.Name, link.To.Version))
+            log.Warnln("%s@%s link to %s%s visibility is not specified. Defaulting to PRIVATE",
+                link.From.Name, link.From.Version, link.To.Name, link.To.Version)
             link.LinkInfo.Visibility = "PRIVATE"
         }
 

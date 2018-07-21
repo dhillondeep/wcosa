@@ -31,17 +31,18 @@ type parentGivenInfo struct {
 func fillFlagsDefinitions(info flagsDefinitionsInfo) ([]string, error) {
     var all []string
 
-    global, err := fillGlobal(info.globalsGiven, info.globals, info.name)
+    global, err := fillGlobal(info.globalsGiven, info.globals)
     if err != nil {
-        return nil, err
+        return nil, errors.Stringf(err.Error(), info.name)
     } else {
         all = utils.AppendIfMissing(all, global)
     }
 
     if !info.onlyGlobal && len(info.required) > 0 {
-        required, other, err := fillRequired(info.otherGiven, info.required, info.name)
+        required, other, err := fillRequired(info.otherGiven, info.required)
         if err != nil {
-            return nil, err
+            fmt.Println(err.Error())
+            return nil, errors.Stringf(err.Error(), info.name)
         } else {
             all = utils.AppendIfMissing(all, required)
             all = utils.AppendIfMissing(all, other)
@@ -53,11 +54,11 @@ func fillFlagsDefinitions(info flagsDefinitionsInfo) ([]string, error) {
         }
 
         if info.onlyGlobal && info.onlyRequired {
-            log.Warnln(fmt.Sprintf("%s only accepts global %s and required %s. Accepting only global %s"+
-                "Ignoring...", info.name, acceptName, acceptName, acceptName))
+            log.Warnln(fmt.Sprintf("%s is set to accept only global %s and only required %s. "+
+                "Ignoring required %s...", info.name, acceptName, acceptName, acceptName))
         } else if info.onlyRequired {
             log.Warnln(fmt.Sprintf("%s only accepts global %s but required flags are also requested. "+
-                "Ignoring...", info.name, acceptName))
+                "Ignoring required %s...", info.name, acceptName, acceptName))
         }
 
         all = utils.AppendIfMissing(all, info.otherGiven)
@@ -132,15 +133,13 @@ func resolveTree(i *resolve.Info, currNode *resolve.Node, parentTarget *Target, 
         }
 
         // resolve placeholders
-        parentFlags, err := fillPlaceholders(currTarget.Flags,
-            configDependency.Flags, currTarget.Name+"__"+currTarget.Version)
+        parentFlags, err := fillPlaceholders(currTarget.Flags, configDependency.Flags)
         if err != nil {
-            return err
+            return errors.Stringf(err.Error(), currTarget.Name)
         }
-        parentDefinitions, err := fillPlaceholders(currTarget.Definitions,
-            configDependency.Definitions, currTarget.Name+"__"+currTarget.Version)
+        parentDefinitions, err := fillPlaceholders(currTarget.Definitions, configDependency.Definitions)
         if err != nil {
-            return err
+            return errors.Stringf(err.Error(), currTarget.Name)
         }
 
         parentInfo := &parentGivenInfo{
