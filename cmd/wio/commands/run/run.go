@@ -33,7 +33,7 @@ const (
 
 type runInfo struct {
     context *cli.Context
-    config  types.IConfig
+    config  types.Config
 
     directory string
     targets   []string
@@ -95,7 +95,7 @@ func (info *runInfo) execute(runType Type) error {
 func (info *runInfo) clean(targets []types.Target) error {
     targetDirs := make([]string, 0, len(targets))
     for _, target := range targets {
-        targetDirs = append(targetDirs, targetPath(info, &target))
+        targetDirs = append(targetDirs, targetPath(info, target))
     }
 
     log.Infoln(log.Cyan.Add(color.Underline), "Cleaning targets")
@@ -125,17 +125,17 @@ func (info *runInfo) run(targets []types.Target) error {
     target := targets[0]
     log.Info(log.Cyan, "Target: ")
     log.Infoln(log.Magenta, target.GetName())
-    if !dispatchCanRunTarget(info, &target) {
+    if !dispatchCanRunTarget(info, target) {
         if err := info.build(targets[:1]); err != nil {
             return err
         }
     }
-    return dispatchRunTarget(info, &target)
+    return dispatchRunTarget(info, target)
 }
 
 func getTargetArgs(info *runInfo) ([]types.Target, error) {
     targets := make([]types.Target, 0, len(info.targets))
-    projectTargets := info.config.GetTargets().GetTargets()
+    projectTargets := info.config.GetTargets()
 
     if info.context.Bool("all") {
         for name, target := range projectTargets {
@@ -152,7 +152,7 @@ func getTargetArgs(info *runInfo) ([]types.Target, error) {
             }
         }
         if len(info.targets) <= 0 {
-            defaultName := info.config.GetTargets().GetDefaultTarget()
+            defaultName := info.config.GetInfo().GetOptions().GetDefault()
             if defaultName == "" {
                 return nil, errors.String("no default target specified")
             }
@@ -169,13 +169,13 @@ func getTargetArgs(info *runInfo) ([]types.Target, error) {
 func configureTargets(info *runInfo, targets []types.Target) ([]string, error) {
     targetDirs := make([]string, 0, len(targets))
     for _, target := range targets {
-        if err := dispatchCmake(info, &target); err != nil {
+        if err := dispatchCmake(info, target); err != nil {
             return nil, err
         }
-        if err := dispatchCmakeDependencies(info, &target); err != nil {
+        if err := dispatchCmakeDependencies(info, target); err != nil {
             return nil, err
         }
-        targetDir := targetPath(info, &target)
+        targetDir := targetPath(info, target)
         if err := os.MkdirAll(targetDir, os.ModePerm); err != nil {
             return nil, err
         }

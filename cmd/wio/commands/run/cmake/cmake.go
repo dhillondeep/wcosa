@@ -81,7 +81,6 @@ func generateCmakeLists(templateFile string, buildPath string, values map[string
 // This creates the main CMakeLists.txt file for AVR app type project
 func GenerateAvrCmakeLists(
     toolchainPath string,
-    targetName string,
     target types.Target,
     projectName string,
     projectPath string,
@@ -92,7 +91,7 @@ func GenerateAvrCmakeLists(
     flags := target.GetFlags().GetTarget()
     definitions := target.GetDefinitions().GetTarget()
     framework := target.GetFramework()
-    buildPath := io.Path(BuildPath(projectPath), targetName)
+    buildPath := io.Path(BuildPath(projectPath), target.GetName())
     templateFile := "CMakeListsAVR"
     executablePath, err := io.NormalIO.GetRoot()
     if err != nil {
@@ -110,7 +109,7 @@ func GenerateAvrCmakeLists(
         "PLATFORM":                   strings.ToUpper(constants.AVR),
         "FRAMEWORK":                  strings.ToUpper(framework),
         "BOARD":                      target.GetBoard(),
-        "TARGET_NAME":                targetName,
+        "TARGET_NAME":                target.GetName(),
         "ENTRY":                      target.GetSource(),
         "TARGET_COMPILE_FLAGS":       strings.Join(flags, " "),
         "TARGET_COMPILE_DEFINITIONS": strings.Join(definitions, " "),
@@ -118,7 +117,6 @@ func GenerateAvrCmakeLists(
 }
 
 func GenerateNativeCmakeLists(
-    targetName string,
     target types.Target,
     projectName string,
     projectPath string,
@@ -127,7 +125,7 @@ func GenerateNativeCmakeLists(
 
     flags := target.GetFlags().GetTarget()
     definitions := target.GetDefinitions().GetTarget()
-    buildPath := io.Path(BuildPath(projectPath), targetName)
+    buildPath := io.Path(BuildPath(projectPath), target.GetName())
     templateFile := "CMakeListsNative"
 
     return generateCmakeLists(templateFile, buildPath, map[string]string{
@@ -135,7 +133,7 @@ func GenerateNativeCmakeLists(
         "PROJECT_NAME":               projectName,
         "CPP_STANDARD":               cppStandard,
         "C_STANDARD":                 cStandard,
-        "TARGET_NAME":                targetName,
+        "TARGET_NAME":                target.GetName(),
         "PLATFORM":                   strings.ToUpper(constants.NATIVE),
         "FRAMEWORK":                  strings.ToUpper(target.GetFramework()),
         "OS":                         strings.ToUpper(target.GetBoard()),

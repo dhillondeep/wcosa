@@ -23,7 +23,7 @@ func getPort(info *runInfo) (string, error) {
     return serialPort.Port, nil
 }
 
-func portReconfigure(info *runInfo, target *types.Target) error {
+func portReconfigure(info *runInfo, target types.Target) error {
     // Run check means that executable exists and target is configured
     port, err := getPort(info)
     if err != nil {
@@ -35,7 +35,7 @@ func portReconfigure(info *runInfo, target *types.Target) error {
         return err
     }
     if !strings.Contains(string(data), port) {
-        _, err := configureTargets(info, []types.Target{*target})
+        _, err := configureTargets(info, []types.Target{target})
         if err != nil {
             return err
         }

@@ -12,11 +12,11 @@ func buildPath(info *runInfo) string {
     return cmake.BuildPath(info.directory)
 }
 
-func targetPath(info *runInfo, target *types.Target) string {
-    return buildPath(info) + io.Sep + (*target).GetName()
+func targetPath(info *runInfo, target types.Target) string {
+    return buildPath(info) + io.Sep + target.GetName()
 }
 
-func binaryPath(info *runInfo, target *types.Target) string {
+func binaryPath(info *runInfo, target types.Target) string {
     return targetPath(info, target) + io.Sep + constants.BinDir
 }
 
