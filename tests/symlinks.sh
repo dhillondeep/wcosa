@@ -26,5 +26,3 @@ _link ${dir}/project-pkg/pkg-uart ${dir}/project-pkg/pkg-trace/vendor/pkg-uart
 _link ${dir}/project-pkg/pkg-malloc ${dir}/project-app/app-alloc/vendor/pkg-malloc
 _link ${dir}/project-pkg/pkg-malloc ${dir}/project-app/app-alloc/vendor/alloc-one/vendor/pkg-malloc
 _link ${dir}/project-pkg/pkg-malloc ${dir}/project-app/app-alloc/vendor/alloc-two/vendor/pkg-malloc
-
-_link ${dir}/project-pkg/pkg-malloc ${dir}/project-pkg/pkg-singleton/vendor/pkg-malloc

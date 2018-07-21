@@ -64,12 +64,6 @@ _linux_setup() {
     govendor sync
     printf "Done!\n"
 
-    printf "Installing gotools..."
-    if [ "$TRAVIS" = false ] ; then
-        go get -u golang.org/x/tools/...
-    fi
-    printf "Done!\n"
-
     printf "Linking toolchain... "
     mkdir -p $(pwd)/bin
     rm -rf $(pwd)/bin/toolchain
@@ -80,6 +74,12 @@ _linux_setup() {
     cd tests
     ./symlinks.sh
     cd ..
+    printf "Done!\n"
+
+    printf "Installing gotools..."
+    if [ "$TRAVIS" = false ] ; then
+        go get -u golang.org/x/tools/...
+    fi
     printf "Done!\n"
 }
 

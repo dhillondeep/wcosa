@@ -1,51 +1,33 @@
-pkg:
-  ide: none
-
-  meta:
-    name: pkg-trace
-    version: 0.0.1
-    keywords:
-    - avr
-    - cosa
-    - wio
-    license: MIT
-
-  config:
-    minimum_wio_version: 0.3.2
-    supported_platforms:
-    - native
-    - avr
-    supported_frameworks:
-    - cosa
-    supported_boards:
-    - all
-
+type: pkg
+project:
+  name: pkg-trace
+  version: 0.0.1
+  keywords:
+  - wio
   compile_options:
-    header_only: false
-    platform: avr
-  flags:
-    visibility: PRIVATE
+    wio_version: 0.3.2
+    default_target: tests
   definitions:
-    required_definitions:
-    - BUFFER_SIZE
-    visibility: PRIVATE
-
+    singleton: false
+    global: null
+    required:
+      private:
+      - BUFFER_SIZE
+    optional: null
 targets:
-  default: cosa-tests
-  create:
-    cosa-tests:
-      src: tests/cosa-tests
-      platform: avr
-      framework: cosa
-      board: uno
-      definitions:
-        pkg_definitions:
-        - BUFFER_SIZE=256
+  tests:
+    src: tests
+    platform: avr
+    framework: cosa
+    board: uno
+    definitions:
+      package:
+      - BUFFER_SIZE=256
 
 dependencies:
   pkg-uart:
-    version: 0.0.1
     vendor: true
+    version: 0.0.1
     link_visibility: PUBLIC
     definitions:
     - $(BUFFER_SIZE)
