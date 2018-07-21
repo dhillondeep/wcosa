@@ -6,31 +6,20 @@ import (
     "wio/cmd/wio/utils/io"
 )
 
-func ReadWioConfig(dir string) (types.IConfig, error) {
-    wioPath := io.Path(dir, io.Config)
-    exists := io.Exists(wioPath)
-    if !exists {
-        return nil, errors.Stringf("Path does not contain a wio.yml: %s", dir)
+func ReadWioConfig(dir string) (types.Config, error) {
+    path := io.Path(dir, io.Config)
+    if !io.Exists(path) {
+        return nil, errors.Stringf("path does not contain a wio.yml: %s", dir)
     }
-    isApp, err := IsAppType(wioPath)
-    if err != nil {
-        return nil, err
-    }
-    var config types.IConfig
-    if isApp {
-        config = &types.AppConfig{}
-    } else {
-        config = &types.PkgConfig{}
-    }
-    err = io.NormalIO.ParseYml(wioPath, config)
-    return config, err
+    ret := &types.ConfigImpl{}
+	err := io.NormalIO.ParseYml(path, ret)
+    return ret, err
 }
 
-func WriteWioConfig(dir string, config types.IConfig) error {
-    wioPath := io.Path(dir, io.Config)
-    exists := io.Exists(wioPath)
-    if !exists {
-        return errors.Stringf("Path does not contain a wio.yml: %s", dir)
+func WriteWioConfig(dir string, config types.Config) error {
+    path := io.Path(dir, io.Config)
+    if !io.Exists(path) {
+        return errors.Stringf("path does not contain a wio.yml: %s", dir)
     }
-    return types.PrettyPrint(config, wioPath)
+    return io.NormalIO.WriteYml(path, config)
 }
