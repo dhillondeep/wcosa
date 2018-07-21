@@ -6,7 +6,6 @@ import (
     "wio/cmd/wio/commands/run/cmake"
     "wio/cmd/wio/constants"
     "wio/cmd/wio/errors"
-    "wio/cmd/wio/log"
     "wio/cmd/wio/toolchain/npm/resolve"
     "wio/cmd/wio/types"
     "wio/cmd/wio/utils"
@@ -30,19 +29,12 @@ func GenerateCMakeDependencies(cmakePath string, platform string, targets *Targe
     for target := range targets.TargetIterator() {
         finalString := libraryStrings[platform][target.HeaderOnly]
 
-        if target.HeaderOnly && target.FlagsVisibility != "INTERFACE" {
-            return errors.Stringf("%s@%s dependency is header only so flags visibility can only be INTERFACE",
-                target.Name, target.Version)
-        } else if target.HeaderOnly && target.DefinitionsVisibility != "INTERFACE" {
-            return errors.Stringf("%s@%s dependency is header only so definitions visibility can only be INTERFACE",
+        if target.HeaderOnly && (target.FlagsVisibility != "INTERFACE" || target.DefinitionsVisibility != "INTERFACE") {
+            return errors.Stringf("header library %s@%s must have INTERFACE flag/definition visibility",
                 target.Name, target.Version)
         } else if strings.Trim(target.FlagsVisibility, " ") == "" {
-            log.Warnln("flags visibility not specified for %s@%s dependency. Defaulting to PRIVATE",
-                target.Name, target.Version)
             target.FlagsVisibility = "PRIVATE"
         } else if strings.Trim(target.DefinitionsVisibility, " ") == "" {
-            log.Warnln("definitions visibility not specified for %s@%s dependency. Defaulting to PRIVATE",
-                target.Name, target.Version)
             target.DefinitionsVisibility = "PRIVATE"
         }
 
@@ -59,11 +51,8 @@ func GenerateCMakeDependencies(cmakePath string, platform string, targets *Targe
 
     for link := range targets.LinkIterator() {
         if link.From.HeaderOnly && link.LinkInfo.Visibility != "INTERFACE" {
-            return errors.Stringf("%s@%s is header only so a linker visibility for a link to %s%s can "+
-                "only be INTERFACE", link.From.Name, link.From.Version, link.To.Name, link.To.Version)
+            return errors.Stringf("header library %s@%s must have INTERFACE link visibility", link.From.Name, link.From.Version)
         } else if strings.Trim(link.LinkInfo.Visibility, " ") == "" {
-            log.Warnln("%s@%s link to %s%s visibility is not specified. Defaulting to PRIVATE",
-                link.From.Name, link.From.Version, link.To.Name, link.To.Version)
             link.LinkInfo.Visibility = "PRIVATE"
         }
 

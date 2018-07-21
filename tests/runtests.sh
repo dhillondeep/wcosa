@@ -4,7 +4,7 @@ set -e
 
 test_folder="wio-test"
 base_folder=$(pwd)
-num_tests=11
+num_tests=12
 
 # Check that working directory contains script
 if [ ! -f $(pwd)/`basename "${0}"` ]; then
