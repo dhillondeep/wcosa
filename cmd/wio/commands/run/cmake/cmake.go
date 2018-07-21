@@ -37,8 +37,8 @@ var cStandards = map[string]string{
 }
 
 // Reads standard provided by user and returns CMake standard
-func GetStandard(target *types.Target) (string, string, error) {
-    stdString := strings.Trim((*target).GetStandard(), " ")
+func GetStandard(standard string) (string, string, error) {
+    stdString := strings.Trim(standard, " ")
     stdString = strings.ToLower(stdString)
     cppStandard := ""
     cStandard := ""
@@ -81,20 +81,18 @@ func generateCmakeLists(templateFile string, buildPath string, values map[string
 // This creates the main CMakeLists.txt file for AVR app type project
 func GenerateAvrCmakeLists(
     toolchainPath string,
-    target *types.Target,
+    targetName string,
+    target types.Target,
     projectName string,
     projectPath string,
+    cppStandard string,
+    cStandard string,
     port string) error {
 
-    cppStandard, cStandard, err := GetStandard(target)
-    if err != nil {
-        return err
-    }
-
-    flags := (*target).GetFlags().GetTargetFlags()
-    definitions := (*target).GetDefinitions().GetTargetDefinitions()
-    framework := (*target).GetFramework()
-    buildPath := BuildPath(projectPath) + io.Sep + (*target).GetName()
+    flags := target.GetFlags().GetTarget()
+    definitions := target.GetDefinitions().GetTarget()
+    framework := target.GetFramework()
+    buildPath := io.Path(BuildPath(projectPath), targetName)
     templateFile := "CMakeListsAVR"
     executablePath, err := io.NormalIO.GetRoot()
     if err != nil {
@@ -111,27 +109,25 @@ func GenerateAvrCmakeLists(
         "PORT":                       port,
         "PLATFORM":                   strings.ToUpper(constants.AVR),
         "FRAMEWORK":                  strings.ToUpper(framework),
-        "BOARD":                      (*target).GetBoard(),
-        "TARGET_NAME":                (*target).GetName(),
-        "ENTRY":                      (*target).GetSrc(),
+        "BOARD":                      target.GetBoard(),
+        "TARGET_NAME":                targetName,
+        "ENTRY":                      target.GetSource(),
         "TARGET_COMPILE_FLAGS":       strings.Join(flags, " "),
         "TARGET_COMPILE_DEFINITIONS": strings.Join(definitions, " "),
     })
 }
 
 func GenerateNativeCmakeLists(
-    target *types.Target,
+    targetName string,
+    target types.Target,
     projectName string,
-    projectPath string) error {
+    projectPath string,
+    cppStandard string,
+    cStandard string) error {
 
-    cppStandard, cStandard, err := GetStandard(target)
-    if err != nil {
-        return err
-    }
-
-    flags := (*target).GetFlags().GetTargetFlags()
-    definitions := (*target).GetDefinitions().GetTargetDefinitions()
-    buildPath := BuildPath(projectPath) + io.Sep + (*target).GetName()
+    flags := target.GetFlags().GetTarget()
+    definitions := target.GetDefinitions().GetTarget()
+    buildPath := io.Path(BuildPath(projectPath), targetName)
     templateFile := "CMakeListsNative"
 
     return generateCmakeLists(templateFile, buildPath, map[string]string{
@@ -139,11 +135,11 @@ func GenerateNativeCmakeLists(
         "PROJECT_NAME":               projectName,
         "CPP_STANDARD":               cppStandard,
         "C_STANDARD":                 cStandard,
-        "TARGET_NAME":                (*target).GetName(),
+        "TARGET_NAME":                targetName,
         "PLATFORM":                   strings.ToUpper(constants.NATIVE),
-        "FRAMEWORK":                  strings.ToUpper((*target).GetFramework()),
-        "OS":                         strings.ToUpper((*target).GetBoard()),
-        "ENTRY":                      (*target).GetSrc(),
+        "FRAMEWORK":                  strings.ToUpper(target.GetFramework()),
+        "OS":                         strings.ToUpper(target.GetBoard()),
+        "ENTRY":                      target.GetSource(),
         "TARGET_COMPILE_FLAGS":       strings.Join(flags, " "),
         "TARGET_COMPILE_DEFINITIONS": strings.Join(definitions, " "),
     })

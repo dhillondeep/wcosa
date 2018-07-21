@@ -3,6 +3,8 @@ package dependencies
 import (
     "strconv"
     "strings"
+    "wio/cmd/wio/types"
+    "wio/cmd/wio/utils"
 )
 
 type linkNode struct {
@@ -24,6 +26,8 @@ type Target struct {
     HeaderOnly  bool
     Flags       []string
     Definitions map[string][]string
+    CXXStandard string
+    CStandard   string
     hashValue   string
 }
 
@@ -36,8 +40,8 @@ type TargetSet struct {
 // creates a hash from target struct
 func (target *Target) hash() string {
     structStr := target.Name + target.Version + strings.Join(target.Flags, "") +
-        strings.Join(target.Definitions, "") + target.FlagsVisibility + target.DefinitionsVisibility
-
+        strings.Join(utils.AppendIfMissing(target.Definitions[types.Private],
+            target.Definitions[types.Public]), "")
     return structStr
 }
 

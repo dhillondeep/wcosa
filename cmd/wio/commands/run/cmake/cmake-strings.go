@@ -18,19 +18,22 @@ const generateArduinoFirmware = `genreate_arduino_firmware({{TARGET}} SRCS {{FIL
 const AvrHeader = `
 add_library({{DEPENDENCY_NAME}} INTERFACE)
 
-target_compile_definitions(
-    {{DEPENDENCY_NAME}}
-    {{PRIVATE_DEFINITIONS_VISIBILITY}}
-    {{PRIVATE_DEFINITIONS_DEFINITIONS}})
+set_property(TARGET {{DEPENDENCY_NAME}} PROPERTY CXX_STANDARD {{CXX_STANDARD}})
+set_property(TARGET {{DEPENDENCY_NAME}} PROPERTY C_STANDARD {{C_STANDARD}})
 
 target_compile_definitions(
     {{DEPENDENCY_NAME}}
-    {{PUBLIC_DEFINITIONS_VISIBILITY}}
-    {{PUBLIC_DEFINITIONS_DEFINITIONS}})
+    INTERFACE
+    {{PRIVATE_DEFINITIONS}})
+
+target_compile_definitions(
+    {{DEPENDENCY_NAME}}
+    INTERFACE
+    {{PUBLIC_DEFINITIONS}})
 
 target_compile_options(
     {{DEPENDENCY_NAME}}
-    PUBLIC
+    INTERFACE
     {{DEPENDENCY_FLAGS}})
 
 target_include_directories(
@@ -39,7 +42,6 @@ target_include_directories(
     "{{DEPENDENCY_PATH}}/include")
 `
 
-// This is for header only AVR dependency
 const AvrLibrary = `
 file(GLOB_RECURSE
     {{DEPENDENCY_NAME}}_files
@@ -52,10 +54,18 @@ generate_arduino_library(
     SRCS ${{{DEPENDENCY_NAME}}_files}
     BOARD ${BOARD})
 
+set_property(TARGET {{DEPENDENCY_NAME}} PROPERTY CXX_STANDARD {{CXX_STANDARD}})
+set_property(TARGET {{DEPENDENCY_NAME}} PROPERTY C_STANDARD {{C_STANDARD}})
+
 target_compile_definitions(
     {{DEPENDENCY_NAME}}
-    {{DEFINITIONS_VISIBILITY}}
-    {{DEPENDENCY_DEFINITIONS}})
+    PRIVATE
+    {{PRIVATE_DEFINITIONS}})
+
+target_compile_definitions(
+    {{DEPENDENCY_NAME}}
+    PUBLIC
+    {{PUBLIC_DEFINITIONS}})
 
 target_compile_definitions(
     {{DEPENDENCY_NAME}}
@@ -66,7 +76,7 @@ target_compile_definitions(
 
 target_compile_options(
     {{DEPENDENCY_NAME}}
-    {{FLAGS_VISIBILITY}}
+    PUBLIC
     {{DEPENDENCY_FLAGS}})
 
 target_include_directories(
@@ -78,25 +88,28 @@ target_include_directories(
     {{DEPENDENCY_NAME}}
     PRIVATE
     "{{DEPENDENCY_PATH}}/src")
-
-target_include_directories(
-    {{DEPENDENCY_NAME}}
-    PUBLIC
-    "{{DEPENDENCY_PATH}}/include")
 `
 
 // This for header only desktop dependency
 const DesktopHeader = `
 add_library({{DEPENDENCY_NAME}} INTERFACE)
 
+set_property(TARGET {{DEPENDENCY_NAME}} PROPERTY CXX_STANDARD {{CXX_STANDARD}})
+set_property(TARGET {{DEPENDENCY_NAME}} PROPERTY C_STANDARD {{C_STANDARD}})
+
 target_compile_definitions(
     {{DEPENDENCY_NAME}}
-    {{DEFINITIONS_VISIBILITY}}
-    {{DEPENDENCY_DEFINITIONS}})
+    INTERFACE
+    {{PRIVATE_DEFINITIONS_DEFINITIONS}})
+
+target_compile_definitions(
+    {{DEPENDENCY_NAME}}
+    INTERFACE
+    {{PUBLIC_DEFINITIONS_DEFINITIONS}})
 
 target_compile_options(
     {{DEPENDENCY_NAME}}
-    {{FLAGS_VISIBILITY}}
+    INTERFACE
     {{DEPENDENCY_FLAGS}})
 
 target_include_directories(
@@ -105,7 +118,6 @@ target_include_directories(
     "{{DEPENDENCY_PATH}}/include")
 `
 
-// This is for header only desktop dependency
 const DesktopLibrary = `
 file(GLOB_RECURSE
     {{DEPENDENCY_NAME}}_files
@@ -118,10 +130,18 @@ add_library(
     STATIC
     ${{{DEPENDENCY_NAME}}_files})
 
+set_property(TARGET {{DEPENDENCY_NAME}} PROPERTY CXX_STANDARD {{CXX_STANDARD}})
+set_property(TARGET {{DEPENDENCY_NAME}} PROPERTY C_STANDARD {{C_STANDARD}})
+
 target_compile_definitions(
     {{DEPENDENCY_NAME}}
-    {{DEFINITIONS_VISIBILITY}}
-    {{DEPENDENCY_DEFINITIONS}})
+    PRIVATE
+    {{PRIVATE_DEFINITIONS}})
+
+target_compile_definitions(
+    {{DEPENDENCY_NAME}}
+    PUBLIC
+    {{PUBLIC_DEFINITIONS}})
 
 target_compile_definitions(
     {{DEPENDENCY_NAME}}
@@ -132,7 +152,7 @@ target_compile_definitions(
 
 target_compile_options(
     {{DEPENDENCY_NAME}}
-    {{FLAGS_VISIBILITY}}
+    PUBLIC
     {{DEPENDENCY_FLAGS}})
 
 target_include_directories(

@@ -29,32 +29,23 @@ func GenerateCMakeDependencies(cmakePath string, platform string, targets *Targe
     for target := range targets.TargetIterator() {
         finalString := libraryStrings[platform][target.HeaderOnly]
 
-        private := types.Private
-        public := types.Public
-
-        if target.HeaderOnly {
-            private = types.Interface
-            public = types.Interface
-        }
-
         finalString = template.Replace(finalString, map[string]string{
-            "DEPENDENCY_PATH":                 filepath.ToSlash(target.Path),
-            "DEPENDENCY_NAME":                 target.Name + "__" + target.Version,
-            "DEPENDENCY_FLAGS":                strings.Join(target.Flags, " "),
-            "PRIVATE_DEFINITIONS_DEFINITIONS": strings.Join(target.Definitions[types.Private], " "),
-            "PRIVATE_DEFINITIONS_VISIBILITY":  private,
-            "PUBLIC_DEFINITIONS_DEFINITIONS":  strings.Join(target.Definitions[types.Public], " "),
-            "PUBLIC_DEFINITIONS_VISIBILITY":   public,
+            "DEPENDENCY_PATH":     filepath.ToSlash(target.Path),
+            "DEPENDENCY_NAME":     target.Name + "__" + target.Version,
+            "DEPENDENCY_FLAGS":    strings.Join(target.Flags, " "),
+            "PRIVATE_DEFINITIONS": strings.Join(target.Definitions[types.Private], " "),
+            "PUBLIC_DEFINITIONS":  strings.Join(target.Definitions[types.Public], " "),
+            "CXX_STANDARD":        target.CXXStandard,
+            "C_STANDARD":          target.CStandard,
         })
         cmakeStrings = append(cmakeStrings, finalString+"\n")
     }
 
     for link := range targets.LinkIterator() {
-        if link.From.HeaderOnly && link.LinkInfo.Visibility != "INTERFACE" {
-            return errors.Stringf("header library %s@%s must have INTERFACE link visibility", link.From.Name,
-                link.From.Version)
+        if link.From.HeaderOnly {
+            link.LinkInfo.Visibility = types.Interface
         } else if strings.Trim(link.LinkInfo.Visibility, " ") == "" {
-            link.LinkInfo.Visibility = "PRIVATE"
+            link.LinkInfo.Visibility = types.Private
         }
 
         linkerName := link.From.Name + "__" + link.From.Version

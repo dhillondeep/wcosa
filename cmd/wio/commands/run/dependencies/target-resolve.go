@@ -1,6 +1,7 @@
 package dependencies
 
 import (
+    "wio/cmd/wio/commands/run/cmake"
     "wio/cmd/wio/errors"
     "wio/cmd/wio/toolchain/npm/resolve"
     "wio/cmd/wio/types"
@@ -85,12 +86,19 @@ func resolveTree(i *resolve.Info, currNode *resolve.Node, parentTarget *Target, 
         return errors.Stringf("%s dependency does not exist. Check vendor or wio install", currNode.Name)
     }
 
+    cxxStandard, cStandard, err := cmake.GetStandard(pkg.Config.GetInfo().GetOptions().GetStandard())
+    if err != nil {
+        return err
+    }
+
     currTarget := &Target{
-        Name:       pkg.Config.GetName(),
-        Version:    pkg.Config.GetVersion(),
-        Path:       pkg.Path,
-        FromVendor: pkg.Vendor,
-        HeaderOnly: pkg.Config.GetInfo().GetOptions().GetIsHeaderOnly(),
+        Name:        pkg.Config.GetName(),
+        Version:     pkg.Config.GetVersion(),
+        Path:        pkg.Path,
+        FromVendor:  pkg.Vendor,
+        HeaderOnly:  pkg.Config.GetInfo().GetOptions().GetIsHeaderOnly(),
+        CXXStandard: cxxStandard,
+        CStandard:   cStandard,
     }
 
     globals := map[string][]string{
