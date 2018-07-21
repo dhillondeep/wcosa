@@ -17,9 +17,5 @@ func ReadWioConfig(dir string) (types.Config, error) {
 }
 
 func WriteWioConfig(dir string, config types.Config) error {
-    path := io.Path(dir, io.Config)
-    if !io.Exists(path) {
-        return errors.Stringf("path does not contain a wio.yml: %s", dir)
-    }
-    return io.NormalIO.WriteYml(path, config)
+    return io.NormalIO.WriteYml(io.Path(dir, io.Config), config)
 }

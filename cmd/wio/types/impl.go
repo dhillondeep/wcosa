@@ -7,14 +7,23 @@ type PropertiesImpl struct {
 }
 
 func (p *PropertiesImpl) GetGlobal() []string {
+	if p == nil {
+		return []string{}
+	}
     return p.Global
 }
 
 func (p *PropertiesImpl) GetTarget() []string {
+	if p == nil {
+		return []string{}
+	}
     return p.Target
 }
 
 func (p *PropertiesImpl) GetPackage() []string {
+	if p == nil {
+		return []string{}
+	}
     return p.Package
 }
 
@@ -123,10 +132,16 @@ type DefinitionSetImpl struct {
 }
 
 func (d *DefinitionSetImpl) GetPublic() []string {
+	if d == nil {
+		return []string{}
+	}
     return d.Public
 }
 
 func (d *DefinitionSetImpl) GetPrivate() []string {
+	if d == nil {
+		return []string{}
+	}
     return d.Private
 }
 
@@ -213,9 +228,7 @@ func (c *ConfigImpl) GetTargets() map[string]Target {
     if c.Targets == nil {
         c.Targets = map[string]*TargetImpl{}
     }
-
     s := map[string]Target{}
-
     for name, value := range c.Targets {
         s[name] = value
     }
@@ -226,13 +239,18 @@ func (c *ConfigImpl) GetDependencies() map[string]Dependency {
     if c.Dependencies == nil {
         c.Dependencies = map[string]*DependencyImpl{}
     }
-
     s := map[string]Dependency{}
-
     for name, value := range c.Dependencies {
         s[name] = value
     }
     return s
+}
+
+func (c *ConfigImpl) AddDependency(name string, dep Dependency) {
+	if c.Dependencies == nil {
+		c.Dependencies = map[string]*DependencyImpl{}
+	}
+	c.Dependencies[name] = dep.(*DependencyImpl)
 }
 
 func (c *ConfigImpl) DependencyMap() map[string]string {
