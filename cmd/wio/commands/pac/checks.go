@@ -5,9 +5,9 @@ import (
     goerr "errors"
     "net/http"
     "os/exec"
+    "wio/cmd/wio/constants"
     "wio/cmd/wio/errors"
     "wio/cmd/wio/utils"
-    "wio/cmd/wio/utils/io"
 )
 
 // Checks arguments to verify what to install
@@ -38,19 +38,19 @@ func collectArgumentCheck(args []string) []string {
 }
 
 // checks arguments to verify what to publish
-func publishCheck(directory string) error {
-    status, err := utils.IsAppType(directory + io.Sep + io.Config)
+func publishCheck(dir string) error {
+    config, err := utils.ReadWioConfig(dir)
     if err != nil {
         return err
     }
-    if status {
+    if config.GetType() == constants.APP {
         return goerr.New("publish command is only supported for project of pkg type")
     }
     return nil
 }
 
 // Checks if dependencies are valid wio packages and if they are already pushed
-func dependencyCheck(directory string, name string, version string) error {
+func dependencyCheck(dir string, name string, version string) error {
     resp, err := http.Get("https://www.npmjs.com/package/" + name + "/v/" + version)
     if err != nil {
         return err
@@ -64,7 +64,7 @@ func dependencyCheck(directory string, name string, version string) error {
 
     // verify the version by executing npm info command
     npmInfoCommand := exec.Command("npm", "info", name+"@"+version)
-    npmInfoCommand.Dir = directory
+    npmInfoCommand.Dir = dir
 
     cmdOutOutput := &bytes.Buffer{}
     npmInfoCommand.Stdout = cmdOutOutput

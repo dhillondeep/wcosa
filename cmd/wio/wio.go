@@ -13,7 +13,6 @@ import (
     "wio/cmd/wio/commands"
     "wio/cmd/wio/commands/create"
     "wio/cmd/wio/commands/devices"
-    "wio/cmd/wio/commands/pac"
     "wio/cmd/wio/commands/pac/install"
     "wio/cmd/wio/commands/pac/vendor"
     "wio/cmd/wio/commands/run"
@@ -209,7 +208,6 @@ var cmd = []cli.Command{
             command = install.Cmd{Context: c}
         },
     },
-
     {
         Name:      "devices",
         Usage:     "Handles serial devices connected.",
@@ -255,90 +253,6 @@ var cmd = []cli.Command{
                     command = devices.Devices{Context: c, Type: devices.LIST}
                 },
             },
-        },
-    },
-    {
-        Name:      "install",
-        Usage:     "Install's wio packages from remote server.",
-        UsageText: "wio install [package name] [command options]",
-        Flags: []cli.Flag{
-            cli.BoolFlag{Name: "save",
-                Usage: "Adds package to wio.yml file and installs it."},
-            cli.BoolFlag{Name: "clean",
-                Usage: "Deletes previous packages and installs new ones."},
-            cli.BoolFlag{Name: "verbose",
-                Usage: "Turns verbose mode on to show detailed errors and commands being executed."},
-            cli.BoolFlag{Name: "disable-warnings",
-                Usage: "Disables all the warning shown by wio."},
-            cli.BoolFlag{Name: "config-help",
-                Usage: "Prints help text in the config file."},
-        },
-        Action: func(c *cli.Context) {
-            command = pac.Pac{Context: c, Type: pac.INSTALL}
-        },
-    },
-    {
-        Name:      "uninstall",
-        Usage:     "Uninstall's wio packages downloaded.",
-        UsageText: "wio uninstall <package name> [command options]",
-        Flags: []cli.Flag{
-            cli.BoolFlag{Name: "save",
-                Usage: "Removes package from wio.yml file."},
-            cli.BoolFlag{Name: "verbose",
-                Usage: "Turns verbose mode on to show detailed errors and commands being executed."},
-            cli.BoolFlag{Name: "disable-warnings",
-                Usage: "Disables all the warning shown by wio."},
-            cli.BoolFlag{Name: "config-help",
-                Usage: "Prints help text in the config file."},
-        },
-        Action: func(c *cli.Context) {
-            command = pac.Pac{Context: c, Type: pac.UNINSTALL}
-        },
-    },
-    {
-        Name:      "publish",
-        Usage:     "Publishes wio package.",
-        UsageText: "wio publish [directory] [command options]",
-        Flags: []cli.Flag{
-            cli.BoolFlag{Name: "verbose",
-                Usage: "Turns verbose mode on to show detailed errors and commands being executed."},
-            cli.BoolFlag{Name: "disable-warnings",
-                Usage: "Disables all the warning shown by wio.",
-            },
-        },
-        Action: func(c *cli.Context) {
-            command = pac.Pac{Context: c, Type: pac.PUBLISH}
-        },
-    },
-    {
-        Name:      "collect",
-        Usage:     "Grabs all the remote packages and stores them in vendor directory.",
-        UsageText: "wio collect [package] [command options]",
-        Flags: []cli.Flag{
-            cli.BoolFlag{Name: "save",
-                Usage: "Updates packages moved to vendor status to true."},
-            cli.BoolFlag{Name: "disable-warnings",
-                Usage: "Disables all the warning shown by wio."},
-            cli.BoolFlag{Name: "config-help",
-                Usage: "Prints help text in the config file."},
-        },
-        Action: func(c *cli.Context) {
-            command = pac.Pac{Context: c, Type: pac.COLLECT}
-        },
-    },
-    {
-        Name:      "list",
-        Usage:     "List all the packages installed.",
-        UsageText: "wio list [directory] [command options]",
-        Flags: []cli.Flag{
-            cli.BoolFlag{Name: "verbose",
-                Usage: "Turns verbose mode on to show detailed errors and commands being executed."},
-            cli.BoolFlag{Name: "disable-warnings",
-                Usage: "Disables all the warning shown by wio.",
-            },
-        },
-        Action: func(c *cli.Context) {
-            command = pac.Pac{Context: c, Type: pac.LIST}
         },
     },
 }

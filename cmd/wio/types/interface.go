@@ -29,7 +29,7 @@ type Dependency interface {
     GetVisibility() string
     GetFlags() []string
     GetDefinitions() []string
-    GetIsVendor() bool
+    IsVendor() bool
 }
 
 type Options interface {

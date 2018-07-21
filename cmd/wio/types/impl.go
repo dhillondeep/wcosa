@@ -85,7 +85,7 @@ func (d *DependencyImpl) GetDefinitions() []string {
     return d.Definitions
 }
 
-func (d *DependencyImpl) GetIsVendor() bool {
+func (d *DependencyImpl) IsVendor() bool {
     return d.Vendor
 }
 
@@ -214,6 +214,9 @@ func (c *ConfigImpl) GetTargets() map[string]Target {
 }
 
 func (c *ConfigImpl) GetDependencies() map[string]Dependency {
+    if c.Dependencies == nil {
+        c.Dependencies = map[string]Dependency{}
+    }
     return c.Dependencies
 }
 

@@ -4,45 +4,23 @@ import (
     goerr "errors"
     "os"
     "regexp"
-    "wio/cmd/wio/constants"
     "wio/cmd/wio/types"
     "wio/cmd/wio/utils"
     "wio/cmd/wio/utils/io"
 )
 
-func createPkgNpmConfig(pkgConfig *types.PkgConfig) *types.NpmConfig {
-    meta := pkgConfig.MainTag.Meta
+func createNpmConfig(config types.Config) *types.NpmConfig {
+    info := config.GetInfo()
     return &types.NpmConfig{
-        Name:         pkgConfig.GetMainTag().GetName(),
-        Version:      pkgConfig.GetMainTag().GetVersion(),
-        Description:  meta.Description,
-        Repository:   meta.Repository,
+        Name:         info.GetName(),
+        Version:      info.GetVersion(),
+        Description:  "Wio package",
+        Repository:   "",
         Main:         ".wio.js",
-        Keywords:     utils.AppendIfMissing(meta.Keywords, []string{"wio", "pkg"}),
-        Author:       meta.Author,
-        License:      meta.License,
-        Contributors: meta.Contributors,
-    }
-}
-
-func createAppNpmConfig(appConfig *types.AppConfig) *types.NpmConfig {
-    return &types.NpmConfig{
-        Name:        appConfig.GetMainTag().GetName(),
-        Version:     appConfig.GetMainTag().GetVersion(),
-        Description: "A wio application",
-        Repository:  "repo",
-        Main:        ".wio.js",
-        Keywords:    []string{"wio", "app"},
-        Author:      "wio",
-        License:     "MIT",
-    }
-}
-
-func createNpmConfig(config types.IConfig) *types.NpmConfig {
-    if config.GetType() == constants.APP {
-        return createAppNpmConfig(config.(*types.AppConfig))
-    } else {
-        return createPkgNpmConfig(config.(*types.PkgConfig))
+        Keywords:     utils.AppendIfMissing(info.GetKeywords(), []string{"wio", "pkg"}),
+        Author:       "",
+        License:      info.GetLicense(),
+        Contributors: []string{},
     }
 }
 
@@ -57,11 +35,11 @@ func updateNpmConfig(directory string, strict bool) error {
     }
     npmConfig.Dependencies = make(types.NpmDependencyTag)
     for name, value := range config.GetDependencies() {
-        if !value.Vendor {
-            if err := dependencyCheck(directory, name, value.Version); err != nil {
+        if !value.IsVendor() {
+            if err := dependencyCheck(directory, name, value.GetVersion()); err != nil {
                 return err
             }
-            npmConfig.Dependencies[name] = value.Version
+            npmConfig.Dependencies[name] = value.GetVersion()
         }
     }
     dotWioPath := io.Path(directory, io.Folder)
