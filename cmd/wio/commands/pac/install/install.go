@@ -15,7 +15,7 @@ type Cmd struct {
 
     dir    string
     info   *resolve.Info
-    config types.IConfig
+    config types.Config
 }
 
 func (cmd Cmd) GetContext() *cli.Context {
@@ -54,15 +54,14 @@ func (cmd Cmd) AddDependency() error {
     log.Info(log.Cyan, "Adding dependency: ")
     log.Infoln(log.Green, "%s@%s", name, ver)
     deps := cmd.config.GetDependencies()
-    if prev, exists := deps[name]; exists && prev.Version != ver {
-        log.Warnln("Replacing previous version %s", prev.Version)
+    if prev, exists := deps[name]; exists && prev.GetVersion() != ver {
+        log.Warnln("Replacing previous version %s", prev.GetVersion())
     } else if exists {
         log.Warnln("Same version already exists")
     }
-    deps[name] = &types.DependencyTag{
-        Version:        ver,
-        Vendor:         false,
-        LinkVisibility: "PRIVATE",
+    deps[name] = &types.DependencyImpl{
+        Version: ver,
+        Vendor:  false,
     }
     return utils.WriteWioConfig(cmd.dir, cmd.config)
 }

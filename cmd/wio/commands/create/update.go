@@ -105,7 +105,7 @@ func updatePackageConfig(queue *log.Queue, config types.Config, info *createInfo
     if config.GetName() != filepath.Base(info.directory) {
         log.Warnln(queue, "Base directory different from project name")
     }
-	return utils.WriteWioConfig(info.directory, config)
+    return utils.WriteWioConfig(info.directory, config)
 }
 
 func updateAppConfig(queue *log.Queue, config types.Config, info *createInfo) error {
@@ -116,7 +116,7 @@ func updateAppConfig(queue *log.Queue, config types.Config, info *createInfo) er
     if config.GetName() != filepath.Base(info.directory) {
         log.Warnln(queue, "Base directory different from project name")
     }
-	return utils.WriteWioConfig(info.directory, config)
+    return utils.WriteWioConfig(info.directory, config)
 }
 
 // Update project files

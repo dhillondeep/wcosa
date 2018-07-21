@@ -12,7 +12,7 @@ func ReadWioConfig(dir string) (types.Config, error) {
         return nil, errors.Stringf("path does not contain a wio.yml: %s", dir)
     }
     ret := &types.ConfigImpl{}
-	err := io.NormalIO.ParseYml(path, ret)
+    err := io.NormalIO.ParseYml(path, ret)
     return ret, err
 }
 

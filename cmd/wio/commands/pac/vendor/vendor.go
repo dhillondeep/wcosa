@@ -69,17 +69,14 @@ func (info *Info) AddVendorPackage() error {
     if vendorConfig.GetType() != constants.PKG {
         return errors.Stringf("project %s is not a package", info.Name)
     }
-    pkgConfig := vendorConfig.(*types.PkgConfig)
-    pkgMeta := pkgConfig.MainTag.Meta
-    if pkgMeta.Name != info.Name {
-        log.Warnln("package name %s does not match folder name %s", pkgMeta.Name, info.Name)
+    if vendorConfig.GetName() != info.Name {
+        log.Warnln("package name %s does not match folder name %s", vendorConfig.GetName(), info.Name)
     }
-    tag := &types.DependencyTag{
-        Version:        pkgMeta.Version,
-        Vendor:         true,
-        LinkVisibility: "PRIVATE",
+    tag := &types.DependencyImpl{
+        Version: vendorConfig.GetVersion(),
+        Vendor:  true,
     }
-    config.GetDependencies()[pkgMeta.Name] = tag
+    config.GetDependencies()[vendorConfig.GetName()] = tag
     if err := utils.WriteWioConfig(info.Dir, config); err != nil {
         return err
     }

@@ -58,7 +58,7 @@ func (i *Info) ResolveRemote(config types.Config) error {
         i.SetPkg(i.root.Name, i.root.ResolvedVersion.Str(), &Package{
             Vendor: false,
             Path:   i.dir,
-			Config: config,
+            Config: config,
         })
     }
 
