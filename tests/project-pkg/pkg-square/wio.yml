@@ -1,37 +1,14 @@
-pkg:
-  ide: none
-
-  meta:
-    name: pkg-square
-    version: 0.0.1
-    keywords:
-    - native
-    - all
-    - wio
-    license: MIT
-
-  config:
-    minimum_wio_version: 0.3.2
-    supported_platforms:
-    - native
-    supported_frameworks:
-    - all
-    supported_boards:
-    - all
-
+type: pkg
+project:
+  name: pkg-square
+  version: 0.0.1
+  keywords:
+  - wio
   compile_options:
-    header_only: false
-    platform: native
-  flags:
-    visibility: PRIVATE
-  definitions:
-    visibility: PRIVATE
-
+    wio_version: 0.3.2
+    default_target: tests
 targets:
-  default: tests
-  create:
-    tests:
-      src: tests
-      platform: native
-      framework: all
-      board: all
+  tests:
+    src: tests
+    platform: native
+dependencies: {}
