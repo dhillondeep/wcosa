@@ -1,6 +1,7 @@
 package dependencies
 
 import (
+    "strconv"
     "strings"
 )
 
@@ -29,8 +30,9 @@ type Target struct {
 }
 
 type TargetSet struct {
-    tMap  map[string]*Target
-    links []*linkNode
+    tMap    map[string]*Target
+    nameMap map[string]*int
+    links   []*linkNode
 }
 
 // creates a hash from target struct
@@ -44,14 +46,30 @@ func (target *Target) hash() string {
 // Creates a hash set for dependency targets
 func NewTargetSet() *TargetSet {
     return &TargetSet{
-        tMap: make(map[string]*Target),
+        tMap:    make(map[string]*Target),
+        nameMap: make(map[string]*int),
     }
 }
 
 // Add Target values to TargetSet
 func (targetSet *TargetSet) Add(value *Target) {
     value.hashValue = value.hash()
-    targetSet.tMap[value.hashValue] = value
+
+    if _, exists := targetSet.tMap[value.hashValue]; !exists {
+        namePostfix := 0
+
+        // check if name exists
+        if val, exists := targetSet.nameMap[value.Name]; exists {
+            *val += 1
+            namePostfix = *val
+        } else {
+            namePostfix = 0
+            targetSet.nameMap[value.Name] = &namePostfix
+        }
+
+        value.Name += "__" + strconv.Itoa(namePostfix)
+        targetSet.tMap[value.hashValue] = value
+    }
 }
 
 // Links one target to another
