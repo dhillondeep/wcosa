@@ -24,11 +24,11 @@ targets:
       package:
       - STACK_SIZE=256
   native-tests:
-      src: tests/native-tests
-      platform: native
-      definitions:
-        package:
-        - STACK_SIZE=256
+    src: tests/native-tests
+    platform: native
+    definitions:
+      package:
+      - STACK_SIZE=256
 dependencies:
   pkg-malloc:
     vendor: true

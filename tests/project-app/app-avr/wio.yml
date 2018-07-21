@@ -1,5 +1,4 @@
 type: app
-
 project:
   name: app-avr
   version: 0.0.1
@@ -8,24 +7,22 @@ project:
   compile_options:
     wio_version: 0.3.2
     default_target: main
-
 targets:
   main:
     src: src
     platform: avr
     framework: cosa
     board: uno
-
 dependencies:
   pkg-list:
-    version: 0.0.1
     vendor: true
+    version: 0.0.1
     link_visibility: PRIVATE
     definitions:
     - STACK_SIZE=256
   pkg-uart:
-    version: 0.0.1
     vendor: true
+    version: 0.0.1
     link_visibility: PRIVATE
     definitions:
     - BUFFER_SIZE=256

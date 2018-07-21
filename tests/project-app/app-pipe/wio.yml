@@ -1,5 +1,4 @@
 type: app
-
 project:
   name: app-pipe
   version: 0.0.1
@@ -8,7 +7,6 @@ project:
   compile_options:
     wio_version: 0.3.2
     default_target: main
-
 targets:
   main:
     src: src
@@ -18,3 +16,4 @@ targets:
     definitions:
       target:
       - BUFFER_SIZE=80
+dependencies: {}

@@ -1,5 +1,4 @@
 type: app
-
 project:
   name: app-stdout
   version: 0.0.1
@@ -8,9 +7,9 @@ project:
   compile_options:
     wio_version: 0.3.2
     default_target: main
-
 targets:
   main:
     src: src
     platform: native
     framework: all
+dependencies: {}
