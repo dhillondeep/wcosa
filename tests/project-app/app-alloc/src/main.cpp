@@ -16,8 +16,6 @@ struct uintptr {
     typedef typename det::ptr_type<sizeof(void *)>::type type;
 };
 
-typedef typename uintptr::type uintptr_t;
-
 int main(void) {
     static void *one_ptrs[32] = { nullptr };
     static void *two_ptrs[32] = { nullptr };
@@ -30,13 +28,13 @@ int main(void) {
     printf("one_ptrs = {");
     for (int i = 0; i < 32; ++i) {
         if (i % 4 == 0) { printf("\n\t"); }
-        printf("%#08x, ", static_cast<unsigned int>(reinterpret_cast<uintptr_t>(one_ptrs[i])));
+        printf("%#08x, ", static_cast<unsigned int>(reinterpret_cast<uintptr::type>(one_ptrs[i])));
     }
     printf("\n}\n\n");
     printf("two_ptrs = {");
     for (int i = 0; i < 32; ++i) {
         if (i % 4 == 0) { printf("\n\t"); }
-        printf("%#08x, ", static_cast<unsigned int>(reinterpret_cast<uintptr_t>(two_ptrs[i])));
+        printf("%#08x, ", static_cast<unsigned int>(reinterpret_cast<uintptr::type>(two_ptrs[i])));
     }
     printf("\n}\n");
 
