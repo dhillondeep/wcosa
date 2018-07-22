@@ -138,6 +138,7 @@ func resolveTree(i *resolve.Info, currNode *resolve.Node, parentTarget *Target, 
 
     targetSet.Link(parentTarget, currTarget, &TargetLinkInfo{
         Visibility: parentGiven.linkVisibility,
+        Flags:      parentGiven.linkFlags,
     })
 
     for _, dep := range currNode.Dependencies {

@@ -170,4 +170,4 @@ target_include_directories(
 
 // This is for linking dependencies
 const LinkString = `
-target_link_libraries({{LINKER_NAME}} {{LINK_VISIBILITY}} {{DEPENDENCY_NAME}})`
+target_link_libraries({{LINKER_NAME}} {{LINK_VISIBILITY}} {{DEPENDENCY_NAME}} {{LINKER_FLAGS}})`
