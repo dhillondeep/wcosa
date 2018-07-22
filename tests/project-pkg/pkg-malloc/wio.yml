@@ -1,19 +1,20 @@
 type: pkg
+
 project:
   name: pkg-malloc
   version: 0.0.1
+  author: ""
   keywords:
   - wio
+  - pkg
   compile_options:
     wio_version: 0.3.2
     default_target: tests
   definitions:
-    singleton: false
-    global: null
     required:
       public:
       - STACK_SIZE
-    optional: null
+
 targets:
   tests:
     src: tests
@@ -21,4 +22,4 @@ targets:
     definitions:
       package:
       - STACK_SIZE=256
-dependencies: {}
+

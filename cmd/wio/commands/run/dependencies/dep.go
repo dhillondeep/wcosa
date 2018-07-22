@@ -57,7 +57,7 @@ func GenerateCMakeDependencies(cmakePath string, platform string, targets *Targe
             "LINKER_NAME":     linkerName,
             "DEPENDENCY_NAME": link.To.Name + "__" + link.To.Version,
             "LINK_VISIBILITY": link.LinkInfo.Visibility,
-            "LINK_FLAGS":      strings.Join(link.LinkInfo.Flags, " "),
+            "LINKER_FLAGS":    strings.Join(link.LinkInfo.Flags, " "),
         })
         cmakeStrings = append(cmakeStrings, finalString)
     }

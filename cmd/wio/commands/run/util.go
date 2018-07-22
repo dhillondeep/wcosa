@@ -1,11 +1,11 @@
 package run
 
 import (
-    "io/ioutil"
     "os"
     "path/filepath"
     "wio/cmd/wio/commands/run/cmake"
     "wio/cmd/wio/constants"
+    "wio/cmd/wio/errors"
     "wio/cmd/wio/types"
     "wio/cmd/wio/utils/io"
 )
@@ -18,19 +18,23 @@ var sourceExtensions = map[string]bool{
 
 // perform a check that at least one executable file is in target directory
 func sourceFilesExist(directory string) (bool, error) {
-    files, err := ioutil.ReadDir(directory)
-    if err != nil {
-        return false, err
-    } else {
-        sourceFileExists := false
-        for _, f := range files {
-            if _, exists := sourceExtensions[filepath.Ext(io.Path(directory, f.Name()))]; exists {
-                sourceFileExists = true
-                break
-            }
+    success := "success"
+    err := filepath.Walk(directory, func(path string, f os.FileInfo, err error) error {
+        if _, exists := sourceExtensions[filepath.Ext(io.Path(directory, f.Name()))]; exists {
+            return errors.String(success)
+        } else {
+            return nil
         }
+    })
 
-        return sourceFileExists, nil
+    if err != nil {
+        if err.Error() == success {
+            return true, nil
+        } else {
+            return false, err
+        }
+    } else {
+        return false, nil
     }
 }
 

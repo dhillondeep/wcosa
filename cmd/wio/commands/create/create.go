@@ -116,7 +116,7 @@ func fillAppConfig(info *createInfo) error {
         Info: &types.InfoImpl{
             Name:     info.name,
             Version:  "0.0.1",
-            Keywords: []string{"wio", "app"},
+            Keywords: []string{"wio", constants.APP},
             Options: &types.OptionsImpl{
                 Default: "main",
                 Version: config.ProjectMeta.Version,
@@ -141,7 +141,7 @@ func fillPackageConfig(info *createInfo) error {
         Info: &types.InfoImpl{
             Name:     info.name,
             Version:  "0.0.1",
-            Keywords: []string{"wio", "pkg"},
+            Keywords: []string{"wio", constants.PKG},
             Options: &types.OptionsImpl{
                 Default: "tests",
                 Version: config.ProjectMeta.Version,
