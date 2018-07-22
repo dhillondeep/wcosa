@@ -10,14 +10,14 @@
             "from": "templates/gitignore/.gitignore-general",
             "to": ".gitignore",
             "override": false,
-            "update": true
+            "update": false
           },
           {
             "constraints": ["extra"],
             "from": "templates/readme/APP_README.md",
             "to": "README.md",
             "override": false,
-            "update": true
+            "update": false
           },
           {
             "constraints": ["ide=clion"],
@@ -61,14 +61,14 @@
             "from": "templates/gitignore/.gitignore-general",
             "to": ".gitignore",
             "override": false,
-            "update": true
+            "update": false
           },
           {
             "constraints": ["extra"],
             "from": "templates/readme/PKG_README.md",
             "to": "README.md",
             "override": false,
-            "update": true
+            "update": false
           },
           {
             "constraints": ["ide=clion"],
