@@ -58,6 +58,8 @@ func prettyPrintHelp(config types.Config, filePath string) error {
         finalStr += "\n"
     }
 
+    finalStr += "\n"
+
     if err = io.NormalIO.WriteFile(filePath, []byte(finalStr)); err != nil {
         return errors.WriteFileError{
             FileName: filePath,

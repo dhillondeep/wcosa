@@ -1,12 +1,38 @@
 package run
 
 import (
+    "io/ioutil"
     "os"
+    "path/filepath"
     "wio/cmd/wio/commands/run/cmake"
     "wio/cmd/wio/constants"
     "wio/cmd/wio/types"
     "wio/cmd/wio/utils/io"
 )
+
+var sourceExtensions = map[string]bool{
+    ".cpp": true,
+    ".c":   true,
+    ".cc":  true,
+}
+
+// perform a check that at least one executable file is in target directory
+func sourceFilesExist(directory string) (bool, error) {
+    files, err := ioutil.ReadDir(directory)
+    if err != nil {
+        return false, err
+    } else {
+        sourceFileExists := false
+        for _, f := range files {
+            if _, exists := sourceExtensions[filepath.Ext(io.Path(directory, f.Name()))]; exists {
+                sourceFileExists = true
+                break
+            }
+        }
+
+        return sourceFileExists, nil
+    }
+}
 
 func buildPath(info *runInfo) string {
     return cmake.BuildPath(info.directory)
