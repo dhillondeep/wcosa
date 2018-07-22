@@ -29,7 +29,7 @@ func (p *PropertiesImpl) GetPackage() []string {
 
 type TargetImpl struct {
     Source      string          `yaml:"src"`
-    Platform    string          `yaml:"platform"`
+    Platform    string          `yaml:"platform,omitempty"`
     Framework   string          `yaml:"framework,omitempty"`
     Board       string          `yaml:"board,omitempty"`
     Flags       *PropertiesImpl `yaml:"flags,omitempty"`
@@ -83,11 +83,12 @@ func (t *TargetImpl) SetName(name string) {
 }
 
 type DependencyImpl struct {
-    Vendor      bool     `yaml:"vendor,omitempty"`
-    Version     string   `yaml:"version"`
-    Visibility  string   `yaml:"link_visibility,omitempty"`
-    Flags       []string `yaml:"compile_flags,omitempty"`
-    Definitions []string `yaml:"definitions"`
+    Vendor       bool     `yaml:"vendor,omitempty"`
+    Version      string   `yaml:"version"`
+    Visibility   string   `yaml:"link_visibility,omitempty"`
+    LinkerFlags  []string `yaml:"linker_flags,omitempty"`
+    CompileFlags []string `yaml:"compile_flags,omitempty"`
+    Definitions  []string `yaml:"definitions,omitempty"`
 }
 
 func (d *DependencyImpl) GetVersion() string {
@@ -98,8 +99,12 @@ func (d *DependencyImpl) GetVisibility() string {
     return d.Visibility
 }
 
-func (d *DependencyImpl) GetFlags() []string {
-    return d.Flags
+func (d *DependencyImpl) GetCompileFlags() []string {
+    return d.CompileFlags
+}
+
+func (d *DependencyImpl) GetLinkerFlags() []string {
+    return d.LinkerFlags
 }
 
 func (d *DependencyImpl) GetDefinitions() []string {
@@ -114,7 +119,7 @@ type OptionsImpl struct {
     Version  string   `yaml:"wio_version"`
     Header   bool     `yaml:"header_only,omitempty"`
     Standard string   `yaml:"standard,omitempty"`
-    Default  string   `yaml:"default_target,omitempty"`
+    Default  string   `yaml:"default_target"`
     Flags    []string `yaml:"flags,omitempty"`
 }
 
@@ -158,10 +163,10 @@ func (d *DefinitionSetImpl) GetPrivate() []string {
 }
 
 type DefinitionsImpl struct {
-    Singleton bool               `yaml:"singleton"`
-    Global    *DefinitionSetImpl `yaml:"global"`
-    Required  *DefinitionSetImpl `yaml:"required"`
-    Optional  *DefinitionSetImpl `yaml:"optional"`
+    Singleton bool               `yaml:"singleton,omitempty"`
+    Global    *DefinitionSetImpl `yaml:"global,omitempty"`
+    Required  *DefinitionSetImpl `yaml:"required,omitempty"`
+    Optional  *DefinitionSetImpl `yaml:"optional,omitempty"`
 }
 
 func (d *DefinitionsImpl) IsSingleton() bool {
@@ -193,12 +198,16 @@ func (d *DefinitionsImpl) GetOptional() DefinitionSet {
 }
 
 type InfoImpl struct {
-    Name        string           `yaml:"name"`
-    Version     string           `yaml:"version"`
-    Keywords    []string         `yaml:"keywords,omitempty"`
-    License     string           `yaml:"license,omitempty"`
-    Options     *OptionsImpl     `yaml:"compile_options"`
-    Definitions *DefinitionsImpl `yaml:"definitions,omitempty"`
+    Name         string           `yaml:"name"`
+    Version      string           `yaml:"version"`
+    License      string           `yaml:"license,omitempty"`
+    Author       string           `yaml:"author"`
+    Contributors []string         `yaml:"contributors,omitempty"`
+    Organization string           `yaml:"organization,omitempty"`
+    Url          string           `yaml:"url,omitempty"`
+    Keywords     []string         `yaml:"keywords,omitempty"`
+    Options      *OptionsImpl     `yaml:"compile_options"`
+    Definitions  *DefinitionsImpl `yaml:"definitions,omitempty"`
 }
 
 func (i *InfoImpl) GetName() string {
@@ -229,7 +238,7 @@ type ConfigImpl struct {
     Type         string                     `yaml:"type"`
     Info         *InfoImpl                  `yaml:"project"`
     Targets      map[string]*TargetImpl     `yaml:"targets"`
-    Dependencies map[string]*DependencyImpl `yaml:"dependencies"`
+    Dependencies map[string]*DependencyImpl `yaml:"dependencies,omitempty"`
 }
 
 func (c *ConfigImpl) GetType() string {

@@ -90,9 +90,10 @@ func CreateBuildTargets(projectDir string, target types.Target) (*TargetSet, err
             }
 
             parentInfo := &parentGivenInfo{
-                flags:          configDependency.GetFlags(),
+                flags:          configDependency.GetCompileFlags(),
                 definitions:    configDependency.GetDefinitions(),
                 linkVisibility: configDependency.GetVisibility(),
+                linkFlags:      configDependency.GetLinkerFlags(),
             }
 
             // all direct dependencies will link to the main target

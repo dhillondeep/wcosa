@@ -27,7 +27,8 @@ type Target interface {
 type Dependency interface {
     GetVersion() string
     GetVisibility() string
-    GetFlags() []string
+    GetLinkerFlags() []string
+    GetCompileFlags() []string
     GetDefinitions() []string
     IsVendor() bool
 }

@@ -150,7 +150,7 @@ func resolveTree(i *resolve.Info, currNode *resolve.Node, parentTarget *Target, 
         }
 
         // resolve placeholders
-        parentFlags, err := fillPlaceholders(currTarget.Flags, configDependency.GetFlags())
+        parentFlags, err := fillPlaceholders(currTarget.Flags, configDependency.GetCompileFlags())
         if err != nil {
             return errors.Stringf(err.Error(), currTarget.Name)
         }
