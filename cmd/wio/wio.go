@@ -176,7 +176,6 @@ var cmd = []cli.Command{
             command = run.Run{Context: c, RunType: run.TypeRun}
         },
     },
-
     {
         Name:  "vendor",
         Usage: "Manage locally vendored dependencies.",
@@ -312,7 +311,6 @@ func main() {
     err := wio()
     if err != nil {
         log.Errln(err.Error())
-
         os.Exit(1)
     }
 }

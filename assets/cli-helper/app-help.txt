@@ -1,16 +1,16 @@
-Wio is an open source iot development environment
-Create, Build, and Upload AVR projects from Commandline.
+Wio is an open source Iot development environment
+Create, Build, and Upload C/C++ projects from Commandline.
 
 Common Commands:
 
     wio create <project_type> [options]
         Create a new Wio project where <project_type> is `app` or `pkg`
 
-    wio run [options]
+    wio build [options]
         Build the Wio project based on all the configurations defined
 
-    wio run --upload [options]
-        Upload the Wio project to an attached embedded device
+    wio run [options]
+        Upload/Run the Wio project
 
     wio install [options]
         Installs wio packages as dependencies

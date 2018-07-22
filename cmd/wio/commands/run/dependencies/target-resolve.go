@@ -28,48 +28,40 @@ type parentGivenInfo struct {
 func fillDefinitions(info definitionsInfo) (map[string][]string, error) {
     var all = map[string][]string{}
 
-    globalPrivate, err := fillDefinition("global", info.globalsGiven, info.globals[types.Private])
+    globalPrivate, err := fillDefinition(info.globalsGiven, info.globals[types.Private])
     if err != nil {
-        return nil, errors.Stringf(err.Error(), info.name)
-    } else {
-        all[types.Private] = utils.AppendIfMissing(all[types.Private], globalPrivate)
+        return nil, errors.Stringf(err.Error(), "global", info.name)
+    }
+    globalPublic, err := fillDefinition(info.globalsGiven, info.globals[types.Public])
+    if err != nil {
+        return nil, errors.Stringf(err.Error(), "global", info.name)
     }
 
-    globalPublic, err := fillDefinition("global", info.globalsGiven, info.globals[types.Public])
-    if err != nil {
-        return nil, errors.Stringf(err.Error(), info.name)
-    } else {
-        all[types.Public] = utils.AppendIfMissing(all[types.Public], globalPublic)
-    }
+    all[types.Private] = utils.AppendIfMissing(all[types.Private], globalPrivate)
+    all[types.Public] = utils.AppendIfMissing(all[types.Public], globalPublic)
 
     if !info.singleton && (len(info.required[types.Private]) > 0 || len(info.required[types.Public]) > 0) {
-        requiredPrivate, err := fillDefinition("required", info.otherGiven, info.required[types.Private])
+        requiredPrivate, err := fillDefinition(info.otherGiven, info.required[types.Private])
         if err != nil {
-            return nil, errors.Stringf(err.Error(), info.name)
-        } else {
-            all[types.Private] = utils.AppendIfMissing(all[types.Private], requiredPrivate)
+            return nil, errors.Stringf(err.Error(), "required", info.name)
+        }
+        requiredPublic, err := fillDefinition(info.otherGiven, info.required[types.Public])
+        if err != nil {
+            return nil, errors.Stringf(err.Error(), "required", info.name)
+        }
+        optionalPrivate, err := fillDefinition(info.otherGiven, info.optional[types.Private])
+        if err != nil {
+            return nil, errors.Stringf(err.Error(), "other", info.name)
+        }
+        optionalPublic, err := fillDefinition(info.otherGiven, info.optional[types.Public])
+        if err != nil {
+            return nil, errors.Stringf(err.Error(), "other", info.name)
         }
 
-        requiredPublic, err := fillDefinition("required", info.otherGiven, info.required[types.Public])
-        if err != nil {
-            return nil, errors.Stringf(err.Error(), info.name)
-        } else {
-            all[types.Public] = utils.AppendIfMissing(all[types.Public], requiredPublic)
-        }
-
-        optionalPrivate, err := fillDefinition("other", info.otherGiven, info.optional[types.Private])
-        if err != nil {
-            return nil, errors.Stringf(err.Error(), info.name)
-        } else {
-            all[types.Private] = utils.AppendIfMissing(all[types.Private], optionalPrivate)
-        }
-
-        optionalPublic, err := fillDefinition("other", info.otherGiven, info.optional[types.Public])
-        if err != nil {
-            return nil, errors.Stringf(err.Error(), info.name)
-        } else {
-            all[types.Public] = utils.AppendIfMissing(all[types.Public], optionalPublic)
-        }
+        all[types.Private] = utils.AppendIfMissing(all[types.Private], requiredPrivate)
+        all[types.Public] = utils.AppendIfMissing(all[types.Public], requiredPublic)
+        all[types.Private] = utils.AppendIfMissing(all[types.Private], optionalPrivate)
+        all[types.Public] = utils.AppendIfMissing(all[types.Public], optionalPublic)
     }
 
     return all, nil
@@ -117,7 +109,7 @@ func resolveTree(i *resolve.Info, currNode *resolve.Node, parentTarget *Target, 
         types.Public:  definitions.GetOptional().GetPublic(),
     }
 
-    // resolve definitions
+    // definitions
     if currTarget.Definitions, err = fillDefinitions(
         definitionsInfo{
             name:         currTarget.Name + "__" + currTarget.Version,
@@ -135,42 +127,37 @@ func resolveTree(i *resolve.Info, currNode *resolve.Node, parentTarget *Target, 
     currTarget.Flags = utils.AppendIfMissing(pkg.Config.GetInfo().GetOptions().GetFlags(), parentGiven.flags)
 
     targetSet.Add(currTarget)
-
     targetSet.Link(parentTarget, currTarget, &TargetLinkInfo{
         Visibility: parentGiven.linkVisibility,
         Flags:      parentGiven.linkFlags,
     })
 
     for _, dep := range currNode.Dependencies {
-        var configDependency types.Dependency
-        var exists bool
+        if configDependency, exists := pkg.Config.GetDependencies()[dep.Name]; !exists {
+            return errors.Stringf("%s@%s dependency's information is wrong in wio.yml", dep.Name,
+                dep.ResolvedVersion.Str())
+        } else {
+            // resolve placeholders
+            parentFlags, err := fillPlaceholders(currTarget.Flags, configDependency.GetCompileFlags())
+            if err != nil {
+                return errors.Stringf(err.Error(), currTarget.Name)
+            }
 
-        if configDependency, exists = pkg.Config.GetDependencies()[dep.Name]; !exists {
-            return errors.Stringf("%s@%s dependency is invalid and information is wrong in wio.yml",
-                dep.Name, dep.ResolvedVersion.Str())
+            tDef := utils.AppendIfMissing(currTarget.Definitions[types.Private], currTarget.Definitions[types.Public])
+            parentDefinitions, err := fillPlaceholders(tDef, configDependency.GetDefinitions())
+            if err != nil {
+                return errors.Stringf(err.Error(), currTarget.Name)
+            }
+
+            parentInfo := &parentGivenInfo{
+                flags:          parentFlags,
+                definitions:    parentDefinitions,
+                linkVisibility: configDependency.GetVisibility(),
+            }
+
+            return resolveTree(i, dep, currTarget, targetSet, globalFlags, globalDefinitions, parentInfo)
         }
 
-        // resolve placeholders
-        parentFlags, err := fillPlaceholders(currTarget.Flags, configDependency.GetCompileFlags())
-        if err != nil {
-            return errors.Stringf(err.Error(), currTarget.Name)
-        }
-        parentDefinitions, err := fillPlaceholders(
-            utils.AppendIfMissing(currTarget.Definitions[types.Private], currTarget.Definitions[types.Public]),
-            configDependency.GetDefinitions())
-        if err != nil {
-            return errors.Stringf(err.Error(), currTarget.Name)
-        }
-
-        parentInfo := &parentGivenInfo{
-            flags:          parentFlags,
-            definitions:    parentDefinitions,
-            linkVisibility: configDependency.GetVisibility(),
-        }
-
-        if err = resolveTree(i, dep, currTarget, targetSet, globalFlags, globalDefinitions, parentInfo); err != nil {
-            return err
-        }
     }
 
     return nil

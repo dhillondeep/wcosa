@@ -51,7 +51,7 @@ func fillPlaceholders(givenFlags, requiredFlags []string) ([]string, error) {
 }
 
 // this fills global flags if they are requested
-func fillDefinition(definitionName string, givenFlags, requiredFlags []string) ([]string, error) {
+func fillDefinition(givenFlags, requiredFlags []string) ([]string, error) {
     var ret []string
     for _, required := range requiredFlags {
         for _, given := range givenFlags {
@@ -60,8 +60,7 @@ func fillDefinition(definitionName string, givenFlags, requiredFlags []string) (
                 goto Continue
             }
         }
-        return nil, errors.String(fmt.Sprintf("%s definition \"%s\" unfilled in ",
-            definitionName, required) + "%s")
+        return nil, errors.String("%s" + fmt.Sprintf(" definition \"%s\" unfilled in ", required) + "%s")
 
     Continue:
         continue
