@@ -1,4 +1,4 @@
-Wio is an open source Iot development environment
+Wio is an open source IOT development environment
 Create, Build, and Upload C/C++ projects from Commandline.
 
 Common Commands:

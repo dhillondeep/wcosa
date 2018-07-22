@@ -22,8 +22,8 @@ func ReadWioConfig(dir string) (types.Config, error) {
     err := io.NormalIO.ParseYml(path, ret)
 
     // check if it is a valid config
-    if ret.GetType() != constants.APP && ret.GetType() != constants.PKG {
-        return nil, errors.Stringf("wio.yml is invalid :: type => %s", ret.GetType())
+    if ret.GetType() != constants.App && ret.GetType() != constants.Pkg {
+        return nil, errors.Stringf("wio.yml has invalid type: %s", ret.GetType())
     }
     return ret, err
 }

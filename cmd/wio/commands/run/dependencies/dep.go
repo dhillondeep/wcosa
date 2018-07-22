@@ -80,7 +80,7 @@ func CreateBuildTargets(projectDir string, target types.Target) (*TargetSet, err
         return nil, err
     }
 
-    if config.GetType() == constants.APP {
+    if config.GetType() == constants.App {
         for _, dep := range i.GetRoot().Dependencies {
             var configDependency types.Dependency
             var exists bool

@@ -20,7 +20,6 @@ import (
 type Indentation string
 
 const (
-    NO_SPACES   Indentation = ""
     TWO_SPACES  Indentation = "  "
     FOUR_SPACES Indentation = "    "
 )
@@ -31,9 +30,7 @@ type Type int
 const (
     NONE      Type = 0
     INFO      Type = 1
-    INFO_NONE Type = 1
     VERB      Type = 2
-    VERB_NONE Type = 2
     WARN      Type = 3
     ERR       Type = 4
     NUM_TYPES      = 5

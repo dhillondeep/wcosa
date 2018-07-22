@@ -1,6 +1,6 @@
 package constants
 
 const (
-    COSA    = "cosa"
-    ARDUINO = "arduino"
+    Cosa    = "cosa"
+    Arduino = "arduino"
 )

@@ -1,7 +1,7 @@
 package constants
 
 const (
-    WIO = "wio"
-    APP = "app"
-    PKG = "pkg"
+    Wio = "wio"
+    App = "app"
+    Pkg = "pkg"
 )

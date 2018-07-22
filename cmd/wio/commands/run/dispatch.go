@@ -18,12 +18,12 @@ import (
 type dispatchCmakeFunc func(info *runInfo, target types.Target) error
 
 var dispatchCmakeFuncPlatform = map[string]dispatchCmakeFunc{
-    constants.AVR:    dispatchCmakeAvr,
-    constants.NATIVE: dispatchCmakeNative,
+    constants.Avr:    dispatchCmakeAvr,
+    constants.Native: dispatchCmakeNative,
 }
 var dispatchCmakeFuncAvrFramework = map[string]dispatchCmakeFunc{
-    constants.COSA:    dispatchCmakeAvrCosa,
-    constants.ARDUINO: dispatchCmakeAvrArduino,
+    constants.Cosa:    dispatchCmakeAvrCosa,
+    constants.Arduino: dispatchCmakeAvrArduino,
 }
 
 func dispatchCmake(info *runInfo, target types.Target) error {
@@ -137,14 +137,14 @@ func dispatchRunTarget(info *runInfo, target types.Target) error {
     binDir := binaryPath(info, target)
     platform := target.GetPlatform()
     switch platform {
-    case constants.AVR:
+    case constants.Avr:
         var err error = nil
         err = portReconfigure(info, target)
         if err == nil {
             err = uploadTarget(binDir)
         }
         return err
-    case constants.NATIVE:
+    case constants.Native:
         args := info.context.String("args")
         return runTarget(info.directory, io.Path(binDir, target.GetName()), args)
     default:

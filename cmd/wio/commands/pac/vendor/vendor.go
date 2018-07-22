@@ -66,7 +66,7 @@ func (info *Info) AddVendorPackage() error {
     if err != nil {
         return err
     }
-    if vendorConfig.GetType() != constants.PKG {
+    if vendorConfig.GetType() != constants.Pkg {
         return errors.Stringf("project %s is not a package", info.Name)
     }
     if vendorConfig.GetName() != info.Name {

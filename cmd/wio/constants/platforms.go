@@ -1,6 +1,6 @@
 package constants
 
 const (
-    AVR    = "avr"
-    NATIVE = "native"
+    Avr    = "avr"
+    Native = "native"
 )

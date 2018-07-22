@@ -21,6 +21,8 @@ import (
     "wio/cmd/wio/log"
     "wio/cmd/wio/utils/io"
 
+    "wio/cmd/wio/config/defaults"
+
     "github.com/urfave/cli"
 )
 
@@ -126,7 +128,7 @@ var cmd = []cli.Command{
                 UsageText: "wio create pkg [command options]",
                 Flags:     createFlags,
                 Action: func(c *cli.Context) {
-                    command = create.Create{Context: c, Update: false, Type: constants.PKG}
+                    command = create.Create{Context: c, Update: false, Type: constants.Pkg}
                 },
             },
             {
@@ -135,7 +137,7 @@ var cmd = []cli.Command{
                 UsageText: "wio create app [command options]",
                 Flags:     createFlags,
                 Action: func(c *cli.Context) {
-                    command = create.Create{Context: c, Update: false, Type: constants.APP}
+                    command = create.Create{Context: c, Update: false, Type: constants.App}
                 },
             },
         },
@@ -218,10 +220,10 @@ var cmd = []cli.Command{
                 Flags: []cli.Flag{
                     cli.IntFlag{Name: "baud",
                         Usage: "Baud rate for the Serial port.",
-                        Value: config.ProjectDefaults.Baud},
+                        Value: defaults.Baud},
                     cli.StringFlag{Name: "port",
                         Usage: "Serial Port to open.",
-                        Value: config.ProjectDefaults.Port},
+                        Value: defaults.Port},
                     cli.BoolFlag{Name: "gui",
                         Usage: "Runs the GUI version of the serial monitor tool"},
                     cli.BoolFlag{Name: "disable-warnings",

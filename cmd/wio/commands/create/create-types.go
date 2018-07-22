@@ -41,10 +41,6 @@ func (create Create) Execute() error {
         if err := performWioExistsCheck(directory); err != nil {
             return err
         }
-        // this checks if project is valid state to be updated
-        if err := performPreUpdateCheck(directory, &create); err != nil {
-            return err
-        }
         return create.handleUpdate(directory)
     } else {
         // this checks if directory is empty before create can be triggered

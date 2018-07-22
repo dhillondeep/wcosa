@@ -20,7 +20,6 @@ const (
     Config   = "wio.yml"
     Modules  = "node_modules"
     Vendor   = "vendor"
-    Package  = "pkg_module"
     Download = "cache"
 )
 
@@ -100,6 +99,6 @@ func Path(values ...string) string {
         buffer.WriteString(value)
         buffer.WriteString(Sep)
     }
-    path := buffer.String()
-    return filepath.Clean(path[:len(path)-1])
+    pth := buffer.String()
+    return filepath.Clean(pth[:len(pth)-1])
 }

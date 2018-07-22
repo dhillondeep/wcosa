@@ -54,7 +54,7 @@ func (i *Info) ResolveRemote(config types.Config) error {
     }
 
     // adds pkg config for the initial package
-    if config.GetType() == constants.PKG {
+    if config.GetType() == constants.Pkg {
         i.SetPkg(i.root.Name, i.root.ResolvedVersion.Str(), &Package{
             Vendor: false,
             Path:   i.dir,

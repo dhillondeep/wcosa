@@ -14,9 +14,6 @@ import (
     "wio/cmd/wio/types"
     "wio/cmd/wio/utils"
 
-    "wio/cmd/wio/constants"
-    "wio/cmd/wio/utils/io"
-
     "github.com/fatih/color"
     "github.com/urfave/cli"
 )
@@ -116,32 +113,6 @@ func (info *runInfo) clean(targets []types.Target) error {
 }
 
 func (info *runInfo) build(targets []types.Target) error {
-    // checks for source files based on header only and package
-    if info.projectType == constants.PKG {
-        var path string
-        var trueErr error = nil
-        var falseErr error = nil
-        if info.headerOnly {
-            path = io.Path(info.directory, "src")
-            trueErr = errors.Stringf("project is header only but contains source files")
-        } else {
-            path = io.Path(info.directory, "include")
-            falseErr = errors.Stringf("project is not header only but missing source files")
-        }
-
-        if io.Exists(path) {
-            if status, err := sourceFilesExist(io.Path(info.directory, "src")); err != nil {
-                return err
-            } else {
-                if !status && falseErr != nil {
-                    return falseErr
-                } else if status && trueErr != nil {
-                    return trueErr
-                }
-            }
-        }
-    }
-
     log.Infoln(log.Cyan, "Generating files ... ")
     targetDirs, err := configureTargets(info, targets)
     if err != nil {
@@ -202,14 +173,6 @@ func getTargetArgs(info *runInfo) ([]types.Target, error) {
 func configureTargets(info *runInfo, targets []types.Target) ([]string, error) {
     targetDirs := make([]string, 0, len(targets))
     for _, target := range targets {
-        if status, err := sourceFilesExist(io.Path(info.directory, target.GetSource())); err != nil {
-            return nil, err
-        } else {
-            if !status {
-                return nil, errors.Stringf("target [%s] does not contain any source files", target.GetName())
-            }
-        }
-
         if err := dispatchCmake(info, target); err != nil {
             return nil, err
         }

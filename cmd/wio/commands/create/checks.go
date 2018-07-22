@@ -37,11 +37,6 @@ func performWioExistsCheck(directory string) error {
     return nil
 }
 
-// This performs various checks before update can be triggered
-func performPreUpdateCheck(directory string, create *Create) error {
-    return nil
-}
-
 /// This method is a crucial piece of check to make sure people do not lose their work. It makes
 /// sure that if people are creating the project when there are files in the folder, they mean it
 /// and not doing it by mistake. It will warn them to update instead if they want
