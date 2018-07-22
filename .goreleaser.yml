@@ -5,8 +5,6 @@ builds:
       - windows
       - darwin
       - linux
-      - freebsd
-      - openbsd
     goarch:
       - 386
       - amd64
@@ -33,7 +31,7 @@ nfpm:
   vendor: Wio
   homepage: https://github.com/wio/wio
   maintainer: Deep Dhillon <deep@deepdhillon.com>
-  description: An Iot Development Environment
+  description: An IOT Development Environment
   license: MIT
   formats:
   - deb
@@ -41,9 +39,6 @@ nfpm:
   dependencies:
   - cmake
   - make
-  suggests:
-  - git
-  - node
   files:
     "toolchain/**/*": "/usr/share/wio/toolchain"
 
@@ -61,7 +56,7 @@ brew:
   folder: Formula
 
   homepage: "https://github.com/wio/wio"
-  description: "An Iot Development Environment"
+  description: "An IOT Development Environment"
   test: |
     system "#{bin}/wio --version"
   install: |
@@ -78,5 +73,5 @@ scoop:
     email: deep@deepdhillon.ca
 
   homepage: "https://github.com/wio/wio"
-  description: "An Iot Development Environment"
+  description: "An IOT Development Environment"
   license: MIT

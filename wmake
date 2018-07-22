@@ -107,6 +107,16 @@ _format() {
     printf "Done!\n"
 }
 
+_release() {
+    # create a tag
+    git tag -a "$1" -m "$2"
+    git push "$3" "$1"
+
+    # execute goreleaser
+    goreleaser --rm-dist
+    printf "Done!\n"
+}
+
 _simple() {
     root_dir=$(cd -P -- "$(dirname -- "$0")" && pwd -P)
     root_dir_name=$(basename "$root_dir")
@@ -137,6 +147,13 @@ _simple() {
     elif [ "$1" == 'format' ] ; then
         echo "Formatting wio codebase"
         _format
+    elif [ "$1" == 'release' ] ; then
+         if [ $# -le 3 ] ; then
+            echo "Provide tag name, tag description and git remote"
+            exit 3
+         fi
+        printf "Releasing wio\n"
+        _release $2 $3 $4
     else
         _print_help
     fi
