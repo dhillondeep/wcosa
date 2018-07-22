@@ -41,7 +41,7 @@ func TestFindLastSlash(t *testing.T) {
 }
 
 func TestUrlResolve(t *testing.T) {
-    res1 := urlResolve("https://github.com/", "/wio/", "/toolchain.git")
+    res1 := UrlResolve("https://github.com/", "/wio/", "/toolchain.git")
     exp1 := "https://github.com/wio/toolchain.git"
     if res1 != exp1 {
         t.Errorf("TestResolveUrl() -- failed!")

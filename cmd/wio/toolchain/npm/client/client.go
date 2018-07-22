@@ -19,21 +19,22 @@ import (
 const timeoutSeconds = 10
 
 const (
-    registryBaseUrl = "https://registry.npmjs.org"
+    BaseUrl = "https://registry.npmjs.org"
 )
 
-var npmClient = &http.Client{Timeout: timeoutSeconds * time.Second}
+var Npm = &http.Client{Timeout: timeoutSeconds * time.Second}
 
-func getJson(client *http.Client, req *http.Request, target interface{}) (int, error) {
+func GetJson(client *http.Client, req *http.Request, target interface{}) (int, error) {
     resp, err := client.Do(req)
     defer resp.Body.Close()
     if err != nil {
         return 0, err
     }
-    if resp.StatusCode != http.StatusOK {
-        return resp.StatusCode, nil
+    status := resp.StatusCode
+    if status != http.StatusOK && status != http.StatusCreated {
+        return status, nil
     }
-    return http.StatusOK, json.NewDecoder(resp.Body).Decode(target)
+    return status, json.NewDecoder(resp.Body).Decode(target)
 }
 
 func findFirstSlash(value string) int {
@@ -50,7 +51,7 @@ func findLastSlash(value string) int {
     return i
 }
 
-func urlResolve(values ...string) string {
+func UrlResolve(values ...string) string {
     var buffer bytes.Buffer
     for _, value := range values {
         i := findFirstSlash(value)
@@ -64,13 +65,13 @@ func urlResolve(values ...string) string {
 
 func FetchPackageData(name string) (*npm.Data, error) {
     var data npm.Data
-    url := urlResolve(registryBaseUrl, name)
+    url := UrlResolve(BaseUrl, name)
     req, err := http.NewRequest("GET", url, nil)
     if err != nil {
         return nil, err
     }
     req.Header.Set("Accept", "application/vnd.npm.install-v1+json")
-    status, err := getJson(npmClient, req, &data)
+    status, err := GetJson(Npm, req, &data)
     if err != nil {
         return nil, err
     }
@@ -86,12 +87,12 @@ func FetchPackageData(name string) (*npm.Data, error) {
 func FetchPackageVersion(name string, versionStr string) (*npm.Version, error) {
     // assumes `versionStr` is a hard version
     var version npm.Version
-    url := urlResolve(registryBaseUrl, name, versionStr)
+    url := UrlResolve(BaseUrl, name, versionStr)
     req, err := http.NewRequest("GET", url, nil)
     if err != nil {
         return nil, err
     }
-    status, err := getJson(npmClient, req, &version)
+    status, err := GetJson(Npm, req, &version)
     if err != nil {
         return nil, err
     }
