@@ -8,6 +8,8 @@ import (
     "wio/cmd/wio/types"
     "wio/cmd/wio/utils/io"
 
+    "wio/cmd/wio/constants"
+
     "gopkg.in/yaml.v2"
 )
 
@@ -18,6 +20,11 @@ func ReadWioConfig(dir string) (types.Config, error) {
     }
     ret := &types.ConfigImpl{}
     err := io.NormalIO.ParseYml(path, ret)
+
+    // check if it is a valid config
+    if ret.GetType() != constants.APP && ret.GetType() != constants.PKG {
+        return nil, errors.Stringf("wio.yml is invalid :: type => %s", ret.GetType())
+    }
     return ret, err
 }
 
