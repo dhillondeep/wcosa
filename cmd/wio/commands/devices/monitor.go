@@ -17,10 +17,8 @@ import (
     "wio/cmd/wio/log"
     "wio/cmd/wio/toolchain"
 
-    "go.bug.st/serial.v1"
-
-    "github.com/fatih/color"
     "github.com/urfave/cli"
+    "go.bug.st/serial.v1"
 )
 
 type Devices struct {
@@ -57,8 +55,8 @@ func handlePorts(basic bool, showAll bool) error {
         return err
     }
 
-    log.Write(log.INFO, color.New(color.FgCyan), "Num of total ports: ")
-    log.Writeln(log.NONE, nil, "%d\n", len(ports.Ports))
+    log.Info(log.Cyan, "Num of ports: ")
+    log.Infoln("%d\n", len(ports.Ports))
 
     numOpenPorts := 0
     for _, port := range ports.Ports {
@@ -70,26 +68,26 @@ func handlePorts(basic bool, showAll bool) error {
             continue
         }
 
-        log.Writeln(log.INFO, color.New(color.FgYellow), port.Port)
+        log.Infoln(log.Yellow, port.Port)
 
         if !basic {
-            log.Write(log.INFO, color.New(color.FgCyan), "Product:          ")
-            log.Writeln(log.NONE, nil, port.Description)
-            log.Write(log.INFO, color.New(color.FgCyan), "Manufacturer:     ")
-            log.Writeln(log.NONE, nil, port.Manufacturer)
-            log.Write(log.INFO, color.New(color.FgCyan), "Serial Number:    ")
-            log.Writeln(log.NONE, nil, port.SerialNumber)
-            log.Write(log.INFO, color.New(color.FgCyan), "Hwid:             ")
-            log.Writeln(log.NONE, nil, port.Hwid)
-            log.Write(log.INFO, color.New(color.FgCyan), "Vid:              ")
-            log.Writeln(log.NONE, nil, port.Vid)
+            log.Info(log.Cyan, "Product:          ")
+            log.Infoln(port.Description)
+            log.Info(log.Cyan, "Manufacturer:     ")
+            log.Infoln(port.Manufacturer)
+            log.Info(log.Cyan, "Serial Number:    ")
+            log.Infoln(port.SerialNumber)
+            log.Info(log.Cyan, "Hwid:             ")
+            log.Infoln(port.Hwid)
+            log.Info(log.Cyan, "Vid:              ")
+            log.Infoln(port.Vid)
         }
 
-        log.Writeln(log.NONE, nil, "")
+        log.Infoln()
     }
 
-    log.Write(log.INFO, color.New(color.FgCyan), "Num of open ports: ")
-    log.Writeln(log.NONE, nil, "%d", numOpenPorts)
+    log.Info(log.Cyan, "Num of open ports: ")
+    log.Infoln("%d", numOpenPorts)
     return nil
 }
 
@@ -130,18 +128,18 @@ func HandleMonitor(baud int, portDefined bool, portProvided string) error {
 
     defer serialPort.Close()
 
-    log.Write(log.INFO, color.New(color.FgCyan), "Wio Serial Monitor")
-    log.Write(log.INFO, color.New(color.FgYellow), "  @  ")
-    log.Write(log.INFO, color.New(color.FgCyan), portToUse)
-    log.Write(log.INFO, color.New(color.FgYellow), "  @  ")
-    log.Writeln(log.INFO, color.New(color.FgCyan), "%d", baud)
-    log.Writeln(log.INFO, color.New(color.FgCyan), "--- Quit: Ctrl+C ---")
+    log.Info(log.Cyan, "Wio Serial Monitor")
+    log.Info(log.Yellow, "  @  ")
+    log.Info(log.Cyan, portToUse)
+    log.Info(log.Yellow, "  @  ")
+    log.Infoln(log.Cyan, "%d", baud)
+    log.Infoln(log.Cyan, "--- Quit: Ctrl+C ---")
 
     c := make(chan os.Signal)
     signal.Notify(c, os.Interrupt, syscall.SIGTERM)
     go func() {
         <-c
-        log.Writeln(log.INFO, nil, "\n--- exit ---")
+        log.Infoln("\n--- exit ---")
         os.Exit(1)
     }()
 
