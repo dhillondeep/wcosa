@@ -114,16 +114,15 @@ func fillAppConfig(info *createInfo) error {
     config := &types.ConfigImpl{
         Type: constants.APP,
         Info: &types.InfoImpl{
-            Name:     info.name,
-            Version:  "0.0.1",
-            Keywords: []string{"wio"},
+            Name:    info.name,
+            Version: "0.0.1",
             Options: &types.OptionsImpl{
                 Default: "main",
                 Version: config.ProjectMeta.Version,
             },
         },
         Targets: map[string]*types.TargetImpl{
-            "main": &types.TargetImpl{
+            "main": {
                 Source:    "src",
                 Platform:  getPlatform(info.platform),
                 Framework: getFramework(info.framework),
@@ -139,16 +138,15 @@ func fillPackageConfig(info *createInfo) error {
     config := &types.ConfigImpl{
         Type: constants.PKG,
         Info: &types.InfoImpl{
-            Name:     info.name,
-            Version:  "0.0.1",
-            Keywords: []string{"wio"},
+            Name:    info.name,
+            Version: "0.0.1",
             Options: &types.OptionsImpl{
                 Default: "tests",
                 Version: config.ProjectMeta.Version,
             },
         },
         Targets: map[string]*types.TargetImpl{
-            "tests": &types.TargetImpl{
+            "tests": {
                 Source:    "tests",
                 Platform:  getPlatform(info.platform),
                 Framework: getFramework(info.framework),

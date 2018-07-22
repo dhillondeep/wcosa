@@ -38,10 +38,10 @@ func (create Create) updatePackage(directory string, config types.Config) error 
 
 func (info *createInfo) update(config types.Config) error {
     queue := log.GetQueue()
-    //if err := updateProjectFiles(queue, info); err != nil {
-    //    log.WriteFailure()
-    //    return err
-    //}
+    if err := updateProjectFiles(queue, info); err != nil {
+        log.WriteFailure()
+        return err
+    }
     log.WriteSuccess()
     log.PrintQueue(queue, log.TWO_SPACES)
 
