@@ -114,8 +114,9 @@ func fillAppConfig(info *createInfo) error {
     config := &types.ConfigImpl{
         Type: constants.APP,
         Info: &types.InfoImpl{
-            Name:    info.name,
-            Version: "0.0.1",
+            Name:     info.name,
+            Version:  "0.0.1",
+            Keywords: []string{"wio", "app"},
             Options: &types.OptionsImpl{
                 Default: "main",
                 Version: config.ProjectMeta.Version,
@@ -138,8 +139,9 @@ func fillPackageConfig(info *createInfo) error {
     config := &types.ConfigImpl{
         Type: constants.PKG,
         Info: &types.InfoImpl{
-            Name:    info.name,
-            Version: "0.0.1",
+            Name:     info.name,
+            Version:  "0.0.1",
+            Keywords: []string{"wio", "pkg"},
             Options: &types.OptionsImpl{
                 Default: "tests",
                 Version: config.ProjectMeta.Version,
