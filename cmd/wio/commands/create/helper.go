@@ -39,11 +39,9 @@ func getBoard(boardProvided string) string {
 func (info createInfo) fillReadMe(queue *log.Queue, readmeFile string) error {
     log.Verb(queue, "filling README file ... ")
     if err := template.IOReplace(readmeFile, map[string]string{
-        "PLATFORM":        info.platform,
-        "FRAMEWORK":       info.framework,
-        "BOARD":           info.board,
-        "PROJECT_NAME":    info.name,
-        "PROJECT_VERSION": "0.0.1",
+        "PLATFORM":     info.platform,
+        "FRAMEWORK":    info.framework,
+        "PROJECT_NAME": info.name,
     }); err != nil {
         log.WriteFailure(queue, log.VERB)
         return err

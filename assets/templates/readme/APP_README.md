@@ -4,5 +4,5 @@ This is a wio {{PLATFORM}} application.
 
 To build this application:
 ```bash
-wio run
+wio build
 ```

@@ -38,20 +38,32 @@ func (create Create) updatePackage(directory string, config types.Config) error 
 
 func (info *createInfo) update(config types.Config) error {
     queue := log.GetQueue()
-    if err := updateProjectFiles(queue, info); err != nil {
+    var err error
+
+    if err = updateProjectFiles(queue, info); err != nil {
         log.WriteFailure()
+        log.PrintQueue(queue, log.TWO_SPACES)
         return err
     }
     log.WriteSuccess()
     log.PrintQueue(queue, log.TWO_SPACES)
 
-    log.Info(log.Cyan, "updating wio.yml ... ")
+    log.Info(log.Cyan, "updating wio.yml and other files ... ")
     queue = log.GetQueue()
-    if err := updateConfig(queue, config, info); err != nil {
+    if err = updateConfig(queue, config, info); err != nil {
         log.WriteFailure()
-        log.Errln(err)
+        log.PrintQueue(queue, log.TWO_SPACES)
         return err
     }
+
+    readmeFile := info.directory + io.Sep + "README.md"
+    err = info.fillReadMe(queue, readmeFile)
+    if err != nil {
+        log.WriteFailure()
+        log.PrintQueue(queue, log.TWO_SPACES)
+        return err
+    }
+
     log.WriteSuccess()
     log.PrintQueue(queue, log.TWO_SPACES)
 
