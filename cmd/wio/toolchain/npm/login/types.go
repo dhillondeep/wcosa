@@ -63,7 +63,11 @@ func ReqBody(user, pass, email string) *Body {
 }
 
 func (t *Token) Save(dir string) error {
-    path := io.Path(dir, io.Folder, "token.json")
+    path := io.Path(dir, io.Folder)
+    if err := os.MkdirAll(path, os.ModePerm); err != nil {
+        return err
+    }
+    path = io.Path(path, "token.json")
     str, _ := json.MarshalIndent(t, "", Indent)
     return ioutil.WriteFile(path, []byte(str), os.ModePerm)
 }

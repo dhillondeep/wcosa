@@ -14,6 +14,7 @@ import (
     "wio/cmd/wio/commands/create"
     "wio/cmd/wio/commands/devices"
     "wio/cmd/wio/commands/pac/install"
+    "wio/cmd/wio/commands/pac/user"
     "wio/cmd/wio/commands/pac/vendor"
     "wio/cmd/wio/commands/run"
     "wio/cmd/wio/config"
@@ -116,6 +117,25 @@ var runFlags = []cli.Flag{
     },
 }
 
+var loginFlags = []cli.Flag{
+    cli.StringFlag{
+        Name:  "user",
+        Usage: "npm user name",
+    },
+    cli.StringFlag{
+        Name:  "password",
+        Usage: "npm password",
+    },
+    cli.StringFlag{
+        Name:  "email",
+        Usage: "npm public email",
+    },
+    cli.StringFlag{
+        Name:  "dir",
+        Usage: "wio working directory",
+    },
+}
+
 var command commands.Command
 var cmd = []cli.Command{
     {
@@ -208,6 +228,15 @@ var cmd = []cli.Command{
             command = install.Cmd{Context: c}
         },
     },
+    {
+        Name:      "login",
+        Usage:     "Login to the npm registry",
+        UsageText: "wio login [username] [password] [email]",
+        Action: func(c *cli.Context) {
+            command = user.Login{Context: c}
+        },
+    },
+
     {
         Name:      "devices",
         Usage:     "Handles serial devices connected.",
