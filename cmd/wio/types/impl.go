@@ -119,7 +119,7 @@ type OptionsImpl struct {
     Version  string   `yaml:"wio_version"`
     Header   bool     `yaml:"header_only,omitempty"`
     Standard string   `yaml:"standard,omitempty"`
-    Default  string   `yaml:"default_target"`
+    Default  string   `yaml:"default_target,omitempty"`
     Flags    []string `yaml:"flags,omitempty"`
 }
 
