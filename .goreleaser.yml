@@ -26,22 +26,6 @@ archive:
   files:
     - toolchain/**/*/
 
-nfpm:
-  name_template: '{{ .ProjectName }}_{{ .Os }}_{{ .Arch }}{{ if .Arm }}{{ .Arm }}{{ end }}'
-  vendor: Wio
-  homepage: https://github.com/wio/wio
-  maintainer: Deep Dhillon <deep@deepdhillon.com>
-  description: An IOT Development Environment
-  license: MIT
-  formats:
-  - deb
-  - rpm
-  dependencies:
-  - cmake
-  - make
-  files:
-    "toolchain/**/*": "/usr/share/wio/toolchain"
-
 brew:
   name: wio
 
