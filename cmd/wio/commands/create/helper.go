@@ -43,7 +43,7 @@ func (info createInfo) fillReadMe(queue *log.Queue, readmeFile string) error {
     platform := info.platform
     if info.projectType == constants.APP {
         if platform == "all" {
-            platform = ""
+            platform = getPlatform(platform)
         } else {
             platform += " "
         }

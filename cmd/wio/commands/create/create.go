@@ -93,7 +93,7 @@ func createStructure(queue *log.Queue, info *createInfo) error {
         log.CopyQueue(subQueue, queue, log.FOUR_SPACES)
     }
 
-    readmeFile := info.directory + io.Sep + "README.md"
+    readmeFile := io.Path(info.directory, "README.md")
     err := info.fillReadMe(queue, readmeFile)
 
     return err
@@ -115,16 +115,16 @@ func fillAppConfig(info *createInfo) error {
         Type: constants.APP,
         Info: &types.InfoImpl{
             Name:     info.name,
-            Version:  "0.0.1",
-            Keywords: []string{"wio", constants.APP},
+            Version:  config.ProjectDefaults.Version,
+            Keywords: config.ProjectDefaults.AppKeywords,
             Options: &types.OptionsImpl{
-                Default: "main",
+                Default: config.ProjectDefaults.AppTargetName,
                 Version: config.ProjectMeta.Version,
             },
         },
         Targets: map[string]*types.TargetImpl{
-            "main": {
-                Source:    "src",
+            config.ProjectDefaults.AppTargetName: {
+                Source:    config.ProjectDefaults.AppTargetPath,
                 Platform:  getPlatform(info.platform),
                 Framework: getFramework(info.framework),
                 Board:     getBoard(info.board),
@@ -140,16 +140,16 @@ func fillPackageConfig(info *createInfo) error {
         Type: constants.PKG,
         Info: &types.InfoImpl{
             Name:     info.name,
-            Version:  "0.0.1",
-            Keywords: []string{"wio", constants.PKG},
+            Version:  config.ProjectDefaults.Version,
+            Keywords: config.ProjectDefaults.PkgKeywords,
             Options: &types.OptionsImpl{
-                Default: "tests",
+                Default: config.ProjectDefaults.PkgTargetName,
                 Version: config.ProjectMeta.Version,
             },
         },
         Targets: map[string]*types.TargetImpl{
-            "tests": {
-                Source:    "tests",
+            config.ProjectDefaults.PkgTargetName: {
+                Source:    config.ProjectDefaults.PkgTargetPath,
                 Platform:  getPlatform(info.platform),
                 Framework: getFramework(info.framework),
                 Board:     getBoard(info.board),
@@ -161,16 +161,19 @@ func fillPackageConfig(info *createInfo) error {
 
 // Print package creation summary
 func (info createInfo) printPackageCreateSummary() {
-    log.Writeln()
+    log.Infoln()
     log.Infoln(log.Yellow.Add(color.Underline), "Project structure summary")
     if !info.headerOnly {
         log.Info(log.Cyan, "src              ")
-        log.Writeln("source/non client files")
+        log.Infoln("source/non client files")
     }
-    log.Info(log.Cyan, "tests            ")
-    log.Writeln("source files for test target")
-    log.Info(log.Cyan, "include          ")
-    log.Writeln("public headers for the package")
+
+    if info.projectType == constants.PKG {
+        log.Info(log.Cyan, "tests            ")
+        log.Infoln("source files for test target")
+        log.Info(log.Cyan, "include          ")
+        log.Infoln("public headers for the package")
+    }
 
     // print project summary
     log.Writeln()
@@ -183,6 +186,9 @@ func (info createInfo) printPackageCreateSummary() {
     log.Writeln(info.platform)
     log.Info(log.Cyan, "framework        ")
     log.Writeln(info.framework)
-    log.Info(log.Cyan, "board            ")
-    log.Writeln(info.board)
+
+    if info.framework == constants.AVR {
+        log.Info(log.Cyan, "board            ")
+        log.Writeln(info.board)
+    }
 }
