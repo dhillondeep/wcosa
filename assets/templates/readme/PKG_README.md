@@ -1,8 +1,8 @@
 # {{PROJECT_NAME}}
 
 This is a `wio` package for
-- platform: {{PLATFORM}}
-- framework: {{FRAMEWORK}}
+- platform(s): {{PLATFORM}}
+- framework(s): {{FRAMEWORK}}
 
 To include this package as a dependency:
 

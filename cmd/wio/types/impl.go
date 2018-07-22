@@ -201,7 +201,7 @@ type InfoImpl struct {
     Name         string           `yaml:"name"`
     Version      string           `yaml:"version"`
     License      string           `yaml:"license,omitempty"`
-    Author       string           `yaml:"author"`
+    Author       string           `yaml:"author,omitempty"`
     Contributors []string         `yaml:"contributors,omitempty"`
     Organization string           `yaml:"organization,omitempty"`
     Url          string           `yaml:"url,omitempty"`

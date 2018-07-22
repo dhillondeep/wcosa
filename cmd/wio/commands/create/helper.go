@@ -4,6 +4,7 @@ import (
     "os"
     "path/filepath"
     "strings"
+    "wio/cmd/wio/constants"
     "wio/cmd/wio/log"
     "wio/cmd/wio/utils/io"
     "wio/cmd/wio/utils/template"
@@ -38,8 +39,18 @@ func getBoard(boardProvided string) string {
 
 func (info createInfo) fillReadMe(queue *log.Queue, readmeFile string) error {
     log.Verb(queue, "filling README file ... ")
+
+    platform := info.platform
+    if info.projectType == constants.APP {
+        if platform == "all" {
+            platform = ""
+        } else {
+            platform += " "
+        }
+    }
+
     if err := template.IOReplace(readmeFile, map[string]string{
-        "PLATFORM":     info.platform,
+        "PLATFORM":     platform,
         "FRAMEWORK":    info.framework,
         "PROJECT_NAME": info.name,
     }); err != nil {
