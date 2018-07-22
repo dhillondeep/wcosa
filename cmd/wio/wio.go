@@ -117,25 +117,6 @@ var runFlags = []cli.Flag{
     },
 }
 
-var loginFlags = []cli.Flag{
-    cli.StringFlag{
-        Name:  "user",
-        Usage: "npm user name",
-    },
-    cli.StringFlag{
-        Name:  "password",
-        Usage: "npm password",
-    },
-    cli.StringFlag{
-        Name:  "email",
-        Usage: "npm public email",
-    },
-    cli.StringFlag{
-        Name:  "dir",
-        Usage: "wio working directory",
-    },
-}
-
 var command commands.Command
 var cmd = []cli.Command{
     {
@@ -230,10 +211,18 @@ var cmd = []cli.Command{
     },
     {
         Name:      "login",
-        Usage:     "Login to the npm registry",
+        Usage:     "Login to the npm registry.",
         UsageText: "wio login [username] [password] [email]",
         Action: func(c *cli.Context) {
             command = user.Login{Context: c}
+        },
+    },
+    {
+        Name:      "logout",
+        Usage:     "Clear login token.",
+        UsageText: "wio logout",
+        Action: func(c *cli.Context) {
+            command = user.Logout{Context: c}
         },
     },
 
