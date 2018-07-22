@@ -178,7 +178,6 @@ var cmd = []cli.Command{
     },
 
     {
-
         Name:  "vendor",
         Usage: "Manage locally vendored dependencies.",
         Subcommands: cli.Commands{
