@@ -43,11 +43,11 @@ func buildPath(info *runInfo) string {
 }
 
 func targetPath(info *runInfo, target types.Target) string {
-    return buildPath(info) + io.Sep + target.GetName()
+    return io.Path(buildPath(info), target.GetName())
 }
 
 func binaryPath(info *runInfo, target types.Target) string {
-    return targetPath(info, target) + io.Sep + constants.BinDir
+    return io.Path(targetPath(info, target), constants.BinDir)
 }
 
 func readDirectory(args []string) (string, error) {

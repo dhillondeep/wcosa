@@ -56,7 +56,7 @@ func (info *createInfo) update(config types.Config) error {
         return err
     }
 
-    readmeFile := info.directory + io.Sep + "README.md"
+    readmeFile := io.Path(info.directory, "README.md")
     err = info.fillReadMe(queue, readmeFile)
     if err != nil {
         log.WriteFailure()

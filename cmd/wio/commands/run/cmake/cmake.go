@@ -63,7 +63,7 @@ func GetStandard(standard string) (string, string, error) {
 }
 
 func BuildPath(projectPath string) string {
-    return projectPath + io.Sep + io.Folder + io.Sep + constants.TargetDir
+    return io.Path(projectPath, io.Folder, constants.TargetDir)
 }
 
 func generateCmakeLists(templateFile string, buildPath string, values map[string]string) error {

@@ -101,5 +101,5 @@ func Path(values ...string) string {
         buffer.WriteString(Sep)
     }
     path := buffer.String()
-    return path[:len(path)-1]
+    return filepath.Clean(path[:len(path)-1])
 }

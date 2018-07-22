@@ -88,7 +88,7 @@ func (info *createInfo) generateConstraints() (map[string]bool, map[string]bool)
 func copyProjectAssets(queue *log.Queue, info *createInfo, data *StructureTypeData) error {
     dirConstraints, fileConstraints := info.generateConstraints()
     for _, path := range data.Paths {
-        directoryPath := filepath.Clean(info.directory + io.Sep + path.Entry)
+        directoryPath := io.Path(info.directory, path.Entry)
         skipDir := false
         log.Verbln(queue, "copying assets to directory: %s", directoryPath)
         // handle directory constraints
@@ -113,7 +113,7 @@ func copyProjectAssets(queue *log.Queue, info *createInfo, data *StructureTypeDa
 
         log.Verbln(queue, "copying asset files for directory: %s", directoryPath)
         for _, file := range path.Files {
-            toPath := filepath.Clean(directoryPath + io.Sep + file.To)
+            toPath := io.Path(directoryPath, file.To)
             skipFile := false
             // handle file constraints
             for _, constraint := range file.Constraints {

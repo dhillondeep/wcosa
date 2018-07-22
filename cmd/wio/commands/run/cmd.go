@@ -40,7 +40,7 @@ type targetFunc func(string, chan error)
 
 func configAndBuild(dir string, errChan chan error) {
     log.Verbln(log.Magenta, "Building directory: %s", dir)
-    binDir := dir + io.Sep + "bin"
+    binDir := io.Path(dir, "bin")
     if err := os.MkdirAll(binDir, os.ModePerm); err != nil {
         errChan <- err
     } else if err := configTarget(binDir); err != nil {
@@ -52,7 +52,7 @@ func configAndBuild(dir string, errChan chan error) {
 
 func cleanIfExists(dir string, errChan chan error) {
     log.Verbln(log.Magenta, "Cleaning directory: %s", dir)
-    binDir := dir + io.Sep + "bin"
+    binDir := io.Path(dir, "bin")
     exists := io.Exists(binDir)
     if exists {
         errChan <- cleanTarget(binDir)

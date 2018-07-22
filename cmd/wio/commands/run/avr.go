@@ -30,7 +30,7 @@ func portReconfigure(info *runInfo, target types.Target) error {
         return err
     }
     targetDir := targetPath(info, target)
-    data, err := io.NormalIO.ReadFile(targetDir + io.Sep + "CMakeLists.txt")
+    data, err := io.NormalIO.ReadFile(io.Path(targetDir, "CMakeLists.txt"))
     if err != nil {
         return err
     }

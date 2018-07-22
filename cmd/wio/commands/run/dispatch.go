@@ -116,8 +116,8 @@ func dispatchCmakeNativeGeneric(info *runInfo, target types.Target) error {
 }
 
 func dispatchCmakeDependencies(info *runInfo, target types.Target) error {
-    cmakePath := cmake.BuildPath(info.directory) + io.Sep + target.GetName()
-    cmakePath += io.Sep + "dependencies.cmake"
+    cmakePath := io.Path(cmake.BuildPath(info.directory), target.GetName())
+    cmakePath = io.Path(cmakePath, "dependencies.cmake")
 
     buildTargets, err := dependencies.CreateBuildTargets(info.directory, target)
     if err != nil {
@@ -155,6 +155,6 @@ func dispatchRunTarget(info *runInfo, target types.Target) error {
 func dispatchCanRunTarget(info *runInfo, target types.Target) bool {
     binDir := binaryPath(info, target)
     platform := target.GetPlatform()
-    file := binDir + io.Sep + target.GetName() + platformExtension(platform)
+    file := io.Path(binDir, target.GetName(), platformExtension(platform))
     return io.Exists(file)
 }
