@@ -198,16 +198,21 @@ func (d *DefinitionsImpl) GetOptional() DefinitionSet {
 }
 
 type InfoImpl struct {
-    Name         string           `yaml:"name"`
-    Version      string           `yaml:"version"`
-    License      string           `yaml:"license,omitempty"`
-    Author       string           `yaml:"author,omitempty"`
-    Contributors []string         `yaml:"contributors,omitempty"`
-    Organization string           `yaml:"organization,omitempty"`
-    Url          string           `yaml:"url,omitempty"`
-    Keywords     []string         `yaml:"keywords,omitempty"`
-    Options      *OptionsImpl     `yaml:"compile_options"`
-    Definitions  *DefinitionsImpl `yaml:"definitions,omitempty"`
+    Name    string `yaml:"name"`
+    Version string `yaml:"version"`
+
+    Organization string   `yaml:"organization,omitempty"`
+    Description  string   `yaml:"description,omitempty"`
+    Repository   string   `yaml:"repository,omitempty"`
+    Homepage     string   `yaml:"homepage,omitempty"`
+    License      string   `yaml:"license,omitempty"`
+    Author       string   `yaml:"author,omitempty"`
+    Bugs         string   `yaml:"bugs,omitempty"`
+    Contributors []string `yaml:"contributors,omitempty"`
+    Keywords     []string `yaml:"keywords,omitempty"`
+
+    Options     *OptionsImpl     `yaml:"compile_options"`
+    Definitions *DefinitionsImpl `yaml:"definitions,omitempty"`
 }
 
 func (i *InfoImpl) GetName() string {
@@ -218,12 +223,36 @@ func (i *InfoImpl) GetVersion() string {
     return i.Version
 }
 
-func (i *InfoImpl) GetKeywords() []string {
-    return i.Keywords
+func (i *InfoImpl) GetDescription() string {
+    return i.Description
+}
+
+func (i *InfoImpl) GetRepository() string {
+    return i.Repository
+}
+
+func (i *InfoImpl) GetHomepage() string {
+    return i.Homepage
 }
 
 func (i *InfoImpl) GetLicense() string {
     return i.License
+}
+
+func (i *InfoImpl) GetAuthor() string {
+    return i.Author
+}
+
+func (i *InfoImpl) GetBugs() string {
+    return i.Bugs
+}
+
+func (i *InfoImpl) GetContributors() []string {
+    return i.Contributors
+}
+
+func (i *InfoImpl) GetKeywords() []string {
+    return i.Keywords
 }
 
 func (i *InfoImpl) GetOptions() Options {

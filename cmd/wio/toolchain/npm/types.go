@@ -1,21 +1,56 @@
 package npm
 
 type Data struct {
-    Time           map[string]string  `json:"time"`
-    Name           string             `json:"name"`
-    DistTags       map[string]string  `json:"dist-tags"`
-    Versions       map[string]Version `json:"versions"`
-    Maintainers    []Author           `json:"maintainers"`
-    Keywords       []string           `json:"keywords"`
-    Bugs           Bug                `json:"bugs"`
-    Readme         string             `json:"readme"`
-    ReadmeFilename string             `json:"readmeFilename"`
-    Error          string             `json:"error"`
+    Name        string   `json:"name"`
+    Description string   `json:"description"`
+    Keywords    []string `json:"keywords"`
+    Readme      string   `json:"readme"`
 
-    //Repository   Repository `json:"repository"`
-    //Contributors []Author   `json:"contributors"`
-    //Author       Author     `json:"author"`
-    //License      string     `json:"license"`
+    Time     map[string]string  `json:"time"`
+    DistTags map[string]string  `json:"dist-tags"`
+    Versions map[string]Version `json:"versions"`
+
+    Maintainers  interface{} `json:"maintainers"`
+    Contributors interface{} `json:"contributors"`
+    Bugs         interface{} `json:"bugs"`
+    Author       interface{} `json:"author"`
+    License      interface{} `json:"license"`
+    Homepage     interface{} `json:"homepage"`
+    Repository   interface{} `json:"repository"`
+
+    Error string `json:"error"`
+}
+
+type Dist struct {
+    Integrity    string `json:"integrity"`
+    Shasum       string `json:"shasum"`
+    Tarball      string `json:"tarball"`
+    FileCount    int    `json:"fileCount"`
+    UnpackedSize int    `json:"unpackedSize"`
+    NpmSignature string `json:"npm-signature"`
+}
+
+type Version struct {
+    Name        string   `json:"name"`
+    Description string   `json:"description"`
+    Keywords    []string `json:"keywords"`
+    Readme      string   `json:"readme"`
+    ReadmeFile  string   `json:"readmeFile"`
+
+    Version string `json:"version"`
+    Main    string `json:"main"`
+    Dist    Dist   `json:"dist"`
+
+    Scripts      map[string]string `json:"scripts"`
+    Dependencies map[string]string `json:"dependencies"`
+
+    Maintainers  interface{} `json:"maintainers"`
+    Contributors interface{} `json:"contributors"`
+    Bugs         interface{} `json:"bugs"`
+    Author       interface{} `json:"author"`
+    License      interface{} `json:"license"`
+    Homepage     interface{} `json:"homepage"`
+    Repository   interface{} `json:"repository"`
 }
 
 type Repository struct {
@@ -29,33 +64,13 @@ type Author struct {
     Url   string `json:"url"`
 }
 
-type Bug struct {
-    Url string `json:"url"`
+type Bugs struct {
+    Url   string `json:"url"`
+    Email string `json:"email"`
 }
 
-type Dist struct {
-    Integrity    string `json:"integrity"`
-    ShaSum       string `json:"shasum"`
-    Tarball      string `json:"tarball"`
-    FileCount    int    `json:"fileCount"`
-    UnpackedSize int    `json:"unpackedSize"`
-    NpmSignature string `json:"npm-signature"`
-}
-
-type Version struct {
-    Name         string            `json:"name"`
-    Version      string            `json:"version"`
-    Description  string            `json:"description"`
-    Main         string            `json:"main"`
-    Keywords     []string          `json:"keywords"`
-    Dependencies map[string]string `json:"dependencies"`
-    Bugs         Bug               `json:"bugs"`
-    Dist         Dist              `json:"dist"`
-    Maintainers  []Author          `json:"maintainers"`
-
-    //Repository   Repository `json:"repository"`
-    //Author       Author     `json:"author"`
-    //License      string     `json:"license"`
-    //Contributors []Author   `json:"contributors"`
-    //Homepage     string     `json:"homepage"`
+type License struct {
+    License string `json:"license"`
+    Type    string `json:"type"`
+    Url     string `json:"url"`
 }

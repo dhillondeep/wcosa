@@ -56,8 +56,16 @@ type Definitions interface {
 type Info interface {
     GetName() string
     GetVersion() string
-    GetKeywords() []string
+
+    GetDescription() string
+    GetRepository() string
+    GetHomepage() string
     GetLicense() string
+    GetAuthor() string
+    GetBugs() string
+    GetContributors() []string
+    GetKeywords() []string
+
     GetOptions() Options
     GetDefinitions() Definitions
 }

@@ -8,10 +8,13 @@ package io
 
 import (
     "bytes"
+    "io"
+    "io/ioutil"
     "os"
     "path"
     "path/filepath"
     "runtime"
+    "wio/cmd/wio/errors"
 )
 
 const (
@@ -101,4 +104,60 @@ func Path(values ...string) string {
     }
     pth := buffer.String()
     return filepath.Clean(pth[:len(pth)-1])
+}
+
+func CopyFile(src string, dst string) error {
+    srcFile, err := os.Open(src)
+    if err != nil {
+        return err
+    }
+    defer srcFile.Close()
+    dstFile, err := os.Create(dst) // creates if file doesn't exist
+    if err != nil {
+        return err
+    }
+    defer dstFile.Close()
+    if _, err := io.Copy(dstFile, srcFile); err != nil {
+        return err
+    }
+    return dstFile.Sync()
+}
+
+func Copy(src string, dst string) error {
+    src = filepath.Clean(src)
+    dst = filepath.Clean(dst)
+    if !Exists(src) {
+        return errors.Stringf("source path [%s] does not exist", src)
+    }
+    if err := os.RemoveAll(dst); err != nil {
+        return err
+    }
+    si, err := os.Stat(src)
+    if err != nil {
+        return err
+    }
+    if !si.IsDir() {
+        return CopyFile(src, dst)
+    }
+    if _, err := os.Stat(dst); err != nil && !os.IsNotExist(err) {
+        return err
+    }
+    if err := os.MkdirAll(dst, si.Mode()); err != nil {
+        return err
+    }
+    entries, err := ioutil.ReadDir(src)
+    if err != nil {
+        return err
+    }
+    for _, entry := range entries {
+        srcPath := filepath.Join(src, entry.Name())
+        dstPath := filepath.Join(dst, entry.Name())
+        if entry.Mode()&os.ModeSymlink != 0 {
+            continue // skip symlinks
+        }
+        if err := Copy(srcPath, dstPath); err != nil {
+            return err
+        }
+    }
+    return nil
 }

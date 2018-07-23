@@ -25,10 +25,13 @@ func Do(name, pass, email string) (*Response, error) {
         return nil, errors.String("401 invalid npm login")
     }
     if status != http.StatusCreated {
-        return nil, errors.Stringf("%d status code", status)
+        return nil, errors.Stringf("%d login error", status)
     }
     str, _ := json.MarshalIndent(res, "", Indent)
     log.Verbln("Response:\n%s", str)
+    if res.Status != true {
+        return nil, errors.Stringf("unknown error while logging in")
+    }
     return res, nil
 }
 
