@@ -4,9 +4,9 @@
   "description": "An IOT Development Environment",
   "main": "index.js",
   "scripts": {
-    "preinstall": "node npm-go/preinstall.js",
-    "postinstall": "node npm-go/postinstall.js",
-    "preuninstall": "node npm-go/preuninstall.js"
+    "preinstall": "node deploy/npm/preinstall.js",
+    "postinstall": "node deploy/npm/postinstall.js",
+    "preuninstall": "node deploy/npm/preuninstall.js"
   },
   "bin": "./bin/wio",
   "repository": {
