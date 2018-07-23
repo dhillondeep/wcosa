@@ -206,6 +206,13 @@ var cmd = []cli.Command{
         Name:      "install",
         Usage:     "Install packages from remote server.",
         UsageText: "wio install [name] [version]",
+        Flags: []cli.Flag{
+            cli.BoolFlag{Name: "verbose",
+                Usage: "Turns verbose mode on to show detailed errors and commands being executed."},
+            cli.BoolFlag{Name: "disable-warnings",
+                Usage: "Disables all the warning shown by wio.",
+            },
+        },
         Action: func(c *cli.Context) {
             command = install.Cmd{Context: c}
         },
@@ -230,6 +237,13 @@ var cmd = []cli.Command{
         Name:      "publish",
         Usage:     "Publish package to registry.",
         UsageText: "wio publish",
+        Flags: []cli.Flag{
+            cli.BoolFlag{Name: "verbose",
+                Usage: "Turns verbose mode on to show detailed errors and commands being executed."},
+            cli.BoolFlag{Name: "disable-warnings",
+                Usage: "Disables all the warning shown by wio.",
+            },
+        },
         Action: func(c *cli.Context) {
             command = publish.Cmd{Context: c}
         },
