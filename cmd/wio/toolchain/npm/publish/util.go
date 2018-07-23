@@ -104,7 +104,7 @@ func GeneratePackage(dir string, data *npm.Version) error {
 // Generate version data (package.json) based on project config (wio.yml)
 // and parses the README.md file. Also verifies package and dependencies.
 func VersionData(dir string, cfg types.Config) (*npm.Version, error) {
-    if cfg.GetType() != constants.PKG {
+    if cfg.GetType() != constants.Pkg {
         return nil, InvalidProjectType{}
     }
     info := cfg.GetInfo()
