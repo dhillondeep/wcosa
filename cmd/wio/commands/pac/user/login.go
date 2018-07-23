@@ -65,7 +65,7 @@ func (cmd Login) Execute() error {
         return err
     }
     log.WriteSuccess()
-    log.Infoln(log.Yellow, "user logged in")
+    log.Infoln(log.Yellow, "User logged in")
 
     return nil
 }
