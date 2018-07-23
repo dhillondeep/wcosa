@@ -1,4 +1,4 @@
-bin
+bin/
 .idea/
 
 # Test binary, build with `go test -c`
