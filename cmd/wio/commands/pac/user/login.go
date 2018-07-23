@@ -1,10 +1,15 @@
 package user
 
 import (
-    "errors"
+    "bufio"
+    "os"
+    "strings"
+    "syscall"
     "wio/cmd/wio/commands"
     "wio/cmd/wio/log"
     "wio/cmd/wio/toolchain/npm/login"
+
+    "golang.org/x/crypto/ssh/terminal"
 )
 
 type loginArgs struct {
@@ -15,20 +20,30 @@ type loginArgs struct {
 }
 
 func (cmd Login) getArgs() (*loginArgs, error) {
-    ctx := cmd.Context
     dir, err := commands.GetDirectory(cmd)
     if err != nil {
         return nil, err
     }
-    args := ctx.Args()
-    if len(args) < 3 {
-        return nil, errors.New("wio login [username] [password] [email]")
+
+    reader := bufio.NewReader(os.Stdin)
+    log.Info(log.Cyan, "Username: ")
+    username, _ := reader.ReadString('\n')
+
+    log.Info(log.Cyan, "Email: ")
+    email, _ := reader.ReadString('\n')
+
+    log.Info(log.Cyan, "Password: ")
+    bytePassword, err := terminal.ReadPassword(int(syscall.Stdin))
+    if err != nil {
+        return nil, err
     }
+    log.Infoln()
+
     return &loginArgs{
         dir:   dir,
-        name:  args[0],
-        pass:  args[1],
-        email: args[2],
+        name:  strings.Trim(username, "\n"),
+        pass:  string(bytePassword),
+        email: strings.Trim(email, "\n"),
     }, nil
 }
 
@@ -50,5 +65,7 @@ func (cmd Login) Execute() error {
         return err
     }
     log.WriteSuccess()
+    log.Infoln(log.Yellow, "User logged in")
+
     return nil
 }
