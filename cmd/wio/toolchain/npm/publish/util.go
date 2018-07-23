@@ -58,16 +58,8 @@ func MakeTar(dir, dst string) error {
     if err := os.MkdirAll(filepath.Dir(dst), os.ModePerm); err != nil {
         return err
     }
-    src := io.Path(dir, io.Folder, "package")
-    content := []string{
-        io.Path(src, "include"),
-        io.Path(src, "src"),
-        io.Path(src, "package.json"),
-        io.Path(src, "wio.yml"),
-        io.Path(src, "README.md"),
-        io.Path(src, ".wio.js"),
-    }
-    return archiver.TarGz.Make(dst, content)
+    content := io.Path(dir, io.Folder, "package")
+    return archiver.TarGz.Make(dst, []string{content})
 }
 
 func GeneratePackage(dir string, data *npm.Version) error {
