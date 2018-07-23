@@ -59,9 +59,9 @@ func (cmd Cmd) AddDependency() error {
     } else if exists {
         log.Warnln("Same version already exists")
     }
-    deps[name] = &types.DependencyImpl{
+    cmd.config.AddDependency(name, &types.DependencyImpl{
         Version: ver,
         Vendor:  false,
-    }
+    })
     return utils.WriteWioConfig(cmd.dir, cmd.config)
 }
