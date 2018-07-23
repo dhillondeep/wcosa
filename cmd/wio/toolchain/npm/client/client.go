@@ -31,10 +31,11 @@ func GetJson(client *http.Client, req *http.Request, target interface{}) (int, e
         return 0, err
     }
     status := resp.StatusCode
+    err = json.NewDecoder(resp.Body).Decode(target)
     if status != http.StatusOK && status != http.StatusCreated {
         return status, nil
     }
-    return status, json.NewDecoder(resp.Body).Decode(target)
+    return status, err
 }
 
 func findFirstSlash(value string) int {

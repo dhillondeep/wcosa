@@ -213,7 +213,7 @@ var cmd = []cli.Command{
     {
         Name:      "login",
         Usage:     "Login to the npm registry.",
-        UsageText: "wio login [username] [password] [email]",
+        UsageText: "wio login",
         Action: func(c *cli.Context) {
             command = user.Login{Context: c}
         },
@@ -234,7 +234,6 @@ var cmd = []cli.Command{
             command = publish.Cmd{Context: c}
         },
     },
-
     {
         Name:      "devices",
         Usage:     "Handles serial devices connected.",
