@@ -24,7 +24,7 @@ func Do(dir string, cfg types.Config) error {
     log.WriteSuccess()
     header := NewHeader(token.Value)
 
-    log.Info(log.Cyan, "Zipping package ... ")
+    log.Info(log.Cyan, "Zipping package .... ")
     data, err := VersionData(dir, cfg)
     if err != nil {
         log.WriteFailure()
