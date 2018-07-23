@@ -71,7 +71,7 @@ _linux_setup() {
     printf "Done!\n"
 
     printf "Linking test vendor packages... "
-    cd tests
+    cd test
     ./symlinks.sh
     cd ..
     printf "Done!\n"
