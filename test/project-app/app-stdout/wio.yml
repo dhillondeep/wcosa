@@ -3,7 +3,6 @@ type: app
 project:
   name: app-stdout
   version: 0.0.1
-  author: ""
   keywords:
   - wio
   - app

@@ -16,7 +16,7 @@ cmd/wio/utils/io/bindata.go
 bin/toolchain
 
 # vendor directories
-tests/**/*/vendor/
+test/**/*/vendor/
 vendor/*
 !vendor/vendor.json
 

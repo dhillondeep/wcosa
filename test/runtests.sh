@@ -130,7 +130,7 @@ cd ./../
 source ./wenv
 ./wmake clean
 ./wmake build
-cd ./tests
+cd ./test
 
 # Remove all build folders
 find ./ -maxdepth 3 -name ".wio" -type d -exec rm -rf {} \;

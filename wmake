@@ -107,6 +107,11 @@ _format() {
     printf "Done!\n"
 }
 
+_test() {
+    cd test
+    ./runtests.sh
+}
+
 _release() {
     # create a tag
     git tag -a "$1" -m "$2"
@@ -147,6 +152,8 @@ _simple() {
     elif [ "$1" == 'format' ] ; then
         echo "Formatting wio codebase"
         _format
+    elif [ "$1" == 'test' ] ; then
+        _test
     elif [ "$1" == 'release' ] ; then
          if [ $# -le 3 ] ; then
             echo "Provide tag name, tag description and git remote"
