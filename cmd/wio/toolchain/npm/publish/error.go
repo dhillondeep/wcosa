@@ -36,8 +36,10 @@ func (e HttpFailed) Error() string {
     return fmt.Sprintf(format, e.status)
 }
 
-type UnknownError struct{}
+type PublishError struct {
+    msg string
+}
 
-func (e UnknownError) Error() string {
-    return "publish request failed with an unknown error"
+func (e PublishError) Error() string {
+    return e.msg
 }

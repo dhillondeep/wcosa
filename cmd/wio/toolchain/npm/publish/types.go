@@ -23,7 +23,8 @@ type Data struct {
 }
 
 type Response struct {
-    Success bool `json:"success"`
+    Success bool   `json:"success"`
+    Error   string `json:"error"`
 }
 
 type Header struct {

@@ -3,6 +3,7 @@ package publish
 import (
     "crypto/sha1"
     "encoding/base64"
+    "encoding/hex"
     "encoding/json"
     "io/ioutil"
     "math/rand"
@@ -40,14 +41,12 @@ func GenerateSession() string {
 // Perform SHA1 checksum on the package tarball and return
 // in base64 encoded form.
 func Shasum(data []byte) string {
-    value := sha1.Sum(data)
-    ret := make([]byte, 0, 2*len(data))
-    Encoder.Encode(ret, value[:])
-    return string(ret)
+    ret := sha1.Sum(data)
+    return hex.EncodeToString(ret[:])
 }
 
 func TarEncode(data []byte) string {
-    ret := make([]byte, 0, 2*len(data))
+    ret := make([]byte, Encoder.EncodedLen(len(data)))
     Encoder.Encode(ret, data)
     return string(ret)
 }

@@ -14,6 +14,7 @@ import (
     "wio/cmd/wio/commands/create"
     "wio/cmd/wio/commands/devices"
     "wio/cmd/wio/commands/pac/install"
+    "wio/cmd/wio/commands/pac/publish"
     "wio/cmd/wio/commands/pac/user"
     "wio/cmd/wio/commands/pac/vendor"
     "wio/cmd/wio/commands/run"
@@ -223,6 +224,14 @@ var cmd = []cli.Command{
         UsageText: "wio logout",
         Action: func(c *cli.Context) {
             command = user.Logout{Context: c}
+        },
+    },
+    {
+        Name:      "publish",
+        Usage:     "Publish package to registry.",
+        UsageText: "wio publish",
+        Action: func(c *cli.Context) {
+            command = publish.Cmd{Context: c}
         },
     },
 

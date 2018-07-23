@@ -40,6 +40,8 @@ func Do(dir string, cfg types.Config) error {
     }
     shasum := Shasum(tarData)
     tarDist := TarEncode(tarData)
+    log.Infoln("Data length:    %d", len(tarData))
+    log.Infoln("Encoded length: %d", len(tarDist))
 
     tarUrl := client.UrlResolve(client.BaseUrl, data.Name, "-", tarFile)
     data.Dist = npm.Dist{Shasum: shasum, Tarball: tarUrl}
@@ -47,7 +49,7 @@ func Do(dir string, cfg types.Config) error {
     payload := &Attachment{
         Type:   "application/octet-stream",
         Data:   tarDist,
-        Length: 1024,
+        Length: uint64(len(tarData)),
     }
     body := &Data{
         Id:          data.Name,
@@ -61,11 +63,11 @@ func Do(dir string, cfg types.Config) error {
     }
 
     url := client.UrlResolve(client.BaseUrl, data.Name)
-    log.Verbln("PUT %s", url)
+    log.Infoln("PUT %s", url)
     str, _ := json.MarshalIndent(header, "", login.Indent)
-    log.Verbln("Header:\n%s", string(str))
+    log.Infoln("Header:\n%s", string(str))
     str, _ = json.MarshalIndent(body, "", login.Indent)
-    log.Verbln("Body:\n%s", string(str))
+    log.Infoln("Body:\n%s", string(str))
     req, err := http.NewRequest("PUT", url, bytes.NewBuffer(str))
     if err != nil {
         return err
@@ -79,13 +81,13 @@ func Do(dir string, cfg types.Config) error {
     if err != nil {
         return err
     }
+    if res.Success != true {
+        return PublishError{res.Error}
+    }
     if status != http.StatusOK {
         return HttpFailed{status}
     }
-    if res.Success != true {
-        return UnknownError{}
-    }
     str, _ = json.MarshalIndent(res, "", login.Indent)
-    log.Verbln("Response:\n%s", string(str))
+    log.Infoln("Response:\n%s", string(str))
     return nil
 }
