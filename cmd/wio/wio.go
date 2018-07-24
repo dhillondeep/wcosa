@@ -10,20 +10,20 @@ package main
 import (
     "os"
     "time"
-    "wio/cmd/wio/commands"
-    "wio/cmd/wio/commands/create"
-    "wio/cmd/wio/commands/devices"
-    "wio/cmd/wio/commands/pac/install"
-    "wio/cmd/wio/commands/pac/publish"
-    "wio/cmd/wio/commands/pac/user"
-    "wio/cmd/wio/commands/pac/vendor"
-    "wio/cmd/wio/commands/run"
-    "wio/cmd/wio/config"
-    "wio/cmd/wio/constants"
-    "wio/cmd/wio/log"
-    "wio/cmd/wio/utils/io"
 
-    "wio/cmd/wio/config/defaults"
+    "wio/internal/cmd"
+    "wio/internal/cmd/create"
+    "wio/internal/cmd/devices"
+    "wio/internal/cmd/pac/install"
+    "wio/internal/cmd/pac/publish"
+    "wio/internal/cmd/pac/user"
+    "wio/internal/cmd/pac/vendor"
+    "wio/internal/cmd/run"
+    "wio/internal/config/defaults"
+    "wio/internal/config/meta"
+    "wio/internal/constants"
+    "wio/pkg/log"
+    "wio/pkg/util/sys"
 
     "github.com/urfave/cli"
 )
@@ -118,8 +118,8 @@ var runFlags = []cli.Flag{
     },
 }
 
-var command commands.Command
-var cmd = []cli.Command{
+var command cmd.Command
+var commands = []cli.Command{
     {
         Name:  "create",
         Usage: "Creates and initializes a wio project.",
@@ -299,17 +299,17 @@ var cmd = []cli.Command{
 
 func wio() error {
     // read help templates
-    appHelpText, err := io.AssetIO.ReadFile("cli-helper/app-help.txt")
+    appHelpText, err := sys.AssetIO.ReadFile("cli-helper/app-help.txt")
     if err != nil {
         return err
     }
 
-    commandHelpText, err := io.AssetIO.ReadFile("cli-helper/command-help.txt")
+    commandHelpText, err := sys.AssetIO.ReadFile("cli-helper/command-help.txt")
     if err != nil {
         return err
     }
 
-    subCommandHelpText, err := io.AssetIO.ReadFile("cli-helper/subcommand-help.txt")
+    subCommandHelpText, err := sys.AssetIO.ReadFile("cli-helper/subcommand-help.txt")
     if err != nil {
         return err
     }
@@ -320,13 +320,12 @@ func wio() error {
     cli.SubcommandHelpTemplate = string(subCommandHelpText)
 
     app := cli.NewApp()
-    app.Name = config.ProjectMeta.Name
-    app.Version = config.ProjectMeta.Version
-    app.EnableBashCompletion = config.ProjectMeta.EnableBashCompletion
+    app.Name = meta.Name
+    app.Version = meta.Version
     app.Compiled = time.Now()
-    app.Copyright = config.ProjectMeta.Copyright
-    app.Usage = config.ProjectMeta.UsageText
-    app.Commands = cmd
+    app.Copyright = meta.Copyright
+    app.Usage = meta.UsageText
+    app.Commands = commands
 
     app.Action = func(c *cli.Context) error {
         app.Command("help").Run(c)
