@@ -4,7 +4,7 @@ set -e
 
 test_folder="wio-test"
 base_folder=$(pwd)
-num_tests=12
+num_tests=13
 
 # Check that working directory contains script
 if [ ! -f $(pwd)/`basename "${0}"` ]; then
@@ -123,6 +123,12 @@ _test12() {
     wio update
     wio build
     wio run
+}
+
+_test13() {
+    wio create pkg --platform native ${test_folder}
+    cd ${test_folder}
+    wio install react
 }
 
 # Source and build
