@@ -2,11 +2,13 @@ package resolve
 
 import (
     "io"
+    "io/ioutil"
     "net/http"
     "os"
     "path/filepath"
     "strconv"
     "wio/pkg/npm"
+    "wio/pkg/npm/publish"
     "wio/pkg/util"
     "wio/pkg/util/sys"
 
@@ -49,6 +51,18 @@ func (i *Info) install(name, ver string, data *npm.Version) error {
         if err := download(url, tar, cb); err != nil {
             return err
         }
+    }
+
+    // check shashum
+    tarData, err := ioutil.ReadFile(tar)
+    if err != nil {
+        return err
+    }
+    if sha := publish.Shasum(tarData); sha != data.Dist.Shasum {
+		if err := os.RemoveAll(tar); err != nil {
+			return err
+		}
+        return util.Error("expected tar checksum %s", data.Dist.Shasum)
     }
 
     modules := sys.Path(i.dir, sys.Folder, sys.Modules)
