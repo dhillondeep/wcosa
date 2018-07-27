@@ -1,4 +1,4 @@
-[![Build Status](https://travis-ci.org/wio/wio.svg?branch=dev)](https://travis-ci.org/wio/wio) ![npm](https://img.shields.io/npm/dw/wio.svg) ![npm](https://img.shields.io/npm/v/wio.svg) ![GitHub release](https://img.shields.io/github/release/wio/wio.svg) ![license](https://img.shields.io/github/license/wio/wio.svg)
+[![Build Status](https://travis-ci.org/wio/wio.svg?branch=dev)](https://travis-ci.org/wio/wio) [![npm](https://img.shields.io/npm/dw/wio.svg)](https://www.npmjs.com/package/wio) [![npm](https://img.shields.io/npm/v/wio.svg)](https://www.npmjs.com/package/wio) [![GitHub release](https://img.shields.io/github/release/wio/wio.svg)](https://github.com/wio/wio/releases) [![license](https://img.shields.io/github/license/wio/wio.svg)](https://github.com/wio/wio/blob/master/LICENSE)
 
 **Quick Links:** [Docs](https://wio.github.io/docs) | [Packages](https://www.npmjs.com/search?q=wio%2C%20pkg) | [Waterloop](https://waterloop.ca)
 
