@@ -142,13 +142,22 @@ func HandleMonitor(baud int, portDefined bool, portProvided string) error {
         os.Exit(1)
     }()
 
+    // When invalid port is read, serial library panics and hence that panic needs to be caught
+    defer func() {
+        if recover() != nil {
+            log.Errln("%s port is not valid or cannot be used", portToUse)
+            os.Exit(1)
+        }
+    }()
+
     // Read and print the response
     buff := make([]byte, 100)
     for {
         // Reads up to 100 bytes
         n, err := serialPort.Read(buff)
+
         if err != nil {
-            panic(err)
+            return err
             break
         }
         if n == 0 {
