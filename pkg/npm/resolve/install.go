@@ -59,9 +59,9 @@ func (i *Info) install(name, ver string, data *npm.Version) error {
         return err
     }
     if sha := publish.Shasum(tarData); sha != data.Dist.Shasum {
-		if err := os.RemoveAll(tar); err != nil {
-			return err
-		}
+        if err := os.RemoveAll(tar); err != nil {
+            return err
+        }
         return util.Error("expected tar checksum %s", data.Dist.Shasum)
     }
 

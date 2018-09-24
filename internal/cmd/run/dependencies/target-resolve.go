@@ -39,28 +39,28 @@ func fillDefinitions(info definitionsInfo) (map[string][]string, error) {
     all[types.Private] = util.AppendIfMissing(all[types.Private], globalPrivate)
     all[types.Public] = util.AppendIfMissing(all[types.Public], globalPublic)
 
-    if !info.singleton && (len(info.required[types.Private]) > 0 || len(info.required[types.Public]) > 0) {
-        requiredPrivate, err := fillDefinition(info.otherGiven, info.required[types.Private])
-        if err != nil {
-            return nil, util.Error(err.Error(), "required", info.name)
-        }
-        requiredPublic, err := fillDefinition(info.otherGiven, info.required[types.Public])
-        if err != nil {
-            return nil, util.Error(err.Error(), "required", info.name)
-        }
-        optionalPrivate, err := fillDefinition(info.otherGiven, info.optional[types.Private])
-        if err != nil {
-            return nil, util.Error(err.Error(), "other", info.name)
-        }
-        optionalPublic, err := fillDefinition(info.otherGiven, info.optional[types.Public])
-        if err != nil {
-            return nil, util.Error(err.Error(), "other", info.name)
-        }
+    if !info.singleton {
+        if len(info.required[types.Private]) > 0 || len(info.required[types.Public]) > 0 {
+            requiredPrivate, err := fillDefinition(info.otherGiven, info.required[types.Private])
+            if err != nil {
+                return nil, util.Error(err.Error(), "required", info.name)
+            }
+            requiredPublic, err := fillDefinition(info.otherGiven, info.required[types.Public])
+            if err != nil {
+                return nil, util.Error(err.Error(), "required", info.name)
+            }
+            all[types.Private] = util.AppendIfMissing(all[types.Private], requiredPrivate)
+            all[types.Public] = util.AppendIfMissing(all[types.Public], requiredPublic)
+        } else if len(info.optional[types.Private]) > 0 || len(info.optional[types.Public]) > 0 {
+            optionalPrivate := fillOptionalDefinition(info.otherGiven, info.optional[types.Private])
+            optionalPublic := fillOptionalDefinition(info.otherGiven, info.optional[types.Public])
 
-        all[types.Private] = util.AppendIfMissing(all[types.Private], requiredPrivate)
-        all[types.Public] = util.AppendIfMissing(all[types.Public], requiredPublic)
-        all[types.Private] = util.AppendIfMissing(all[types.Private], optionalPrivate)
-        all[types.Public] = util.AppendIfMissing(all[types.Public], optionalPublic)
+            all[types.Private] = util.AppendIfMissing(all[types.Private], optionalPrivate)
+            all[types.Public] = util.AppendIfMissing(all[types.Public], optionalPublic)
+        }
+    } else {
+        all[types.Private] = util.AppendIfMissing(all[types.Private], info.optional[types.Private])
+        all[types.Public] = util.AppendIfMissing(all[types.Public], info.optional[types.Public])
     }
 
     return all, nil
