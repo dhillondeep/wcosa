@@ -6,9 +6,6 @@ package cmake
 const AvrHeader = `
 add_library({{DEPENDENCY_NAME}} INTERFACE)
 
-set_property(TARGET {{DEPENDENCY_NAME}} PROPERTY CXX_STANDARD {{CXX_STANDARD}})
-set_property(TARGET {{DEPENDENCY_NAME}} PROPERTY C_STANDARD {{C_STANDARD}})
-
 target_compile_definitions(
     {{DEPENDENCY_NAME}}
     INTERFACE
@@ -81,9 +78,6 @@ target_include_directories(
 // This for header only desktop dependency
 const DesktopHeader = `
 add_library({{DEPENDENCY_NAME}} INTERFACE)
-
-set_property(TARGET {{DEPENDENCY_NAME}} PROPERTY CXX_STANDARD {{CXX_STANDARD}})
-set_property(TARGET {{DEPENDENCY_NAME}} PROPERTY C_STANDARD {{C_STANDARD}})
 
 target_compile_definitions(
     {{DEPENDENCY_NAME}}
