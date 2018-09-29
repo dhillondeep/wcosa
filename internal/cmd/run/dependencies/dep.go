@@ -4,6 +4,7 @@ import (
     "io/ioutil"
     "os"
     "path/filepath"
+    "regexp"
     "strings"
     "wio/internal/cmd/run/cmake"
     "wio/internal/constants"
@@ -112,6 +113,24 @@ func CreateBuildTargets(projectDir string, target types.Target) (*TargetSet, err
             definitions:    target.GetDefinitions().GetPackage(),
             linkVisibility: "PRIVATE",
         }
+
+        // separate normal flags with linker flags
+        linkerRegex := regexp.MustCompile(`-l((\s+[A-Za-z]+)|([A-Za-z]+))`)
+
+        var compileFlags []string
+        var linkerFlags []string
+
+        for _, flag := range parentInfo.flags {
+            if linkerRegex.MatchString(flag) {
+                flag = strings.Trim(strings.Replace(flag, "-l", "", 1), " ")
+                linkerFlags = append(linkerFlags, flag)
+            } else {
+                compileFlags = append(compileFlags, flag)
+            }
+        }
+
+        parentInfo.flags = compileFlags
+        parentInfo.linkFlags = linkerFlags
 
         // this package will link to the main target
         err := resolveTree(i, i.GetRoot(), &Target{
