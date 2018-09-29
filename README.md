@@ -44,11 +44,11 @@ wmake setup
 wmake build
 
 # macOs
-wmake mac_setup
+wmake mac-setup
 wmake build
 
 # Linux
-wmake linux_setup
+wmake linux-setup
 wmake build
 ```
 
