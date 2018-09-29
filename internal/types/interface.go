@@ -3,7 +3,7 @@ package types
 const (
     Private   = "PRIVATE"
     Public    = "PUBLIC"
-    Interface = "PUBLIC"
+    Interface = "INTERFACE"
 )
 
 type Properties interface {
