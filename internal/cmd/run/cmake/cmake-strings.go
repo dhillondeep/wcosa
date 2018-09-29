@@ -82,12 +82,12 @@ add_library({{DEPENDENCY_NAME}} INTERFACE)
 target_compile_definitions(
     {{DEPENDENCY_NAME}}
     INTERFACE
-    {{PRIVATE_DEFINITIONS_DEFINITIONS}})
+    {{PRIVATE_DEFINITIONS}})
 
 target_compile_definitions(
     {{DEPENDENCY_NAME}}
     INTERFACE
-    {{PUBLIC_DEFINITIONS_DEFINITIONS}})
+    {{PUBLIC_DEFINITIONS}})
 
 target_compile_options(
     {{DEPENDENCY_NAME}}
