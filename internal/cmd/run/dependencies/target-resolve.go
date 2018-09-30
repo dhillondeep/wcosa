@@ -153,8 +153,9 @@ func resolveTree(i *resolve.Info, currNode *resolve.Node, parentTarget *Target, 
                 definitions:    parentDefinitions,
                 linkVisibility: configDependency.GetVisibility(),
             }
-
-            return resolveTree(i, dep, currTarget, targetSet, globalFlags, globalDefinitions, parentInfo)
+            if err := resolveTree(i, dep, currTarget, targetSet, globalFlags, globalDefinitions, parentInfo); err != nil {
+                return err
+            }
         }
 
     }
