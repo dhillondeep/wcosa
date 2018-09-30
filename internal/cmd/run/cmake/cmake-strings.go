@@ -148,6 +148,18 @@ target_include_directories(
     "{{DEPENDENCY_PATH}}/include")
 `
 
+const SharedLibrary = `
+find_library(
+    LIB_{{SHARED_LIB_NAME}}
+    {{SHARED_LIB_NAME_ORG}}
+    PATHS "{{SHARED_LIB_PATH}}")
+
+target_include_directories(
+    ${TARGET_NAME}
+    PRIVATE
+    "{{SHARED_LIB_INCLUDE_PATH}}")
+`
+
 /////////////////////////////////////////////// Linking ////////////////////////////////////////////
 
 // This is for linking dependencies

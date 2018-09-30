@@ -67,7 +67,7 @@ func fillDefinitions(info definitionsInfo) (map[string][]string, error) {
 }
 
 func resolveTree(i *resolve.Info, currNode *resolve.Node, parentTarget *Target, targetSet *TargetSet,
-    globalFlags, globalDefinitions []string, parentGiven *parentGivenInfo) error {
+    sharedSet *TargetSet, globalFlags, globalDefinitions []string, parentGiven *parentGivenInfo) error {
     var err error
 
     pkg, err := i.GetPkg(currNode.Name, currNode.ResolvedVersion.Str())
@@ -131,6 +131,28 @@ func resolveTree(i *resolve.Info, currNode *resolve.Node, parentTarget *Target, 
         Flags:      parentGiven.linkFlags,
     })
 
+    // go over all the shared libraries for this package
+    pkgConfig, err := types.ReadWioConfig(pkg.Path)
+    if err != nil {
+        return err
+    }
+
+    if pkgConfig.GetInfo().GetOptions().GetWioVersion() >= "0.5.0" {
+        for name, shared := range pkgConfig.GetLibraries() {
+            currTarget := &Target{
+                Name:              name,
+                Path:              shared.GetPath(),
+                SharedIncludePath: shared.GetIncludePath(),
+            }
+
+            sharedSet.Add(currTarget)
+            sharedSet.Link(parentTarget, currTarget, &TargetLinkInfo{
+                Visibility: shared.GetLinkerVisibility(),
+                Flags:      shared.GetLinkerFlags(),
+            })
+        }
+    }
+
     for _, dep := range currNode.Dependencies {
         if configDependency, exists := pkg.Config.GetDependencies()[dep.Name]; !exists {
             return util.Error("%s@%s dependency's information is wrong in wio.yml", dep.Name,
@@ -153,7 +175,7 @@ func resolveTree(i *resolve.Info, currNode *resolve.Node, parentTarget *Target, 
                 definitions:    parentDefinitions,
                 linkVisibility: configDependency.GetVisibility(),
             }
-            if err := resolveTree(i, dep, currTarget, targetSet, globalFlags, globalDefinitions, parentInfo); err != nil {
+            if err := resolveTree(i, dep, currTarget, targetSet, sharedSet, globalFlags, globalDefinitions, parentInfo); err != nil {
                 return err
             }
         }

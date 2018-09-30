@@ -29,6 +29,7 @@ func runTarget(dir, file, args string) error {
     if args != "" {
         argv = strings.Split(args, " ")
     }
+
     return Execute(dir, file, argv...)
 }
 

@@ -82,6 +82,29 @@ func (t *TargetImpl) SetName(name string) {
     t.name = name
 }
 
+type LibraryImpl struct {
+    Path             string   `yaml:"lib_path"`
+    IncludePath      string   `yaml:"include_path"`
+    LinkerVisibility string   `yaml:"linker_visibility,omitempty"`
+    LinkerFlags      []string `yaml:"linker_flags,omitempty"`
+}
+
+func (l *LibraryImpl) GetPath() string {
+    return l.Path
+}
+
+func (l *LibraryImpl) GetIncludePath() string {
+    return l.IncludePath
+}
+
+func (l *LibraryImpl) GetLinkerVisibility() string {
+    return l.LinkerVisibility
+}
+
+func (l *LibraryImpl) GetLinkerFlags() []string {
+    return l.LinkerFlags
+}
+
 type DependencyImpl struct {
     Vendor       bool     `yaml:"vendor,omitempty"`
     Version      string   `yaml:"version"`
@@ -268,6 +291,7 @@ type ConfigImpl struct {
     Info         *InfoImpl                  `yaml:"project"`
     Targets      map[string]*TargetImpl     `yaml:"targets"`
     Dependencies map[string]*DependencyImpl `yaml:"dependencies,omitempty"`
+    Libraries    map[string]*LibraryImpl    `yaml:"libraries,omitempty"`
 }
 
 func (c *ConfigImpl) GetType() string {
@@ -303,6 +327,17 @@ func (c *ConfigImpl) GetDependencies() map[string]Dependency {
     }
     s := map[string]Dependency{}
     for name, value := range c.Dependencies {
+        s[name] = value
+    }
+    return s
+}
+
+func (c *ConfigImpl) GetLibraries() map[string]Library {
+    if c.Libraries == nil {
+        c.Libraries = map[string]*LibraryImpl{}
+    }
+    s := map[string]Library{}
+    for name, value := range c.Libraries {
         s[name] = value
     }
     return s

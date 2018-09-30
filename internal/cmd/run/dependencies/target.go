@@ -19,16 +19,17 @@ type TargetLinkInfo struct {
 }
 
 type Target struct {
-    Name        string
-    Version     string
-    Path        string
-    FromVendor  bool
-    HeaderOnly  bool
-    Flags       []string
-    Definitions map[string][]string
-    CXXStandard string
-    CStandard   string
-    hashValue   string
+    Name              string
+    Version           string
+    Path              string
+    FromVendor        bool
+    HeaderOnly        bool
+    Flags             []string
+    Definitions       map[string][]string
+    CXXStandard       string
+    CStandard         string
+    hashValue         string
+    SharedIncludePath string
 }
 
 type TargetSet struct {

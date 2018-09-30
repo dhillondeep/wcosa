@@ -46,12 +46,14 @@ func prettyPrintHelp(config Config, filePath string) error {
     projectTagPat := regexp.MustCompile(`(^project:)|((\s| |^\w)project:(\s+|))`)
     targetsTagPat := regexp.MustCompile(`(^targets:)|((\s| |^\w)targets:(\s+|))`)
     dependenciesTagPat := regexp.MustCompile(`(^dependencies:)|((\s| |^\w)dependencies:(\s+|))`)
+    librariesTagPat := regexp.MustCompile(`(^libraries:)|((\s| |^\w)libraries:(\s+|))`)
 
     scanner := bufio.NewScanner(strings.NewReader(string(ymlData)))
     for scanner.Scan() {
         line := scanner.Text()
 
-        if projectTagPat.MatchString(line) || targetsTagPat.MatchString(line) || dependenciesTagPat.MatchString(line) {
+        if projectTagPat.MatchString(line) || targetsTagPat.MatchString(line) ||
+            dependenciesTagPat.MatchString(line) || librariesTagPat.MatchString(line) {
             finalStr += "\n" + line
         } else {
             finalStr += line

@@ -24,6 +24,13 @@ type Target interface {
     SetName(name string)
 }
 
+type Library interface {
+    GetPath() string
+    GetIncludePath() string
+    GetLinkerVisibility() string
+    GetLinkerFlags() []string
+}
+
 type Dependency interface {
     GetVersion() string
     GetVisibility() string
@@ -78,6 +85,7 @@ type Config interface {
     GetInfo() Info
     GetTargets() map[string]Target
     GetDependencies() map[string]Dependency
+    GetLibraries() map[string]Library
 
     AddDependency(name string, dep Dependency)
 
