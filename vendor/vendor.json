@@ -15,6 +15,12 @@
 			"revisionTime": "2018-06-03T19:32:48Z"
 		},
 		{
+			"checksumSHA1": "2rMeyJv9LKWkHiJxTICEmBl0CSM=",
+			"path": "github.com/dhillondeep/go-serial",
+			"revision": "40ec8e9df429517061bf324152dc7638c98e4499",
+			"revisionTime": "2018-09-30T19:29:02Z"
+		},
+		{
 			"checksumSHA1": "92dnVWesQCC1xueK1Du/6c+yLOk=",
 			"path": "github.com/dsnet/compress",
 			"revision": "cc9eb1d7ad760af14e8f918698f745e80377af4f",
@@ -107,6 +113,12 @@
 			"revisionTime": "2018-06-10T16:27:16Z"
 		},
 		{
+			"checksumSHA1": "c6pbpF7eowwO59phRTpF8cQ80Z0=",
+			"path": "github.com/stretchr/testify/assert",
+			"revision": "f35b8ab0b5a2cef36673838d662e249dd9c94686",
+			"revisionTime": "2018-05-06T18:05:49Z"
+		},
+		{
 			"checksumSHA1": "js4eiu1ykukY+gSLLDSbJvGqK1c=",
 			"path": "github.com/thoas/go-funk",
 			"revision": "c66632fc858922ed1247d8bc6615a3748ec63779",
@@ -165,6 +177,12 @@
 			"path": "golang.org/x/sys/unix",
 			"revision": "13d03a9a82fba647c21a0ef8fba44a795d0f0835",
 			"revisionTime": "2018-03-26T12:16:02Z"
+		},
+		{
+			"checksumSHA1": "wvpEa7a7bm3i833AmLpSarI51Yc=",
+			"path": "golang.org/x/sys/windows",
+			"revision": "d47a0f3392421c5624713c9a19fe781f651f8a50",
+			"revisionTime": "2018-09-21T16:08:21Z"
 		},
 		{
 			"checksumSHA1": "HmUAWd1Jm25cGH4Pyf3Zgp2RhkI=",

@@ -1,53 +1,28 @@
 package toolchain
 
 import (
-    "bytes"
-    "encoding/json"
-    "os"
     "strings"
+
+    "github.com/dhillondeep/go-serial"
 )
 
-type SerialPort struct {
-    Port         string
-    Description  string
-    Hwid         string
-    Manufacturer string
-    SerialNumber string `json:"serial-number"`
-    Vid          string
-    Product      string
-}
-
-type SerialPorts struct {
-    Ports []SerialPort
-}
-
-func GetPorts() (*SerialPorts, error) {
-    cmd, err := GetPySerialCommand("-get-serial-devices")
+func GetPorts() ([]*serial.Info, error) {
+    ports, err := serial.ListPorts()
     if err != nil {
-        return nil, err
-    }
-
-    cmdOutput := &bytes.Buffer{}
-    cmd.Stdout = cmdOutput
-    cmd.Stderr = os.Stderr
-    cmd.Run()
-
-    ports := &SerialPorts{}
-    if err := json.Unmarshal([]byte(cmdOutput.String()), ports); err != nil {
         return nil, err
     }
 
     return ports, nil
 }
 
-func GetArduinoPort(ports *SerialPorts) *SerialPort {
-    for _, port := range ports.Ports {
+func GetArduinoPort(ports []*serial.Info) *serial.Info {
+    for _, port := range ports {
         arduinoStr := "arduino"
 
-        if strings.Contains(strings.ToLower(port.Description), arduinoStr) ||
-            strings.Contains(strings.ToLower(port.Product), arduinoStr) ||
-            strings.Contains(strings.ToLower(port.Manufacturer), arduinoStr) {
-            return &port
+        if strings.Contains(strings.ToLower(port.Description()), arduinoStr) ||
+            strings.Contains(strings.ToLower(port.USBProduct()), arduinoStr) ||
+            strings.Contains(strings.ToLower(port.USBManufacturer()), arduinoStr) {
+            return port
         }
     }
 

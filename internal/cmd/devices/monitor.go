@@ -10,14 +10,13 @@ import (
     "fmt"
     "os"
     "os/signal"
-    "strings"
     "syscall"
     "wio/internal/toolchain"
     "wio/pkg/log"
     "wio/pkg/util"
 
+    "github.com/dhillondeep/go-serial"
     "github.com/urfave/cli"
-    "go.bug.st/serial.v1"
 )
 
 type Devices struct {
@@ -55,31 +54,37 @@ func handlePorts(basic bool, showAll bool) error {
     }
 
     log.Info(log.Cyan, "Num of ports: ")
-    log.Infoln("%d\n", len(ports.Ports))
+    log.Infoln("%d\n", len(ports))
 
     numOpenPorts := 0
-    for _, port := range ports.Ports {
-        if port.Product != "None" {
+    for _, port := range ports {
+        if port.USBProduct() != "" || port.USBManufacturer() != "" {
             numOpenPorts++
         }
 
-        if port.Product == "None" && !showAll {
+        if port.USBProduct() == "" && port.USBManufacturer() == "" && !showAll {
             continue
         }
 
-        log.Infoln(log.Yellow, port.Port)
+        log.Infoln(log.Yellow, port.Name())
 
         if !basic {
-            log.Info(log.Cyan, "Product:          ")
-            log.Infoln(port.Description)
-            log.Info(log.Cyan, "Manufacturer:     ")
-            log.Infoln(port.Manufacturer)
-            log.Info(log.Cyan, "Serial Number:    ")
-            log.Infoln(port.SerialNumber)
-            log.Info(log.Cyan, "Hwid:             ")
-            log.Infoln(port.Hwid)
-            log.Info(log.Cyan, "Vid:              ")
-            log.Infoln(port.Vid)
+            log.Info(log.Cyan, "Description:        ")
+            log.Infoln(port.Description())
+            log.Info(log.Cyan, "Manufacturer:       ")
+            log.Infoln(port.USBManufacturer())
+            log.Info(log.Cyan, "Serial Number:      ")
+            log.Infoln(port.USBSerialNumber())
+            log.Info(log.Cyan, "Product:            ")
+            log.Infoln(port.USBProduct())
+
+            if bus, addr, err := port.USBBusAddress(); err != nil {
+                log.Infoln(log.Cyan, "Bus: %d    Addr: %d", bus, addr)
+            }
+
+            if vid, pid, err := port.USBVIDPID(); err != nil {
+                log.Infoln(log.Cyan, "Vid: %d    Addr: %d", vid, pid)
+            }
         }
 
         log.Infoln()
@@ -92,7 +97,7 @@ func handlePorts(basic bool, showAll bool) error {
 
 // Opens monitor to see serial data
 func HandleMonitor(baud int, portDefined bool, portProvided string) error {
-    var port *toolchain.SerialPort
+    var port *serial.Info
 
     ports, err := toolchain.GetPorts()
     if err != nil {
@@ -107,22 +112,19 @@ func HandleMonitor(baud int, portDefined bool, portProvided string) error {
         if port == nil {
             return util.Error("failed to automatically detect AVR port")
         } else {
-            portToUse = port.Port
+            portToUse = port.Name()
         }
     }
 
     // Open the first serial port detected at 9600bps N81
-    mode := &serial.Mode{
-        BaudRate: baud,
-        Parity:   serial.NoParity,
-        DataBits: 8,
-        StopBits: serial.OneStopBit,
-    }
-    serialPort, err := serial.Open(portToUse, mode)
+    options := serial.RawOptions
+    options.BitRate = baud
+    options.Parity = serial.PARITY_NONE
+    options.DataBits = 8
+
+    serialPort, err := options.Open(portToUse)
     if err != nil {
-        if strings.Contains(err.Error(), "Invalid serial port") {
-            return util.Error("invalid baud rate")
-        }
+        return err
     }
 
     defer serialPort.Close()

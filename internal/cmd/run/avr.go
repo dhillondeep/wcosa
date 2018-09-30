@@ -20,7 +20,7 @@ func getPort(info *runInfo) (string, error) {
     if serialPort == nil {
         return "", util.Error("failed to find Arduino port")
     }
-    return serialPort.Port, nil
+    return serialPort.Name(), nil
 }
 
 func portReconfigure(info *runInfo, target types.Target) error {
