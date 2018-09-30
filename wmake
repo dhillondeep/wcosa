@@ -80,6 +80,7 @@ _linux_setup() {
     if [ "$TRAVIS" = false ] ; then
         go get -u golang.org/x/tools/...
     fi
+
     printf "Done!\n"
 }
 
@@ -124,7 +125,7 @@ _release() {
 
     # download relaser library and create release tag
     printf "Creating Github Release...\n" 
-    go get github.com/aktau/github-release
+    go get -u github.com/aktau/github-release
     github-release release \
         --user wio \
         --repo wio \

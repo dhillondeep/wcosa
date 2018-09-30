@@ -66,7 +66,7 @@ func tryGetConfig(path string) (types.Config, error) {
         return nil, err
     }
     if config.GetType() == constants.App {
-        return nil, util.Error("config %s is supposed to be package")
+        return nil, util.Error("config %s is supposed to be package", config.GetName())
     }
     return config, nil
 }

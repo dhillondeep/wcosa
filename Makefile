@@ -12,6 +12,7 @@ all: build run
 get:
 	go get -u github.com/jteeuwen/go-bindata/...
 	go get -u github.com/kardianos/govendor
+	go get -u github.com/davecgh/go-spew/spew
 	go get -u github.com/stretchr/testify
 	go get -u github.com/pmezard/go-difflib/difflib
 
