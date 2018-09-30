@@ -1,0 +1,13 @@
+project_name: "wio"
+src_folder: ./../cmd/wio
+dest_folder: ./out
+targets :
+    - darwin/*
+      #- linux/386
+      #- linux/amd64
+      # - linux/arm-5
+      #- linux/arm-6
+      #- linux/arm-7
+      # - windows/*
+other_files:
+    - ./../toolchain

@@ -113,13 +113,39 @@ _test() {
 }
 
 _release() {
+    # create build files
+    cd ./deploy
+    go run cross-build.go
+
     # create a tag
+    printf "Creating release tag $1...\n"
     git tag -a "$1" -m "$2"
     git push "$3" "$1"
 
-    # execute goreleaser
-    goreleaser --rm-dist
-    printf "Done!\n"
+    # download relaser library and create release tag
+    printf "Creating Github Release...\n" 
+    go get github.com/aktau/github-release
+    github-release release \
+        --user wio \
+        --repo wio \
+        --tag "$1" \
+        --name "$1" \
+        --description "$2"
+    
+    # upload files
+    printf "Pushing binaries to the Release...\n"
+    cd ./out
+    for file in *; do
+        printf "  Uploading $file...\n"
+        github-release upload \
+            --user wio \
+            --repo wio \
+            --tag "$1" \
+            --name "$file" \
+            --file "$file"
+    done
+
+    printf "Project $1 Successfully Release!\n"
 }
 
 _simple() {
