@@ -23,7 +23,7 @@ HEREDOC
 }
 
 #### Variables ####
-GO_VERSION=1.10
+GO_VERSION=1.1
 TRAVIS=false
 
 _build() {
@@ -46,7 +46,7 @@ _linux_setup() {
     }
     go version | grep ${GO_VERSION} &> /dev/null
     if [ $? != 0 ] ; then
-        echo 'go version 1.10.x is required';
+        echo 'go version 1.1x is required';
         exit 1;
     fi
 
