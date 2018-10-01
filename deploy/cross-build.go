@@ -1,6 +1,8 @@
 package main
 
 import (
+    "crypto/sha256"
+    "encoding/hex"
     "fmt"
     "github.com/mholt/archiver"
     "gopkg.in/yaml.v2"
@@ -131,6 +133,8 @@ func packAndCompress(destFolder string, otherFiles []string) error {
         return err
     }
 
+	var checkSums []string
+
     for _, f := range files {
         filePath := destFolder + "/" +f.Name()
         compressFiles := append(otherFilesAbs, filePath)
@@ -161,8 +165,25 @@ func packAndCompress(destFolder string, otherFiles []string) error {
                     }
                     break
                 }
+
+                data, err := ioutil.ReadFile(compressedPath)
+                if err != nil {
+                    return err
+                }
+
+                hash := sha256.New()
+                hash.Write(data)
+                md := hash.Sum(nil)
+                str := hex.EncodeToString(md)
+                checkSums = append(checkSums, str + "  " + compressedPath[strings.LastIndex(
+                    compressedPath, "/")+1:])
             }
         }
+    }
+
+    err = ioutil.WriteFile(destFolder + "/checksums.txt", []byte(strings.Join(checkSums, "\n")), os.ModePerm)
+    if err != nil {
+        return err
     }
 
     return nil
