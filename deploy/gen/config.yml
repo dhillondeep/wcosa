@@ -1,6 +1,6 @@
 project_name: "wio"
-src_folder: ./../cmd/wio
-dest_folder: ./out
+src_folder: ./../../cmd/wio
+dest_folder: ./../bin
 targets :
   - darwin/*
   - linux/386
@@ -10,4 +10,4 @@ targets :
   - linux/arm-7
   - windows/*
 other_files:
-  - ./../toolchain
+  - ./../../toolchain

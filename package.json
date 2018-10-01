@@ -34,6 +34,7 @@
   "goBinary": {
     "name": "wio",
     "path": "./bin",
+    "wioName": "wio_{{platform}}_{{arch}}{{format}}",
     "url": "https://github.com/wio/wio/releases/download/v{{version}}/wio_{{platform}}_{{arch}}.{{format}}"
   },
   "dependencies": {
