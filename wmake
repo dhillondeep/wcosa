@@ -135,7 +135,7 @@ _release() {
     
     # upload files
     printf "Pushing binaries to the Release...\n"
-    cd ./bin
+    cd ./../bin
     for file in *; do
         printf "  Uploading $file...\n"
         github-release upload \
