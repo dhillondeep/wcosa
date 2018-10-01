@@ -1,0 +1,22 @@
+type: app
+
+project:
+  name: app-shared
+  version: 0.0.1
+  keywords:
+  - wio
+  - app
+  compile_options:
+    wio_version: 0.5.0
+    default_target: main
+
+targets:
+  main:
+    src: src
+    platform: native
+
+dependencies:
+  pkg-shared:
+    vendor: true
+    version: 0.0.1
+

@@ -3,8 +3,7 @@ package cmake
 //////////////////////////////////////////////// Dependencies ////////////////////////////////////////
 
 // This for header only AVR dependency
-const AvrHeader = `
-add_library({{DEPENDENCY_NAME}} INTERFACE)
+const AvrHeader = `add_library({{DEPENDENCY_NAME}} INTERFACE)
 
 target_compile_definitions(
     {{DEPENDENCY_NAME}}
@@ -27,8 +26,7 @@ target_include_directories(
     "{{DEPENDENCY_PATH}}/include")
 `
 
-const AvrLibrary = `
-file(GLOB_RECURSE
+const AvrLibrary = `file(GLOB_RECURSE
     {{DEPENDENCY_NAME}}_files
     "{{DEPENDENCY_PATH}}/src/*.cpp"
     "{{DEPENDENCY_PATH}}/src/*.cc"
@@ -76,8 +74,7 @@ target_include_directories(
 `
 
 // This for header only desktop dependency
-const DesktopHeader = `
-add_library({{DEPENDENCY_NAME}} INTERFACE)
+const DesktopHeader = `add_library({{DEPENDENCY_NAME}} INTERFACE)
 
 target_compile_definitions(
     {{DEPENDENCY_NAME}}
@@ -100,8 +97,7 @@ target_include_directories(
     "{{DEPENDENCY_PATH}}/include")
 `
 
-const DesktopLibrary = `
-file(GLOB_RECURSE
+const DesktopLibrary = `file(GLOB_RECURSE
     {{DEPENDENCY_NAME}}_files
     "{{DEPENDENCY_PATH}}/src/*.cpp"
     "{{DEPENDENCY_PATH}}/src/*.cc"
@@ -148,14 +144,14 @@ target_include_directories(
     "{{DEPENDENCY_PATH}}/include")
 `
 
-const SharedLibrary = `
-find_library(
+const SharedLibraryFind = `find_library(
     LIB_{{SHARED_LIB_NAME}}
     {{SHARED_LIB_NAME_ORG}}
     PATHS "{{SHARED_LIB_PATH}}")
+`
 
-target_include_directories(
-    ${TARGET_NAME}
+const SharedLibraryInclude = `target_include_directories(
+    {{TARGET_NAME}}
     PRIVATE
     "{{SHARED_LIB_INCLUDE_PATH}}")
 `
@@ -163,5 +159,9 @@ target_include_directories(
 /////////////////////////////////////////////// Linking ////////////////////////////////////////////
 
 // This is for linking dependencies
-const LinkString = `
-target_link_libraries({{LINKER_NAME}} {{LINK_VISIBILITY}} {{DEPENDENCY_NAME}} {{LINKER_FLAGS}})`
+const LinkString = `target_link_libraries(
+    {{LINKER_NAME}}
+    {{LINK_VISIBILITY}}
+    {{DEPENDENCY_NAME}}
+    {{LINKER_FLAGS}})
+`

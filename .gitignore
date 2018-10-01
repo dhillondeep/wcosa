@@ -18,6 +18,8 @@ bin/toolchain
 
 # vendor directories
 test/**/*/vendor/
+test/**/*/README.md
+test/**/*/.gitignore
 vendor/*
 !vendor/vendor.json
 

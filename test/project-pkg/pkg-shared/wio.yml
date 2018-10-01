@@ -1,0 +1,22 @@
+type: pkg
+
+project:
+  name: pkg-shared
+  version: 0.0.1
+  keywords:
+  - wio
+  - pkg
+  compile_options:
+    wio_version: 0.5.0
+    default_target: tests
+
+targets:
+  tests:
+    src: tests
+    platform: native
+
+libraries:
+  honly:
+    lib_path: $(PROJECT_PATH)/shared/honly
+    include_path: $(PROJECT_PATH)/shared/honly/include
+

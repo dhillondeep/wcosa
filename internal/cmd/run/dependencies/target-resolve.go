@@ -139,14 +139,15 @@ func resolveTree(i *resolve.Info, currNode *resolve.Node, parentTarget *Target, 
 
     if pkgConfig.GetInfo().GetOptions().GetWioVersion() >= "0.5.0" {
         for name, shared := range pkgConfig.GetLibraries() {
-            currTarget := &Target{
+            sharedTarget := &Target{
                 Name:              name,
                 Path:              shared.GetPath(),
                 SharedIncludePath: shared.GetIncludePath(),
+                ParentPath:        currTarget.Path,
             }
 
-            sharedSet.Add(currTarget)
-            sharedSet.Link(parentTarget, currTarget, &TargetLinkInfo{
+            sharedSet.Add(sharedTarget)
+            sharedSet.Link(currTarget, sharedTarget, &TargetLinkInfo{
                 Visibility: shared.GetLinkerVisibility(),
                 Flags:      shared.GetLinkerFlags(),
             })

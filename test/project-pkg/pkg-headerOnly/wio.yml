@@ -1,0 +1,27 @@
+type: pkg
+
+project:
+  name: pkg-headerOnly
+  version: 0.0.1
+  keywords:
+  - wio
+  - pkg
+  compile_options:
+    wio_version: 0.4.0
+    header_only: true
+
+targets:
+  arduino:
+    src: tests/arduino
+    platform: avr
+    framework: arduino
+    board: uno
+  cosa:
+    src: tests/cosa
+    platform: avr
+    framework: cosa
+    board: uno
+  native:
+    src: tests/native
+    platform: native
+

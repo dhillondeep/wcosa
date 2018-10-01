@@ -4,7 +4,7 @@ set -e
 
 test_folder="wio-test"
 base_folder=$(pwd)
-num_tests=13
+num_tests=16
 
 # Check that working directory contains script
 if [ ! -f $(pwd)/`basename "${0}"` ]; then
@@ -129,6 +129,37 @@ _test13() {
     wio create pkg --platform native ${test_folder}
     cd ${test_folder}
     wio install react
+}
+
+_test14() {
+    cd ./project-pkg/pkg-headerOnly
+    wio clean native --hard
+    wio clean arduino --hard
+    wio clean cosa --hard
+    wio update
+    wio build native
+    wio build arduino
+    wio build cosa
+    wio run native
+}
+
+_test15() {
+    cd ./project-pkg/pkg-shared/
+    wio clean --hard
+    wio update
+    wio build
+    export DYLD_LIBRARY_PATH=$DYLD_LIBRARY_PATH:$(pwd)/shared/honly
+    export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$(pwd)/shared/honly
+    wio run
+}
+
+_test16() {
+    cd ./project-app/app-shared
+    wio clean --hard
+    wio update
+    wio build
+    export DYLD_LIBRARY_PATH=$DYLD_LIBRARY_PATH:$(pwd)/vendor/pkg-shared/shared/honly
+    export LD_LIBRARY_PATH=$DYLD_LIBRARY_PATH:$(pwd)/vendor/pkg-shared/shared/honly
 }
 
 # Source and build

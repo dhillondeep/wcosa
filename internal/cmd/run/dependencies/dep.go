@@ -24,18 +24,16 @@ var libraryStrings = map[string]map[bool]string{
 }
 
 // This creates CMake dependency string using build targets that will be used to link dependencies
-func GenerateCMakeDependencies(directory string, cmakePath string, platform string, targets *TargetSet,
-    shared *TargetSet) error {
+func GenerateCMakeDependencies(cmakePath string, platform string, targets *TargetSet, shared *TargetSet) error {
     cmakeStrings := make([]string, 0, 256)
 
     for shared := range shared.TargetIterator() {
-        finalString := cmake.SharedLibrary
+        finalString := cmake.SharedLibraryFind
 
         finalString = template.Replace(finalString, map[string]string{
-            "SHARED_LIB_NAME":         shared.Name,
-            "SHARED_LIB_NAME_ORG":     strings.Split(shared.Name, "__")[0],
-            "SHARED_LIB_PATH":         strings.Replace(shared.Path, "$(PROJECT_PATH)", directory, -1),
-            "SHARED_LIB_INCLUDE_PATH": strings.Replace(shared.SharedIncludePath, "$(PROJECT_PATH)", directory, -1),
+            "SHARED_LIB_NAME":     shared.Name,
+            "SHARED_LIB_NAME_ORG": strings.Split(shared.Name, "__")[0],
+            "SHARED_LIB_PATH":     strings.Replace(shared.Path, "$(PROJECT_PATH)", shared.ParentPath, -1),
         })
 
         cmakeStrings = append(cmakeStrings, finalString+"\n")
@@ -57,6 +55,13 @@ func GenerateCMakeDependencies(directory string, cmakePath string, platform stri
     }
 
     for sharedLink := range shared.LinkIterator() {
+        finalString := template.Replace(cmake.SharedLibraryInclude, map[string]string{
+            "TARGET_NAME": sharedLink.From.Name + "__" + sharedLink.From.Version,
+            "SHARED_LIB_INCLUDE_PATH": strings.Replace(sharedLink.To.SharedIncludePath,
+                "$(PROJECT_PATH)", sharedLink.To.ParentPath, -1),
+        })
+        cmakeStrings = append(cmakeStrings, finalString)
+
         if sharedLink.From.HeaderOnly {
             sharedLink.LinkInfo.Visibility = types.Interface
         } else if strings.Trim(sharedLink.LinkInfo.Visibility, " ") == "" {
@@ -68,13 +73,13 @@ func GenerateCMakeDependencies(directory string, cmakePath string, platform stri
             linkerName = MainTarget
         }
 
-        finalString := template.Replace(cmake.LinkString, map[string]string{
+        finalString = template.Replace(cmake.LinkString, map[string]string{
             "LINKER_NAME":     linkerName,
             "DEPENDENCY_NAME": "${LIB_" + sharedLink.To.Name + "}",
             "LINK_VISIBILITY": sharedLink.LinkInfo.Visibility,
             "LINKER_FLAGS":    strings.Join(sharedLink.LinkInfo.Flags, " "),
         })
-        cmakeStrings = append(cmakeStrings, finalString)
+        cmakeStrings = append(cmakeStrings, finalString+"\n")
     }
 
     for link := range targets.LinkIterator() {
@@ -128,6 +133,7 @@ func CreateBuildTargets(projectDir string, target types.Target) (*TargetSet, *Ta
                 Name:              name,
                 Path:              shared.GetPath(),
                 SharedIncludePath: shared.GetIncludePath(),
+                ParentPath:        projectDir,
             }
 
             sharedTargetSet.Add(currTarget)

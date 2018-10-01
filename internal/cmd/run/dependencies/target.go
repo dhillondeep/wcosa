@@ -30,6 +30,7 @@ type Target struct {
     CStandard         string
     hashValue         string
     SharedIncludePath string
+    ParentPath        string
 }
 
 type TargetSet struct {

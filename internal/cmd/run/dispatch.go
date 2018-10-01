@@ -122,8 +122,7 @@ func dispatchCmakeDependencies(info *runInfo, target types.Target) error {
     if err != nil {
         return err
     } else {
-        err := dependencies.GenerateCMakeDependencies(info.directory, cmakePath, target.GetPlatform(),
-            buildTargets, sharedTargets)
+        err := dependencies.GenerateCMakeDependencies(cmakePath, target.GetPlatform(), buildTargets, sharedTargets)
         if err != nil {
             return err
         }
