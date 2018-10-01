@@ -115,7 +115,7 @@ _test() {
 
 _release() {
     # create build files
-    cd ./deploy
+    cd ./deploy/gen
     go run cross-build.go
 
     # create a tag
@@ -135,7 +135,7 @@ _release() {
     
     # upload files
     printf "Pushing binaries to the Release...\n"
-    cd ./out
+    cd ./bin
     for file in *; do
         printf "  Uploading $file...\n"
         github-release upload \

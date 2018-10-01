@@ -13,7 +13,7 @@ const fs = require('fs')
 const ARCH_MAPPING = {
     "ia32": "i386",
     "x64": "x86_64",
-    "arm5": "arm6"
+    "arm5": "arm6",
     "arm6": "arm6",
     "arm7": "arm64"
 };
@@ -76,12 +76,23 @@ function parsePackageJson() {
     var binName = packageJson.goBinary.name;
     var binPath = packageJson.goBinary.path;
     var url = packageJson.goBinary.url;
+    var wioName = packageJson.goBinary.wioName;
     var version = packageJson.version;
     if (version[0] === 'v') version = version.substr(1);  // strip the 'v' if necessary v0.0.1 => 0.0.1
 
     // Binary name on Windows has .exe suffix
     if (process.platform === "win32") {
         binName += ".exe"
+    }
+
+    // Interpolate variables in wioName
+    wioName = wioName.replace(/{{arch}}/g, ARCH_MAPPING[process.arch]);
+    wioName = wioName.replace(/{{platform}}/g, PLATFORM_MAPPING[process.platform]);
+
+    if (process.platform === "win32") {
+        wioName = wioName.replace(/{{format}}/g, ".exe");
+    } else {
+        wioName = wioName.replace(/{{format}}/g, "");
     }
 
     // Interpolate variables in URL, if necessary
@@ -95,13 +106,10 @@ function parsePackageJson() {
         url = url.replace(/{{format}}/g, "tar.gz");
     }
 
-    url = url.replace(/{{bin_name}}/g, binName);
-    url = url.replace(/{{bin_name}}/g, binName);
-
-
     return {
         binName: binName,
         binPath: binPath,
+        wioName: wioName,
         url: url,
         version: version
     }
@@ -115,7 +123,7 @@ function install(callback) {
     var req = request({ uri: opts.url });
 
     if (process.platform === "win32") {
-        console.log("Downloading and unziping build files")
+        console.log("Downloading and unzipping build files");
 
         mkdirp.sync(opts.binPath);
 
@@ -141,11 +149,9 @@ function install(callback) {
             decompress(opts.binPath + '/wio.zip', opts.binPath).then(files => {
                 console.log('unzipped wio.zip!');
 
-                if (process.platform === "win32") {
-                    fs.rename(opts.binPath + '/wio.exe', opts.binPath + '/wio', function(err) {
-                        if ( err ) console.log('ERROR: ' + err);
-                    });
-                }
+                fs.rename(opts.binPath + "/" + opts.wioName, opts.binPath + '/wio', function(err) {
+                    if ( err ) console.log('ERROR: ' + err);
+                });
             });
         });
 
@@ -158,6 +164,10 @@ function install(callback) {
         var untar = tar.Extract({ path: opts.binPath });
 
         untar.on('end', function () {
+            fs.rename(opts.binPath + "/" + opts.wioName, opts.binPath + '/wio', function(err) {
+                if ( err ) console.log('ERROR: ' + err);
+            });
+
             console.log("Wio binary successfuly downloaded and extracted")
         });
 

@@ -1,9 +1,15 @@
 assets/
 cmd/
+internal/
+pkg/
 vendor/
 toolchain/
 bin/
 dist/
+test/
+deploy/gen
+deploy/bin
+!deploy/npm
 .idea/
 .gitmodules
 .goreleaser.yml
