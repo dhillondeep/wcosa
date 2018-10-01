@@ -86,7 +86,12 @@ func GeneratePackage(dir string, data *npm.Version) error {
     }
     copies := []string{"include", "src", "wio.yml", "README.md"}
     for _, copy := range copies {
-        if err := sys.Copy(sys.Path(dir, copy), sys.Path(pkg, copy)); err != nil {
+        fullPath := sys.Path(dir, copy)
+        if (copy == "src" || copy == "README.md") && !sys.Exists(fullPath) {
+            continue
+        }
+
+        if err := sys.Copy(fullPath, sys.Path(pkg, copy)); err != nil {
             return err
         }
     }
