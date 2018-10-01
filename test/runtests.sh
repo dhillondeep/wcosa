@@ -144,7 +144,9 @@ _test14() {
 }
 
 _test15() {
-    cd ./project-pkg/pkg-shared/
+    cd ./project-pkg/pkg-shared/shared/honly
+    make
+    cd ../../
     wio clean --hard
     wio update
     wio build
@@ -154,7 +156,9 @@ _test15() {
 }
 
 _test16() {
-    cd ./project-app/app-shared
+    cd ./project-app/app-shared/vendor/pkg-shared/shared/honly
+    make
+    cd ../../../../
     wio clean --hard
     wio update
     wio build

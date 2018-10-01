@@ -13,17 +13,16 @@ const fs = require('fs')
 const ARCH_MAPPING = {
     "ia32": "i386",
     "x64": "x86_64",
-    "arm": "arm6",
-    "arm64": "arm64"
+    "arm5": "arm6"
+    "arm6": "arm6",
+    "arm7": "arm64"
 };
 
-// Mapping between Node's `process.platform` to Golang's 
+// Mapping between Node's `process.platform` to Golang's
 const PLATFORM_MAPPING = {
     "darwin": "darwin",
     "linux": "linux",
     "win32": "windows",
-    "freebsd": "freebsd",
-    "openbsd": "openbsd"
 };
 
 function validateConfiguration(packageJson) {
@@ -138,7 +137,7 @@ function install(callback) {
             console.log('downloaded wio.zip!');
 
             const decompress = require('decompress');
- 
+
             decompress(opts.binPath + '/wio.zip', opts.binPath).then(files => {
                 console.log('unzipped wio.zip!');
 

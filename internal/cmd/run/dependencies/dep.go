@@ -58,7 +58,7 @@ func GenerateCMakeDependencies(cmakePath string, platform string, targets *Targe
         finalString := template.Replace(cmake.SharedLibraryInclude, map[string]string{
             "TARGET_NAME": sharedLink.From.Name + "__" + sharedLink.From.Version,
             "SHARED_LIB_INCLUDE_PATH": strings.Replace(sharedLink.To.SharedIncludePath,
-                "$(PROJECT_PATH)", sharedLink.To.ParentPath, -1),
+                "$(PROJECT_PATH)", sharedLink.To.ParentPath , -1),
         })
         cmakeStrings = append(cmakeStrings, finalString)
 
