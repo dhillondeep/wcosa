@@ -59,7 +59,7 @@ func NewTargetSet() *TargetSet {
 func (targetSet *TargetSet) Add(value *Target) {
     value.hashValue = value.hash()
 
-    if _, exists := targetSet.tMap[value.hashValue]; !exists {
+    if dupTarget, exists := targetSet.tMap[value.hashValue]; !exists {
         namePostfix := 0
 
         // check if name exists
@@ -73,6 +73,9 @@ func (targetSet *TargetSet) Add(value *Target) {
 
         value.Name += "__" + strconv.Itoa(namePostfix)
         targetSet.tMap[value.hashValue] = value
+    } else {
+        // use name of previous target with same config
+        value.Name = dupTarget.Name
     }
 }
 
