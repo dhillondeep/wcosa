@@ -4,6 +4,7 @@ import (
     "wio/internal/cmd/run/cmake"
     "wio/internal/types"
     "wio/pkg/npm/resolve"
+    "wio/pkg/npm/semver"
     "wio/pkg/util"
 )
 
@@ -137,7 +138,12 @@ func resolveTree(i *resolve.Info, currNode *resolve.Node, parentTarget *Target, 
         return err
     }
 
-    if pkgConfig.GetInfo().GetOptions().GetWioVersion() >= "0.5.0" {
+    wioVerStr := pkgConfig.GetInfo().GetOptions().GetWioVersion()
+    wioVer := semver.Parse(wioVerStr)
+    if wioVer == nil {
+        return util.Error("Invalid wio version in wio.yml: %s", wioVerStr)
+    }
+    if wioVer.Gt(semver.Parse("0.5.0")) {
         for name, shared := range pkgConfig.GetLibraries() {
             sharedTarget := &Target{
                 Name:              name,
