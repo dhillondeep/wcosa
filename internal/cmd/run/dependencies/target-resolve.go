@@ -143,7 +143,7 @@ func resolveTree(i *resolve.Info, currNode *resolve.Node, parentTarget *Target, 
     if wioVer == nil {
         return util.Error("Invalid wio version in wio.yml: %s", wioVerStr)
     }
-    if wioVer.Gt(semver.Parse("0.5.0")) {
+    if wioVer.Ge(semver.Parse("0.5.0")) {
         for name, shared := range pkgConfig.GetLibraries() {
             sharedTarget := &Target{
                 Name:              name,
