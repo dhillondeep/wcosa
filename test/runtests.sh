@@ -4,7 +4,7 @@ set -e
 
 test_folder="wio-test"
 base_folder=$(pwd)
-num_tests=16
+num_tests=17
 
 # Check that working directory contains script
 if [ ! -f $(pwd)/`basename "${0}"` ]; then
@@ -166,6 +166,27 @@ _test16() {
     export LD_LIBRARY_PATH=$DYLD_LIBRARY_PATH:$(pwd)/vendor/pkg-shared/shared/honly
 }
 
+_test17() {
+    wio create app --platform native ${test_folder}
+    cd ${test_folder}
+    wio install wlib-stl@3.0.2
+    machine_type=$(uname -m)
+    echo "int main(void) {}" >> src/main.cpp
+    echo "    definitions:" >> wio.yml
+    if [ "$machine_type" == "x86_64" ]; then
+        bit_type="64"
+        align="3"
+    else
+        bit_type = "32"
+        align="2"
+    fi
+    echo "    - WLIB_TLSF_ARCH=$bit_type" >> wio.yml
+    echo "    - WLIB_TLSF_LOG2_DIV=4" >> wio.yml
+    echo "    - WLIB_TLSF_LOG2_ALIGN=$align" >> wio.yml
+    echo "    - WLIB_TLSF_LOG2_MAX=10" >> wio.yml
+    wio build
+}
+
 # Source and build
 cd ./../
 source ./wenv
@@ -174,6 +195,7 @@ source ./wenv
 cd ./test
 
 # Remove all build folders
+rm -rf ${test_folder}
 find ./ -maxdepth 3 -name ".wio" -type d -exec rm -rf {} \;
 
 # Run all test
