@@ -124,6 +124,10 @@ func HandleMonitor(baud int, portDefined bool, portProvided string) error {
 
     serialPort, err := options.Open(portToUse)
     if err != nil {
+        if err.Error() == "Invalid arguments were passed to the function" {
+            return util.Error("%s port is not valid or cannot be opened", portToUse)
+        }
+
         return err
     }
 
