@@ -2,6 +2,7 @@ package run
 
 import (
     "fmt"
+    "os"
     "strings"
     "wio/internal/cmd/run/cmake"
     "wio/internal/cmd/run/dependencies"
@@ -116,6 +117,9 @@ func dispatchCmakeNativeGeneric(info *runInfo, target types.Target) error {
 
 func dispatchCmakeDependencies(info *runInfo, target types.Target) error {
     cmakePath := sys.Path(cmake.BuildPath(info.directory), target.GetName())
+    if err := os.MkdirAll(cmakePath, os.ModePerm); err != nil {
+        return err
+    }
     cmakePath = sys.Path(cmakePath, "dependencies.cmake")
 
     buildTargets, sharedTargets, err := dependencies.CreateBuildTargets(info.directory, target)

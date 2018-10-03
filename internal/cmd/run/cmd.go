@@ -7,21 +7,22 @@ import (
     "runtime"
     "strings"
     "wio/pkg/log"
+	"wio/pkg/util"
     "wio/pkg/util/sys"
 )
 
 func configTarget(dir string) error {
-    return Execute(dir, "cmake", "../", "-G", "Unix Makefiles")
+    return Execute(dir, "cmake", "../", "-G", util.GetCmakeGenerator())
 }
 
 func buildTarget(dir string) error {
     jobs := runtime.NumCPU() + 2
     jobsFlag := fmt.Sprintf("-j%d", jobs)
-    return Execute(dir, "make", jobsFlag)
+    return Execute(dir, util.GetMake(), jobsFlag)
 }
 
 func uploadTarget(dir string) error {
-    return Execute(dir, "make", "upload")
+    return Execute(dir, util.GetMake(), "upload")
 }
 
 func runTarget(dir, file, args string) error {
@@ -34,7 +35,7 @@ func runTarget(dir, file, args string) error {
 }
 
 func cleanTarget(dir string) error {
-    return Execute(dir, "make", "clean")
+    return Execute(dir, util.GetMake(), "clean")
 }
 
 type targetFunc func(string, chan error)
