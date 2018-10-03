@@ -93,6 +93,8 @@ func download(url string, dst string, cb io.Writer) error {
     if _, err := io.Copy(out, io.TeeReader(resp.Body, cb)); err != nil {
         return err
     }
+    out.Close()
+    resp.Body.Close()
     return os.Rename(dst+sys.Temp, dst)
 }
 
