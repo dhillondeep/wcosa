@@ -1,5 +1,38 @@
 package types
 
+import (
+    "regexp"
+    "strings"
+    "wio/pkg/util/sys"
+)
+
+// resolves operating system specific flags and definitions
+func resolveOSSpecificFlagsDefs(flags []string) []string {
+    if len(flags) == 0 {
+        return flags
+    }
+
+    os := sys.GetOS()
+    var newFlags []string
+
+    for _, flag := range flags {
+        operatingSystemMath := regexp.MustCompile(
+            `^\$(darwin|windows|linux)\([a-zA-Z_\-$()\s=0-9]*\)$`)
+
+        if operatingSystemMath.MatchString(flag) {
+            if strings.Contains(flag, "$"+os+"(") {
+                newFlag := strings.Replace(flag, "$"+os+"(", "", 1)
+                newFlag = newFlag[:len(newFlag)-1]
+                newFlags = append(newFlags, strings.Split(newFlag, " ")...)
+            }
+        } else {
+            newFlags = append(newFlags, flag)
+        }
+    }
+
+    return newFlags
+}
+
 type PropertiesImpl struct {
     Global  []string `yaml:"global,omitempty"`
     Target  []string `yaml:"target,omitempty"`
@@ -10,21 +43,21 @@ func (p *PropertiesImpl) GetGlobal() []string {
     if p == nil {
         return []string{}
     }
-    return p.Global
+    return resolveOSSpecificFlagsDefs(p.Global)
 }
 
 func (p *PropertiesImpl) GetTarget() []string {
     if p == nil {
         return []string{}
     }
-    return p.Target
+    return resolveOSSpecificFlagsDefs(p.Target)
 }
 
 func (p *PropertiesImpl) GetPackage() []string {
     if p == nil {
         return []string{}
     }
-    return p.Package
+    return resolveOSSpecificFlagsDefs(p.Package)
 }
 
 type TargetImpl struct {
@@ -102,7 +135,7 @@ func (l *LibraryImpl) GetLinkerVisibility() string {
 }
 
 func (l *LibraryImpl) GetLinkerFlags() []string {
-    return l.LinkerFlags
+    return resolveOSSpecificFlagsDefs(l.LinkerFlags)
 }
 
 type DependencyImpl struct {
@@ -123,15 +156,15 @@ func (d *DependencyImpl) GetVisibility() string {
 }
 
 func (d *DependencyImpl) GetCompileFlags() []string {
-    return d.CompileFlags
+    return resolveOSSpecificFlagsDefs(d.CompileFlags)
 }
 
 func (d *DependencyImpl) GetLinkerFlags() []string {
-    return d.LinkerFlags
+    return resolveOSSpecificFlagsDefs(d.LinkerFlags)
 }
 
 func (d *DependencyImpl) GetDefinitions() []string {
-    return d.Definitions
+    return resolveOSSpecificFlagsDefs(d.Definitions)
 }
 
 func (d *DependencyImpl) IsVendor() bool {
@@ -163,7 +196,7 @@ func (o *OptionsImpl) GetDefault() string {
 }
 
 func (o *OptionsImpl) GetFlags() []string {
-    return o.Flags
+    return resolveOSSpecificFlagsDefs(o.Flags)
 }
 
 type DefinitionSetImpl struct {
@@ -175,14 +208,14 @@ func (d *DefinitionSetImpl) GetPublic() []string {
     if d == nil {
         return []string{}
     }
-    return d.Public
+    return resolveOSSpecificFlagsDefs(d.Public)
 }
 
 func (d *DefinitionSetImpl) GetPrivate() []string {
     if d == nil {
         return []string{}
     }
-    return d.Private
+    return resolveOSSpecificFlagsDefs(d.Private)
 }
 
 type DefinitionsImpl struct {
@@ -190,6 +223,7 @@ type DefinitionsImpl struct {
     Global    *DefinitionSetImpl `yaml:"global,omitempty"`
     Required  *DefinitionSetImpl `yaml:"required,omitempty"`
     Optional  *DefinitionSetImpl `yaml:"optional,omitempty"`
+    Ingest    *DefinitionSetImpl `yaml:"ingest,omitempty"`
 }
 
 func (d *DefinitionsImpl) IsSingleton() bool {
@@ -218,6 +252,13 @@ func (d *DefinitionsImpl) GetOptional() DefinitionSet {
         return &DefinitionSetImpl{}
     }
     return d.Optional
+}
+
+func (d *DefinitionsImpl) GetIngest() DefinitionSet {
+    if d == nil {
+        return &DefinitionSetImpl{}
+    }
+    return d.Ingest
 }
 
 type InfoImpl struct {

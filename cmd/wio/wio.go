@@ -10,6 +10,7 @@ package main
 import (
     "os"
     "time"
+    "wio/internal/cmd/env"
 
     "wio/internal/cmd"
     "wio/internal/cmd/create"
@@ -293,6 +294,23 @@ var commands = []cli.Command{
                     command = devices.Devices{Context: c, Type: devices.LIST}
                 },
             },
+        },
+    },
+    {
+        Name:  "env",
+        Usage: "Manage environment variables used by wio.",
+        Subcommands: cli.Commands{
+            {
+                Name:      "reset",
+                Usage:     "Reset environment variables to default (factory) state",
+                UsageText: "wio env reset",
+                Action: func(c *cli.Context) {
+                    command = env.Env{Context: c, Reset: true}
+                },
+            },
+        },
+        Action: func(c *cli.Context) {
+            command = env.Env{Context: c, Reset: false}
         },
     },
 }

@@ -37,13 +37,13 @@ func ReadWioConfig(dir string) (Config, error) {
             "current wio version", dir)
     }
 
-    // check for wio.ymk validity
+    // check for wio.yml validity
     if ret.GetType() != constants.App && ret.GetType() != constants.Pkg {
         if strings.Trim(ret.GetType(), " ") == "" {
             return nil, util.Error("%s: wio.yml is invalid or cannot be parsed", dir)
         }
 
-        return nil, util.Error("%s: wio.yml has invalid project type: %s", ret.GetType())
+        return nil, util.Error("%s: wio.yml has invalid project type: %s", dir, ret.GetType())
     }
     return ret, err
 }
