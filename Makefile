@@ -14,6 +14,7 @@ get:
 	go get -u github.com/davecgh/go-spew/spew
 	go get -u github.com/stretchr/testify
 	go get -u github.com/pmezard/go-difflib/difflib
+	go get -u github.com/kevinburke/go-bindata/...
 
 build:
 	@echo Building $(BINARY_NAME) project:

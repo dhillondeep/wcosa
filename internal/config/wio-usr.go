@@ -4,6 +4,7 @@ import (
     "os"
     "os/user"
     "wio/internal/cmd/env"
+    "wio/internal/constants"
     "wio/pkg/util/sys"
 )
 
@@ -13,7 +14,7 @@ func CreateAndSetupWioUsr() error {
         return err
     }
 
-    wioUserPath := sys.Path(currUser.HomeDir, ".wio-usr")
+    wioUserPath := sys.Path(currUser.HomeDir, constants.WioUsr)
 
     // create .wio folder if it does not exist
     if !sys.Exists(wioUserPath) {
@@ -23,14 +24,14 @@ func CreateAndSetupWioUsr() error {
     }
 
     // create frameworks directory
-    wioUserFramework := sys.Path(wioUserPath, "frameworks")
+    wioUserFramework := sys.Path(wioUserPath, constants.FrameworkName)
     if !sys.Exists(wioUserFramework) {
         if err := os.Mkdir(wioUserFramework, os.ModePerm); err != nil {
             return err
         }
     }
 
-    envFilePath := sys.Path(wioUserPath, "wio.env")
+    envFilePath := sys.Path(wioUserPath, constants.EnvFileName)
     if !sys.Exists(envFilePath) {
         if err := env.CreateEnv(wioUserPath); err != nil {
             return err

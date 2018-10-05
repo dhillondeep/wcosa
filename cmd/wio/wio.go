@@ -297,20 +297,29 @@ var commands = []cli.Command{
         },
     },
     {
-        Name:  "env",
-        Usage: "Manage environment variables used by wio.",
+        Name:      "env",
+        Usage:     "Manage environment variables used by wio.",
+        UsageText: "wio env <env> ...",
         Subcommands: cli.Commands{
             {
                 Name:      "reset",
                 Usage:     "Reset environment variables to default (factory) state",
                 UsageText: "wio env reset",
                 Action: func(c *cli.Context) {
-                    command = env.Env{Context: c, Reset: true}
+                    command = env.Env{Context: c, Command: env.RESET}
+                },
+            },
+            {
+                Name:      "unset",
+                Usage:     "Unset environment variable and remove it from the list",
+                UsageText: "wio env unset <env> ...",
+                Action: func(c *cli.Context) {
+                    command = env.Env{Context: c, Command: env.UNSET}
                 },
             },
         },
         Action: func(c *cli.Context) {
-            command = env.Env{Context: c, Reset: false}
+            command = env.Env{Context: c, Command: env.VIEW}
         },
     },
 }

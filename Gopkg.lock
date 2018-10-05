@@ -11,11 +11,11 @@
 
 [[projects]]
   branch = "master"
-  digest = "1:cd3e8a768d525548fe3830806551b5f6283496f642e391712714f58f4c34677a"
+  digest = "1:f044010887bcfb9cda37e92028bc0afe9223adcb6504529e474167637993d21c"
   name = "github.com/dhillondeep/go-serial"
   packages = ["."]
   pruneopts = "UT"
-  revision = "40ec8e9df429517061bf324152dc7638c98e4499"
+  revision = "9b3984ca8de0613a858a67b9cdb154af822da02c"
 
 [[projects]]
   branch = "master"

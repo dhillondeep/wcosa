@@ -20,3 +20,9 @@ const (
     App = "app"
     Pkg = "pkg"
 )
+
+const (
+    WioUsr        = ".wio-usr"
+    EnvFileName   = "wio.env"
+    FrameworkName = "framework"
+)
