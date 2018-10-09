@@ -39,7 +39,7 @@ func ReadWioConfig(dir string) (Config, error) {
 
     // check for wio.yml validity
     if ret.GetType() != constants.App && ret.GetType() != constants.Pkg {
-        if strings.Trim(ret.GetType(), " ") == "" {
+        if util.IsEmptyString(ret.GetType()) {
             return nil, util.Error("%s: wio.yml is invalid or cannot be parsed", dir)
         }
 
@@ -62,7 +62,7 @@ func prettyPrintHelp(config Config, filePath string) error {
         return err
     }
 
-    finalStr := ""
+    var finalStr string
 
     // configuration tags
     projectTagPat := regexp.MustCompile(`(^project:)|((\s| |^\w)project:(\s+|))`)

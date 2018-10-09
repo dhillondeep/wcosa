@@ -64,7 +64,7 @@ func GenerateCMakeDependencies(cmakePath string, platform string, targets *Targe
 
         if sharedLink.From.HeaderOnly {
             sharedLink.LinkInfo.Visibility = types.Interface
-        } else if strings.Trim(sharedLink.LinkInfo.Visibility, " ") == "" {
+        } else if util.IsEmptyString(sharedLink.LinkInfo.Visibility) {
             sharedLink.LinkInfo.Visibility = types.Private
         }
 
@@ -85,7 +85,7 @@ func GenerateCMakeDependencies(cmakePath string, platform string, targets *Targe
     for link := range targets.LinkIterator() {
         if link.From.HeaderOnly {
             link.LinkInfo.Visibility = types.Interface
-        } else if strings.Trim(link.LinkInfo.Visibility, " ") == "" {
+        } else if util.IsEmptyString(link.LinkInfo.Visibility) {
             link.LinkInfo.Visibility = types.Private
         }
 

@@ -3,7 +3,6 @@ package run
 import (
     "fmt"
     "os"
-    "strings"
     "wio/internal/cmd/run/cmake"
     "wio/internal/cmd/run/dependencies"
     "wio/internal/constants"
@@ -27,10 +26,10 @@ var dispatchCmakeFuncAvrFramework = map[string]dispatchCmakeFunc{
 }
 
 func dispatchCmake(info *runInfo, target types.Target) error {
-    platform := strings.ToLower(target.GetPlatform())
+    platform := target.GetPlatform()
 
     // this means platform was not specified at all
-    if strings.Trim(platform, " ") == "" {
+    if util.IsEmptyString(platform) {
         message := fmt.Sprintf("No Platform specified by the [%s] target", target.GetName())
         return util.Error(message)
     }
@@ -43,18 +42,18 @@ func dispatchCmake(info *runInfo, target types.Target) error {
 }
 
 func dispatchCmakeAvr(info *runInfo, target types.Target) error {
-    framework := strings.Trim(strings.ToLower(target.GetFramework()), " ")
-    board := strings.Trim(strings.ToUpper(target.GetBoard()), " ")
+    framework := target.GetFramework()
+    board := target.GetBoard()
 
     // this means framework was not specified at all
-    if framework == "" {
+    if util.IsEmptyString(framework) {
         message := fmt.Sprintf("No Framework specified by the [%s] target. Try one of %s",
             target.GetName(), funk.Keys(dispatchCmakeFuncAvrFramework))
         return util.Error(message)
     }
 
     // this means board was not specified at all
-    if board == "" {
+    if util.IsEmptyString(board) {
         message := fmt.Sprintf("No Board specified by the [%s] target", target.GetName())
         return util.Error(message)
     }

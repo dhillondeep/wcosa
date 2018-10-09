@@ -156,7 +156,7 @@ func getTargetArgs(info *runInfo) ([]types.Target, error) {
         }
         if len(info.targets) <= 0 {
             defaultName := info.config.GetInfo().GetOptions().GetDefault()
-            if defaultName == "" {
+            if util.IsEmptyString(defaultName) {
                 return nil, util.Error("no default target specified")
             }
             if _, exists := projectTargets[defaultName]; !exists {

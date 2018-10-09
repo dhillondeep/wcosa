@@ -67,6 +67,14 @@ func ContainsNoCase(slice []string, value string) bool {
     return false
 }
 
+func IsEmptyString(str string) bool {
+    if strings.Trim(str, " ") == "" {
+        return true
+    }
+
+    return false
+}
+
 // Deletes all the files from the directory
 func RemoveContents(dir string) error {
     d, err := os.Open(dir)

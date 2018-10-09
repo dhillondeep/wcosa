@@ -58,11 +58,11 @@ func handlePorts(basic bool, showAll bool) error {
 
     numOpenPorts := 0
     for _, port := range ports {
-        if port.USBProduct() != "" || port.USBManufacturer() != "" {
+        if !util.IsEmptyString(port.USBProduct()) || !util.IsEmptyString(port.USBManufacturer()) {
             numOpenPorts++
         }
 
-        if port.USBProduct() == "" && port.USBManufacturer() == "" && !showAll {
+        if util.IsEmptyString(port.USBProduct()) && util.IsEmptyString(port.USBManufacturer()) && !showAll {
             continue
         }
 

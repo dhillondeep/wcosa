@@ -46,7 +46,7 @@ func uploadTarget(dir string) error {
 
 func runTarget(dir, file, args string) error {
     var argv []string
-    if args != "" {
+    if util.IsEmptyString(args) {
         argv = strings.Split(args, " ")
     }
 

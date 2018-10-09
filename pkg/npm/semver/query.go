@@ -5,6 +5,7 @@ import (
     "fmt"
     "regexp"
     "strings"
+    "wio/pkg/util"
 )
 
 type queryOp int
@@ -200,7 +201,7 @@ var queryInv = [...]string{"=", "<", ">", "<=", ">="}
 
 func parseIncompl(str string) *Version {
     str = trimX(str)
-    if str == "" {
+    if util.IsEmptyString(str) {
         str = "0"
     }
     str += strings.Repeat(".0", 2-strings.Count(str, "."))

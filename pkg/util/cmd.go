@@ -68,7 +68,7 @@ func ninjaExists() bool {
 }
 
 func GetCmakeGenerator(buildDir string) (string, error) {
-    generator := ""
+    var generator string
     var err error
 
     if ninjaExists() {

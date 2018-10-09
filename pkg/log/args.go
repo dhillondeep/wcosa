@@ -2,6 +2,7 @@ package log
 
 import (
     "io"
+    "wio/pkg/util"
 
     "github.com/fatih/color"
 )
@@ -43,7 +44,7 @@ func GetArgs(args ...interface{}) *Args {
         case *color.Color:
             ret.color = val
         case string:
-            if ret.message == "" {
+            if util.IsEmptyString(ret.message) {
                 ret.message = val
             } else {
                 ret.Append(val)
@@ -53,7 +54,7 @@ func GetArgs(args ...interface{}) *Args {
         case io.Writer:
             ret.writer = val
         case error:
-            if ret.message == "" {
+            if util.IsEmptyString(ret.message) {
                 ret.message = val.Error()
             } else {
                 ret.Append(val.Error())

@@ -82,21 +82,21 @@ func (t *TargetImpl) GetPlatform() string {
     if t == nil {
         return ""
     }
-    return t.Platform
+    return strings.ToLower(t.Platform)
 }
 
 func (t *TargetImpl) GetFramework() string {
     if t == nil {
         return ""
     }
-    return t.Framework
+    return strings.ToLower(t.Framework)
 }
 
 func (t *TargetImpl) GetBoard() string {
     if t == nil {
         return ""
     }
-    return t.Board
+    return strings.ToLower(t.Board)
 }
 
 func (t *TargetImpl) GetFlags() Properties {

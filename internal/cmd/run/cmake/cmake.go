@@ -40,8 +40,8 @@ var cStandards = map[string]string{
 func GetStandard(standard string) (string, string, error) {
     stdString := strings.Trim(standard, " ")
     stdString = strings.ToLower(stdString)
-    cppStandard := ""
-    cStandard := ""
+    var cppStandard string
+    var cStandard string
 
     for _, std := range strings.Split(stdString, ",") {
         std = strings.Trim(std, " ")
@@ -49,14 +49,14 @@ func GetStandard(standard string) (string, string, error) {
             cppStandard = val
         } else if val, exists := cStandards[std]; exists {
             cStandard = val
-        } else if val != "" {
+        } else if !util.IsEmptyString(val) {
             return "", "", util.Error("invalid ISO C/C++ standard [%s]", std)
         }
     }
-    if cppStandard == "" {
+    if util.IsEmptyString(cppStandard) {
         cppStandard = "11"
     }
-    if cStandard == "" {
+    if util.IsEmptyString(cStandard) {
         cStandard = "99"
     }
     return cppStandard, cStandard, nil

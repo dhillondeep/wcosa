@@ -2,7 +2,6 @@ package create
 
 import (
     "path/filepath"
-    "strings"
     "wio/internal/constants"
     "wio/internal/types"
     "wio/pkg/log"
@@ -101,7 +100,7 @@ func updateConfig(queue *log.Queue, config types.Config, info *createInfo) error
 
 func updatePackageConfig(queue *log.Queue, config types.Config, info *createInfo) error {
     // Ensure a minimum wio version is specified
-    if strings.Trim(config.GetInfo().GetOptions().GetWioVersion(), " ") == "" {
+    if util.IsEmptyString(config.GetInfo().GetOptions().GetWioVersion()) {
         return util.Error("wio.yml missing `minimum_wio_version`")
     }
     if config.GetName() != filepath.Base(info.directory) {
@@ -112,7 +111,7 @@ func updatePackageConfig(queue *log.Queue, config types.Config, info *createInfo
 
 func updateAppConfig(queue *log.Queue, config types.Config, info *createInfo) error {
     // Ensure a minimum wio version is specified
-    if strings.Trim(config.GetInfo().GetOptions().GetWioVersion(), " ") == "" {
+    if util.IsEmptyString(config.GetInfo().GetOptions().GetWioVersion()) {
         return util.Error("wio.yml missing `minimum_wio_version`")
     }
     if config.GetName() != filepath.Base(info.directory) {
