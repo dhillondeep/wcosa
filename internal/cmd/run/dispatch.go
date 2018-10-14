@@ -20,9 +20,9 @@ var dispatchCmakeFuncPlatform = map[string]dispatchCmakeFunc{
     constants.Avr:    dispatchCmakeAvr,
     constants.Native: dispatchCmakeNative,
 }
-var dispatchCmakeFuncAvrFramework = map[string]dispatchCmakeFunc{
-    constants.Cosa:    dispatchCmakeAvrCosa,
-    constants.Arduino: dispatchCmakeAvrArduino,
+var avrCmakeFrameworks = map[string]byte{
+    constants.Cosa:    0,
+    constants.Arduino: 1,
 }
 
 func dispatchCmake(info *runInfo, target types.Target) error {
@@ -48,7 +48,7 @@ func dispatchCmakeAvr(info *runInfo, target types.Target) error {
     // this means framework was not specified at all
     if util.IsEmptyString(framework) {
         message := fmt.Sprintf("No Framework specified by the [%s] target. Try one of %s",
-            target.GetName(), funk.Keys(dispatchCmakeFuncAvrFramework))
+            target.GetName(), funk.Keys(avrCmakeFrameworks))
         return util.Error(message)
     }
 
@@ -58,48 +58,27 @@ func dispatchCmakeAvr(info *runInfo, target types.Target) error {
         return util.Error(message)
     }
 
-    if _, exists := dispatchCmakeFuncAvrFramework[framework]; !exists {
+    if _, exists := avrCmakeFrameworks[framework]; !exists {
         message := fmt.Sprintf("Framework [%s] not supported", framework)
         return util.Error(message)
     }
-    return dispatchCmakeFuncAvrFramework[framework](info, target)
+
+    projectName := info.config.GetName()
+    projectPath := info.directory
+    port, err := getPort(info)
+    if err != nil && info.runType == TypeRun {
+        return err
+    }
+    cppStandard, cStandard, err := cmake.GetStandard(info.config.GetInfo().GetOptions().GetStandard())
+    if err != nil {
+        return err
+    }
+
+    return cmake.GenerateAvrCmakeLists(target, projectName, projectPath, cppStandard, cStandard, port)
 }
 
 func dispatchCmakeNative(info *runInfo, target types.Target) error {
     return dispatchCmakeNativeGeneric(info, target)
-}
-
-func dispatchCmakeAvrCosa(info *runInfo, target types.Target) error {
-    projectName := info.config.GetName()
-    projectPath := info.directory
-    port, err := getPort(info)
-    if err != nil && info.runType == TypeRun {
-        return err
-    }
-    cppStandard, cStandard, err := cmake.GetStandard(info.config.GetInfo().GetOptions().GetStandard())
-    if err != nil {
-        return err
-    }
-
-    return cmake.GenerateAvrCmakeLists("toolchain/cmake/CosaToolchain.cmake", target,
-        projectName, projectPath, cppStandard, cStandard, port)
-}
-
-func dispatchCmakeAvrArduino(info *runInfo, target types.Target) error {
-    projectName := info.config.GetName()
-    projectPath := info.directory
-    port, err := getPort(info)
-    if err != nil && info.runType == TypeRun {
-        return err
-    }
-
-    cppStandard, cStandard, err := cmake.GetStandard(info.config.GetInfo().GetOptions().GetStandard())
-    if err != nil {
-        return err
-    }
-
-    return cmake.GenerateAvrCmakeLists("toolchain/cmake/ArduinoToolchain.cmake", target,
-        projectName, projectPath, cppStandard, cStandard, port)
 }
 
 func dispatchCmakeNativeGeneric(info *runInfo, target types.Target) error {

@@ -10,16 +10,16 @@ package main
 import (
     "os"
     "time"
-    "wio/internal/cmd/env"
-
     "wio/internal/cmd"
     "wio/internal/cmd/create"
     "wio/internal/cmd/devices"
+    "wio/internal/cmd/env"
     "wio/internal/cmd/pac/install"
     "wio/internal/cmd/pac/publish"
     "wio/internal/cmd/pac/user"
     "wio/internal/cmd/pac/vendor"
     "wio/internal/cmd/run"
+    "wio/internal/config"
     "wio/internal/config/defaults"
     "wio/internal/config/meta"
     "wio/internal/constants"
@@ -376,6 +376,10 @@ func wio() error {
 }
 
 func main() {
+    if err := config.CreateAndSetupWioUsr(); err != nil {
+        log.Errln(err.Error())
+    }
+
     err := wio()
     if err != nil {
         log.Errln(err.Error())

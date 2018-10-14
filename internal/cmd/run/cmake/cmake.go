@@ -6,6 +6,7 @@ import (
     "strings"
     "wio/internal/constants"
     "wio/internal/types"
+    "wio/pkg/toolchain/frameworks"
     "wio/pkg/util"
     "wio/pkg/util/sys"
     "wio/pkg/util/template"
@@ -80,7 +81,6 @@ func generateCmakeLists(templateFile string, buildPath string, values map[string
 
 // This creates the main CMakeLists.txt file for AVR app type project
 func GenerateAvrCmakeLists(
-    toolchainPath string,
     target types.Target,
     projectName string,
     projectPath string,
@@ -93,14 +93,13 @@ func GenerateAvrCmakeLists(
     framework := target.GetFramework()
     buildPath := sys.Path(BuildPath(projectPath), target.GetName())
     templateFile := "CMakeListsAVR"
-    executablePath, err := sys.NormalIO.GetRoot()
+    toolchainPath, err := frameworks.GetToolchainPath(target.GetPlatform(), target.GetFramework())
     if err != nil {
         return err
     }
 
     return generateCmakeLists(templateFile, buildPath, map[string]string{
-        "TOOLCHAIN_PATH":             filepath.ToSlash(executablePath),
-        "TOOLCHAIN_FILE_REL":         filepath.ToSlash(toolchainPath),
+        "TOOLCHAIN_PATH":             filepath.ToSlash(toolchainPath),
         "PROJECT_PATH":               filepath.ToSlash(projectPath),
         "PROJECT_NAME":               projectName,
         "CPP_STANDARD":               cppStandard,

@@ -9,8 +9,11 @@ package run
 import (
     "os"
     "runtime"
+    "strings"
+    "wio/internal/constants"
     "wio/internal/types"
     "wio/pkg/log"
+    "wio/pkg/toolchain/frameworks"
     "wio/pkg/util"
 
     "github.com/fatih/color"
@@ -112,6 +115,37 @@ func (info *runInfo) clean(targets []types.Target) error {
 }
 
 func (info *runInfo) build(targets []types.Target) error {
+    for _, target := range targets {
+        if util.IsEmptyString(target.GetPlatform()) {
+            return util.Error("Platform not specified for Target: %s", target.GetName())
+        }
+
+        // we only download frameworks for AVR
+        if target.GetPlatform() != constants.Avr {
+            continue
+        }
+
+        if util.IsEmptyString(target.GetFramework()) {
+            return util.Error("Framework not specified for Target: %s", target.GetName())
+        }
+
+        frameworkDecode := strings.Split(target.GetFramework(), "@")
+        frameworkName := frameworkDecode[0]
+        frameworkVersion := ""
+        if len(frameworkDecode) > 1 {
+            frameworkVersion = frameworkDecode[1]
+        }
+
+        framework, err := frameworks.GetFrameworkAsset(target.GetPlatform(), frameworkName, frameworkVersion)
+        if err != nil {
+            return err
+        } else {
+            if err := frameworks.DownloadFramework(target.GetPlatform(), frameworkName, framework); err != nil {
+                return err
+            }
+        }
+    }
+
     log.Infoln(log.Cyan, "Generating files ... ")
     targetDirs, err := configureTargets(info, targets)
     if err != nil {

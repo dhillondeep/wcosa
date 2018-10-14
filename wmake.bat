@@ -13,7 +13,6 @@ goto default
         exit 1
     )
 
-
     REM Initialize submodules
     echo Initializing submodules ...
     git submodule update --init --recursive
@@ -33,12 +32,6 @@ goto default
     REM Get gotools
     echo Getting gotools ...
     go get -u golang.org/x/tools/...
-
-    REM Perform symlinks
-    echo Creating symlinks ...
-    mkdir %DIR%\bin 2>NUL
-    rmdir %DIR%\bin\toolchain 2>NUL
-    mklink /D %DIR%\bin\toolchain %DIR%\toolchain
 
     goto end
 

@@ -49,6 +49,22 @@
   revision = "2e65f85255dbc3072edf28d6b5b8efc472979f5a"
 
 [[projects]]
+  digest = "1:f4f203acd8b11b8747bdcd91696a01dbc95ccb9e2ca2db6abf81c3a4f5e950ce"
+  name = "github.com/google/go-github"
+  packages = ["github"]
+  pruneopts = "UT"
+  revision = "f55b50f38167644bb7e4be03d9a2bde71d435239"
+  version = "v18.2.0"
+
+[[projects]]
+  digest = "1:a63cff6b5d8b95638bfe300385d93b2a6d9d687734b863da8e09dc834510a690"
+  name = "github.com/google/go-querystring"
+  packages = ["query"]
+  pruneopts = "UT"
+  revision = "44c6ddd0a2342c386950e880b658017258da92fc"
+  version = "v1.0.0"
+
+[[projects]]
   digest = "1:ecd9aa82687cf31d1585d4ac61d0ba180e42e8a6182b85bd785fcca8dfeefc1b"
   name = "github.com/joho/godotenv"
   packages = ["."]
@@ -71,6 +87,14 @@
   pruneopts = "UT"
   revision = "6ca4dbf54d38eea1a992b3c722a76a5d1c4cb25c"
   version = "v0.0.4"
+
+[[projects]]
+  digest = "1:cdb899c199f907ac9fb50495ec71212c95cb5b0e0a8ee0800da0238036091033"
+  name = "github.com/mattn/go-runewidth"
+  packages = ["."]
+  pruneopts = "UT"
+  revision = "ce7b0b5c7b45a81508558cd1dba6bb1e4ddb51bb"
+  version = "v0.0.3"
 
 [[projects]]
   digest = "1:d6f988e7296cebe16d9c405b73bee34da871b382f7438c811279614a725239ae"
@@ -124,6 +148,14 @@
   version = "0.3"
 
 [[projects]]
+  digest = "1:da8d4acfde6ab8378152320f96377912e81200e5ac65232a22782163a710e5a4"
+  name = "github.com/tj/go-spin"
+  packages = ["."]
+  pruneopts = "UT"
+  revision = "30574f5fadef1aa5c61d4c42e936785af9f03ada"
+  version = "v1.1.0"
+
+[[projects]]
   digest = "1:4aeb3860275fa1fd60cccfb5a6ef85da438bf17402e1e84412ade4d4b55066a0"
   name = "github.com/ulikunitz/xz"
   packages = [
@@ -164,6 +196,14 @@
   revision = "8469e314837c2e2471561de5c47bbf8bfd0d9099"
 
 [[projects]]
+  digest = "1:d8cd4f14785b5ae65100524a29ebba8b9dfc5401020fe7504f80b438bb8e8e0d"
+  name = "gopkg.in/cheggaaa/pb.v1"
+  packages = ["."]
+  pruneopts = "UT"
+  revision = "2af8bbdea9e99e83b3ac400d8f6b6d1b8cbbf338"
+  version = "v1.0.25"
+
+[[projects]]
   digest = "1:342378ac4dcb378a5448dd723f0784ae519383532f5e70ade24132c4c8693202"
   name = "gopkg.in/yaml.v2"
   packages = ["."]
@@ -177,13 +217,16 @@
   input-imports = [
     "github.com/dhillondeep/go-serial",
     "github.com/fatih/color",
+    "github.com/google/go-github/github",
     "github.com/joho/godotenv",
     "github.com/mattn/go-colorable",
     "github.com/mholt/archiver",
     "github.com/stretchr/testify/assert",
     "github.com/thoas/go-funk",
+    "github.com/tj/go-spin",
     "github.com/urfave/cli",
     "golang.org/x/crypto/ssh/terminal",
+    "gopkg.in/cheggaaa/pb.v1",
     "gopkg.in/yaml.v2",
   ]
   solver-name = "gps-cdcl"
