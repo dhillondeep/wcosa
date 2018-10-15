@@ -22,7 +22,7 @@ const (
     FrameworkConfigName = "framework.json"
 )
 
-type AssetRelease struct {
+type assetRelease struct {
     RemoteName  string
     LocalName   string
     Version     string
@@ -36,7 +36,7 @@ type githubFetcher struct {
 
 var githubFetcherImpl = githubFetcher{}
 
-func GetClient() *github.Client {
+func getClient() *github.Client {
     if githubFetcherImpl.client == nil {
         githubFetcherImpl.client = github.NewClient(nil)
     }
@@ -44,8 +44,8 @@ func GetClient() *github.Client {
     return githubFetcherImpl.client
 }
 
-func GetRemoteAsset(repoName string, localName string, version string) (*AssetRelease, error) {
-    client := GetClient()
+func getRemoteAsset(repoName string, localName string, version string) (*assetRelease, error) {
+    client := getClient()
 
     releases, resp, err := client.Repositories.ListReleases(context.Background(), Org, repoName, nil)
     if err != nil {
@@ -66,7 +66,7 @@ func GetRemoteAsset(repoName string, localName string, version string) (*AssetRe
     if !util.IsEmptyString(version) {
         for _, release := range releases {
             if *release.Name == "v"+version {
-                return &AssetRelease{
+                return &assetRelease{
                     RemoteName:  *release.Assets[0].Name,
                     LocalName:   fmt.Sprintf("%s@%s", localName, version),
                     Version:     version,
@@ -81,7 +81,7 @@ func GetRemoteAsset(repoName string, localName string, version string) (*AssetRe
 
     frameworkVersion := (*releases[0].Name)[1:]
 
-    return &AssetRelease{
+    return &assetRelease{
         RemoteName:  *releases[0].Assets[0].Name,
         LocalName:   fmt.Sprintf("%s@%s", localName, frameworkVersion),
         Version:     frameworkVersion,
@@ -92,7 +92,7 @@ func GetRemoteAsset(repoName string, localName string, version string) (*AssetRe
     return nil, nil
 }
 
-func DownloadAsset(releaseAsset *AssetRelease, path string) error {
+func downloadAsset(releaseAsset *assetRelease, path string) error {
     if releaseAsset == nil || util.IsEmptyString(releaseAsset.DownloadURL) {
         return util.Error("toolchain/framework does not exist")
     }
@@ -127,7 +127,7 @@ func DownloadAsset(releaseAsset *AssetRelease, path string) error {
     return nil
 }
 
-func ExtractTarball(srcPath, destPath, description string) error {
+func extractTarball(srcPath, destPath, description string) error {
     // a channel to tell it to stop
     stopchan := make(chan struct{})
     // a channel to signal that it's stopped

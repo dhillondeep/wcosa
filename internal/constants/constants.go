@@ -24,5 +24,6 @@ const (
 const (
     WioUsr        = ".wio-usr"
     EnvFileName   = "wio.env"
-    FrameworkName = "frameworks"
+    ToolchainName = "toolchain"
+    VersionsName  = "versions"
 )

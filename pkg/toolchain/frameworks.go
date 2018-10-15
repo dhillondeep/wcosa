@@ -1,4 +1,4 @@
-package frameworks
+package toolchain
 
 import (
     "fmt"
@@ -7,24 +7,23 @@ import (
     "strings"
     "wio/internal/config"
     "wio/pkg/log"
-    "wio/pkg/toolchain"
     "wio/pkg/util"
     "wio/pkg/util/sys"
 )
 
-func GetFrameworkAsset(platform, framework, version string) (*toolchain.AssetRelease, error) {
+func GetFrameworkAsset(platform, framework, version string) (*assetRelease, error) {
     repoName := fmt.Sprintf("framework-%s-%s", platform, framework)
 
-    return toolchain.GetRemoteAsset(repoName, framework, version)
+    return getRemoteAsset(repoName, framework, version)
 }
 
-func DownloadFramework(platform, framework string, frameworkAsset *toolchain.AssetRelease) error {
+func DownloadFramework(platform, framework string, frameworkAsset *assetRelease) error {
     log.Write(log.Cyan, "Downloading ")
     log.Write(log.Green, framework)
     log.Write(log.Cyan, " framework for ")
     log.Write(log.Green, platform)
     log.Write(log.Cyan, " platform...")
-    frameworkPath := sys.Path(config.GetFrameworksPath(), platform, frameworkAsset.LocalName)
+    frameworkPath := sys.Path(config.GetToolchainPath(), platform, frameworkAsset.LocalName)
 
     if sys.Exists(frameworkPath) {
         log.Writeln(log.Green, " already exists")
@@ -39,11 +38,11 @@ func DownloadFramework(platform, framework string, frameworkAsset *toolchain.Ass
 
     frameworkTarPath := sys.Path(frameworkPath, frameworkAsset.LocalName+".tar.gz")
 
-    if err := toolchain.DownloadAsset(frameworkAsset, frameworkTarPath); err != nil {
+    if err := downloadAsset(frameworkAsset, frameworkTarPath); err != nil {
         return err
     }
 
-    err := toolchain.ExtractTarball(frameworkTarPath, frameworkPath,
+    err := extractTarball(frameworkTarPath, frameworkPath,
         fmt.Sprintf("Extracting %s ", frameworkAsset.LocalName+".tar.gz"))
     if err != nil {
         log.WriteFailure()
@@ -58,10 +57,10 @@ func DownloadFramework(platform, framework string, frameworkAsset *toolchain.Ass
     log.WriteSuccess()
 
     // download requirements
-    frameworkConfig := &toolchain.FrameworkConfig{}
+    frameworkConfig := &FrameworkConfig{}
 
     // open framework.json file
-    if err := sys.NormalIO.ParseJson(sys.Path(frameworkPath, toolchain.FrameworkConfigName), frameworkConfig); err != nil {
+    if err := sys.NormalIO.ParseJson(sys.Path(frameworkPath, FrameworkConfigName), frameworkConfig); err != nil {
         return err
     }
 
@@ -77,7 +76,7 @@ func DownloadFramework(platform, framework string, frameworkAsset *toolchain.Ass
         }
 
         reqLocalName := fmt.Sprintf("%s@%s", reqNameProvided, reqVersion)
-        reqLocalPath := sys.Path(config.GetFrameworksPath(), reqLocalName)
+        reqLocalPath := sys.Path(config.GetToolchainPath(), reqLocalName)
         reqTarballPath := sys.Path(reqLocalPath + ".tar.gz")
 
         if sys.Exists(reqLocalPath) {
@@ -87,13 +86,15 @@ func DownloadFramework(platform, framework string, frameworkAsset *toolchain.Ass
             log.Writeln()
         }
 
-        reqAsset, err := toolchain.GetRemoteAsset(reqNameProvided, reqLocalName, reqVersion)
+        reqAsset, err := getRemoteAsset(reqNameProvided, reqLocalName, reqVersion)
         if err != nil {
             return err
         }
-        toolchain.DownloadAsset(reqAsset, reqTarballPath)
+        if err := downloadAsset(reqAsset, reqTarballPath); err != nil {
+            return err
+        }
 
-        err = toolchain.ExtractTarball(reqTarballPath, reqLocalPath,
+        err = extractTarball(reqTarballPath, reqLocalPath,
             fmt.Sprintf("Extracting %s ", reqLocalName+".tar.gz"))
         if err != nil {
             log.WriteFailure()
@@ -122,7 +123,7 @@ func GetToolchainPath(platform, framework string) (string, error) {
     }
 
     if util.IsEmptyString(frameworkVersion) {
-        paths, err := filepath.Glob(sys.Path(config.GetFrameworksPath(), platform, frameworkName+"@*"))
+        paths, err := filepath.Glob(sys.Path(config.GetToolchainPath(), platform, frameworkName+"@*"))
         if err != nil {
             return "", err
         }
@@ -133,13 +134,13 @@ func GetToolchainPath(platform, framework string) (string, error) {
 
         frameworkPath = paths[0]
     } else {
-        frameworkPath = sys.Path(config.GetFrameworksPath(), platform, frameworkName+"@"+frameworkVersion)
+        frameworkPath = sys.Path(config.GetToolchainPath(), platform, frameworkName+"@"+frameworkVersion)
     }
 
-    frameworkConfig := &toolchain.FrameworkConfig{}
+    frameworkConfig := &FrameworkConfig{}
 
     // open framework.json file
-    sys.NormalIO.ParseJson(sys.Path(frameworkPath, toolchain.FrameworkConfigName), frameworkConfig)
+    sys.NormalIO.ParseJson(sys.Path(frameworkPath, FrameworkConfigName), frameworkConfig)
 
     return sys.Path(frameworkPath, frameworkConfig.ToolchainFile), nil
 }

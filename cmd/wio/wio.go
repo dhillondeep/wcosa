@@ -19,11 +19,13 @@ import (
     "wio/internal/cmd/pac/user"
     "wio/internal/cmd/pac/vendor"
     "wio/internal/cmd/run"
+    "wio/internal/cmd/upgrade"
     "wio/internal/config"
     "wio/internal/config/defaults"
     "wio/internal/config/meta"
     "wio/internal/constants"
     "wio/pkg/log"
+    "wio/pkg/toolchain"
     "wio/pkg/util/sys"
 
     "github.com/urfave/cli"
@@ -302,24 +304,40 @@ var commands = []cli.Command{
         UsageText: "wio env <env> ...",
         Subcommands: cli.Commands{
             {
-                Name:      "reset",
-                Usage:     "Reset environment variables to default (factory) state",
-                UsageText: "wio env reset",
+                Name:      "set",
+                Usage:     "Set environment variable",
+                UsageText: "wio env unset <env> ...",
                 Action: func(c *cli.Context) {
-                    command = env.Env{Context: c, Command: env.RESET}
+                    command = env.Env{Context: c, Command: env.SET}
                 },
             },
             {
                 Name:      "unset",
-                Usage:     "Unset environment variable and remove it from the list",
+                Usage:     "Unset environment variable",
                 UsageText: "wio env unset <env> ...",
                 Action: func(c *cli.Context) {
                     command = env.Env{Context: c, Command: env.UNSET}
                 },
             },
+            {
+                Name:      "reset",
+                Usage:     "Reset environment variables to default (factory) state",
+                UsageText: "wio env reset ...",
+                Action: func(c *cli.Context) {
+                    command = env.Env{Context: c, Command: env.RESET}
+                },
+            },
         },
         Action: func(c *cli.Context) {
             command = env.Env{Context: c, Command: env.VIEW}
+        },
+    },
+    {
+        Name:      "upgrade",
+        Usage:     "Updates and Downgrades wio",
+        UsageText: "wio upgrade [version] ...",
+        Action: func(c *cli.Context) {
+            command = upgrade.Upgrade{Context: c}
         },
     },
 }
@@ -378,11 +396,17 @@ func wio() error {
 func main() {
     if err := config.CreateAndSetupWioUsr(); err != nil {
         log.Errln(err.Error())
+        os.Exit(1)
     }
 
     err := wio()
     if err != nil {
         log.Errln(err.Error())
-        os.Exit(1)
+        os.Exit(3)
+    }
+
+    if err := toolchain.PromptWioExecUpdate(); err != nil {
+        log.Errln(err.Error())
+        os.Exit(2)
     }
 }

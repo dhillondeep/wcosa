@@ -13,7 +13,7 @@ import (
     "wio/internal/constants"
     "wio/internal/types"
     "wio/pkg/log"
-    "wio/pkg/toolchain/frameworks"
+    "wio/pkg/toolchain"
     "wio/pkg/util"
 
     "github.com/fatih/color"
@@ -136,11 +136,11 @@ func (info *runInfo) build(targets []types.Target) error {
             frameworkVersion = frameworkDecode[1]
         }
 
-        framework, err := frameworks.GetFrameworkAsset(target.GetPlatform(), frameworkName, frameworkVersion)
+        framework, err := toolchain.GetFrameworkAsset(target.GetPlatform(), frameworkName, frameworkVersion)
         if err != nil {
             return err
         } else {
-            if err := frameworks.DownloadFramework(target.GetPlatform(), frameworkName, framework); err != nil {
+            if err := toolchain.DownloadFramework(target.GetPlatform(), frameworkName, framework); err != nil {
                 return err
             }
         }

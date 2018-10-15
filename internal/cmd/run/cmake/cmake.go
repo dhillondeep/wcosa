@@ -6,7 +6,7 @@ import (
     "strings"
     "wio/internal/constants"
     "wio/internal/types"
-    "wio/pkg/toolchain/frameworks"
+    "wio/pkg/toolchain"
     "wio/pkg/util"
     "wio/pkg/util/sys"
     "wio/pkg/util/template"
@@ -93,7 +93,7 @@ func GenerateAvrCmakeLists(
     framework := target.GetFramework()
     buildPath := sys.Path(BuildPath(projectPath), target.GetName())
     templateFile := "CMakeListsAVR"
-    toolchainPath, err := frameworks.GetToolchainPath(target.GetPlatform(), target.GetFramework())
+    toolchainPath, err := toolchain.GetToolchainPath(target.GetPlatform(), target.GetFramework())
     if err != nil {
         return err
     }

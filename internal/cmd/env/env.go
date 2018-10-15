@@ -2,7 +2,6 @@ package env
 
 import (
     "os/user"
-    "regexp"
     "strings"
     "wio/internal/constants"
     "wio/pkg/log"
@@ -21,7 +20,8 @@ var constantEnv = map[string]bool{
 const (
     RESET = 0
     UNSET = 1
-    VIEW  = 2
+    SET   = 2
+    VIEW  = 3
 )
 
 type Env struct {
@@ -61,8 +61,14 @@ func (env Env) Execute() error {
             return err
         }
         break
+    case SET:
+        if err := setEnvironment(envFilePath, env.Context.NArg(), env.Context.Args()); err != nil {
+            return err
+        }
+        break
+        break
     case VIEW:
-        if err := showAndUpdateEnvironment(envFilePath, env.Context.NArg(), env.Context.Args()); err != nil {
+        if err := showEnvironment(envFilePath, env.Context.NArg(), env.Context.Args()); err != nil {
             return err
         }
         break
@@ -100,7 +106,50 @@ func unsetEnvironment(envFilePath string, numKeys int, keys cli.Args) error {
     return nil
 }
 
-func showAndUpdateEnvironment(envFilePath string, numKeys int, keys cli.Args) error {
+func setEnvironment(envFilePath string, numKeys int, keys cli.Args) error {
+    envData, err := godotenv.Read(envFilePath)
+    if err != nil {
+        return err
+    }
+
+    keyChanged := false
+    for i := 0; i < numKeys; i++ {
+        givenToken := keys.Get(i)
+
+        givenTokenDecode := strings.Split(givenToken, "=")
+
+        newKey := givenTokenDecode[0]
+        var newValue string
+        if len(givenTokenDecode) > 1 {
+            newValue = givenTokenDecode[1]
+        }
+
+        if _, ok := constantEnv[newKey]; ok {
+            log.Errln("%s => env cannot be edited and is read only", newKey)
+            continue
+        }
+
+        log.Write(log.Cyan, "%s", newKey)
+        if !util.IsEmptyString(newValue) {
+            log.Write(log.Green, "=%s", newValue)
+        }
+        log.Writeln(log.Cyan, " environment variable set/updated")
+
+        envData[newKey] = newValue
+        keyChanged = true
+    }
+
+    if keyChanged {
+        // update wio.env file
+        if err := godotenv.Write(envData, envFilePath); err != nil {
+            return err
+        }
+    }
+
+    return nil
+}
+
+func showEnvironment(envFilePath string, numKeys int, keys cli.Args) error {
     envData, err := godotenv.Read(envFilePath)
     if err != nil {
         return err
@@ -113,40 +162,12 @@ func showAndUpdateEnvironment(envFilePath string, numKeys int, keys cli.Args) er
         }
     }
 
-    checkIfSettingReg := regexp.MustCompile(`^[^=]+=[^=]+$`)
-    keyChanged := false
-
     for i := 0; i < numKeys; i++ {
-        givenToken := keys.Get(i)
-        if checkIfSettingReg.MatchString(givenToken) {
-            newKey := strings.Split(givenToken, "=")[0]
-            newValue := strings.Split(givenToken, "=")[1]
-
-            if _, ok := constantEnv[newKey]; ok {
-                log.Errln("%s => env cannot be edited and is read only", newKey)
-                continue
-            }
-
-            log.Write(log.Cyan, "%s=", newKey)
-            log.Write(log.Green, "%s", newValue)
-            log.Writeln(log.Cyan, " environment variable added/updated")
-
-            envData[newKey] = newValue
-            keyChanged = true
+        if val, ok := envData[keys.Get(i)]; ok {
+            log.Write(log.Cyan, "%s=", keys.Get(i))
+            log.Writeln(log.Green, "%s", val)
         } else {
-            if val, ok := envData[keys.Get(i)]; ok {
-                log.Write(log.Cyan, "%s=", keys.Get(i))
-                log.Writeln(log.Green, "%s", val)
-            } else {
-                log.Errln("%s => no such environment key found", keys.Get(i))
-            }
-        }
-    }
-
-    if keyChanged {
-        // update wio.env file
-        if err := godotenv.Write(envData, envFilePath); err != nil {
-            return err
+            log.Errln("%s => no such environment key found", keys.Get(i))
         }
     }
 
@@ -162,7 +183,7 @@ func CreateEnv(envFilePath string) error {
 
     // create wio.env file if it does not exist
     if err := godotenv.Write(map[string]string{
-        "WIOROOT": wioRoot, "OS": sys.GetOS()}, envFilePath); err != nil {
+        "WIOROOT": wioRoot, "WIOOS": sys.GetOS()}, envFilePath); err != nil {
         return err
     }
 
