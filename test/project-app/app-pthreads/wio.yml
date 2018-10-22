@@ -14,8 +14,10 @@ targets:
   main:
     src: src
     platform: native
+    link_libraries:
+    - -pthreads
 
-libraries:
-  Threads:
-    global: true
-    required: true
+      #libraries:
+      #Threads:
+      # global: true
+      #required: true
