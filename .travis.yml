@@ -1,6 +1,18 @@
 dist: trusty
 language: go
 
+compiler:
+- gcc
+- clang
+addons:
+  apt:
+    sources:
+    - ubuntu-toolchain-r-test
+    - llvm-toolchain-precise-3.8
+    packages:
+    - g++-6
+    - clang-3.8
+
 go:
   - "1.11"
 
@@ -15,6 +27,8 @@ install:
   - wmake travis-setup
 
 script:
+  - "[ $CXX = g++ ] && export CXX=g++-6 || true"
+  - "[ $CXX = clang++ ] && export CXX=clang++-3.8 || true"
   - wmake build
   - go test -v ./...
   - cd test
