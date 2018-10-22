@@ -63,6 +63,7 @@ type Definitions interface {
     GetGlobal() DefinitionSet
     GetRequired() DefinitionSet
     GetOptional() DefinitionSet
+    GetIngest() DefinitionSet
 }
 
 type Info interface {

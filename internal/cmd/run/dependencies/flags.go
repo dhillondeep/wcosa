@@ -42,7 +42,7 @@ func fillPlaceholders(givenFlags, requiredFlags []string) ([]string, error) {
                 goto Continue
             }
         }
-        return nil, errors.New(fmt.Sprintf("placeholder flag/definition \"%s\" unfilled in ", required) + "%s")
+        return nil, errors.New(fmt.Sprintf("placeholder definition \"%s\" unfilled in ", required) + "%s")
 
     Continue:
         continue
@@ -51,7 +51,7 @@ func fillPlaceholders(givenFlags, requiredFlags []string) ([]string, error) {
 }
 
 // this fills global flags if they are requested
-func fillDefinition(givenFlags, requiredFlags []string) ([]string, error) {
+func fillDefinition(givenFlags, requiredFlags []string, optional bool) ([]string, error) {
     var ret []string
     for _, required := range requiredFlags {
         for _, given := range givenFlags {
@@ -60,31 +60,14 @@ func fillDefinition(givenFlags, requiredFlags []string) ([]string, error) {
                 goto Continue
             }
         }
-        return nil, errors.New("%s" + fmt.Sprintf(" definition \"%s\" unfilled in ", required) + "%s")
+
+        if !optional {
+            return nil, errors.New("%s" + fmt.Sprintf(" definition \"%s\" unfilled in ", required) + "%s")
+        }
 
     Continue:
         continue
     }
 
     return ret, nil
-}
-
-// this fills global flags if they are requested
-func fillOptionalDefinition(givenFlags, requiredFlags []string) []string {
-    var ret []string
-
-    for _, optional := range requiredFlags {
-        for _, given := range givenFlags {
-            if res, match := TryMatch(optional, given); match {
-                ret = append(ret, res)
-                goto Continue
-            }
-        }
-
-        ret = append(ret, optional)
-    Continue:
-        continue
-    }
-
-    return ret
 }

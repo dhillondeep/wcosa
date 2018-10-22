@@ -16,12 +16,34 @@ func ReadWioConfig(dir string) (Config, error) {
     if !sys.Exists(path) {
         return nil, util.Error("path does not contain a wio.yml: %s", dir)
     }
-    ret := &ConfigImpl{}
-    err := sys.NormalIO.ParseYml(path, ret)
 
-    // check if it is a valid config
+    text, err := sys.NormalIO.ReadFile(path)
+    if err != nil {
+        return nil, err
+    }
+
+    ret := &ConfigImpl{}
+    err = yaml.Unmarshal(text, ret)
+
+    // Check to give error on older versions of wio
+    pkgRegex := regexp.MustCompile(`(\s+|)pkg:`)
+    appRegex := regexp.MustCompile(`(\s+|)app:`)
+    versionRegex := regexp.MustCompile(`wio_version:(|\s+)0.0.[0-3]`)
+
+    // check if wio config is for older versions
+    if pkgRegex.MatchString(string(text)) || appRegex.MatchString(string(text)) ||
+        versionRegex.MatchString(string(text)) {
+        return nil, util.Error("%s: wio version < 0.4.0 is not supported by "+
+            "current wio version", dir)
+    }
+
+    // check for wio.yml validity
     if ret.GetType() != constants.App && ret.GetType() != constants.Pkg {
-        return nil, util.Error("wio.yml has invalid type: %s", ret.GetType())
+        if strings.Trim(ret.GetType(), " ") == "" {
+            return nil, util.Error("%s: wio.yml is invalid or cannot be parsed", dir)
+        }
+
+        return nil, util.Error("%s: wio.yml has invalid project type: %s", dir, ret.GetType())
     }
     return ret, err
 }
