@@ -232,7 +232,24 @@ _test18() {
     wio clean --hard
     wio update
     wio build
+    #  wio run
+}
+
+_test19() {
+    cd ./project-app/app-osspecific
+    wio clean --hard
+    wio update
+    wio build
     wio run
+}
+
+_test20() {
+    cd ./project-pkg/pkg-ingest
+    wio clean test1 test2 --hard
+    wio update
+    wio build test1 test2
+    wio run test1
+    wio run test2
 }
 
 # Source and build
