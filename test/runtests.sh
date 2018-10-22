@@ -192,7 +192,7 @@ _test18() {
     wio clean --hard
     wio update
     wio build
-    #  wio run
+     wio run
 }
 
 _test19() {
