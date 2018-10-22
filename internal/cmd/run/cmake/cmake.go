@@ -113,6 +113,18 @@ func GenerateAvrCmakeLists(
         "ENTRY":                      target.GetSource(),
         "TARGET_COMPILE_FLAGS":       strings.Join(flags, " "),
         "TARGET_COMPILE_DEFINITIONS": strings.Join(definitions, " "),
+        "TARGET_LINK_LIBRARIES": func() string {
+            if len(target.GetLinkerFlags()) > 0 {
+                return "\n" + template.Replace(LinkString, map[string]string{
+                    "LINKER_NAME":     "${TARGET_NAME}",
+                    "LINK_VISIBILITY": "PRIVATE",
+                    "DEPENDENCY_NAME": "# no dep",
+                    "LINKER_FLAGS":    strings.Join(target.GetLinkerFlags(), " "),
+                })
+            } else {
+                return ""
+            }
+        }(),
     })
 }
 
@@ -140,5 +152,17 @@ func GenerateNativeCmakeLists(
         "ENTRY":                      target.GetSource(),
         "TARGET_COMPILE_FLAGS":       strings.Join(flags, " "),
         "TARGET_COMPILE_DEFINITIONS": strings.Join(definitions, " "),
+        "TARGET_LINK_LIBRARIES": func() string {
+            if len(target.GetLinkerFlags()) > 0 {
+                return "\n" + template.Replace(LinkString, map[string]string{
+                    "LINKER_NAME":     "${TARGET_NAME}",
+                    "LINK_VISIBILITY": "PRIVATE",
+                    "DEPENDENCY_NAME": "# no dep",
+                    "LINKER_FLAGS":    strings.Join(target.GetLinkerFlags(), " "),
+                })
+            } else {
+                return ""
+            }
+        }(),
     })
 }

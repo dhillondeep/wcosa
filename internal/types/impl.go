@@ -63,8 +63,8 @@ type TargetImpl struct {
     Board       string          `yaml:"board,omitempty"`
     Flags       *PropertiesImpl `yaml:"flags,omitempty"`
     Definitions *PropertiesImpl `yaml:"definitions,omitempty"`
-
-    name string
+    LinkerFlags []string        `yaml:"linker_flags,omitempty"`
+    name        string
 }
 
 func (t *TargetImpl) GetSource() string {
@@ -101,6 +101,10 @@ func (t *TargetImpl) GetFlags() Properties {
 
 func (t *TargetImpl) GetDefinitions() Properties {
     return t.Definitions
+}
+
+func (t *TargetImpl) GetLinkerFlags() []string {
+    return resolveOSSpecificFlagsDefs(t.LinkerFlags)
 }
 
 func (t *TargetImpl) GetName() string {

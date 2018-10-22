@@ -19,6 +19,7 @@ type Target interface {
     GetBoard() string
     GetFlags() Properties
     GetDefinitions() Properties
+    GetLinkerFlags() []string
 
     GetName() string
     SetName(name string)

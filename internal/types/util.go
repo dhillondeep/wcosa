@@ -4,7 +4,9 @@ import (
     "bufio"
     "regexp"
     "strings"
+    "wio/internal/config/meta"
     "wio/internal/constants"
+    "wio/pkg/npm/semver"
     "wio/pkg/util"
     "wio/pkg/util/sys"
 
@@ -45,6 +47,15 @@ func ReadWioConfig(dir string) (Config, error) {
 
         return nil, util.Error("%s: wio.yml has invalid project type: %s", dir, ret.GetType())
     }
+
+    currVersion := semver.Parse(meta.Version)
+    needVersion := semver.Parse(ret.Info.GetOptions().GetWioVersion())
+
+    if currVersion.Lt(needVersion) {
+        return nil, util.Error("%s: current wio version is %s but wio.yml needs it >= %s", dir,
+            currVersion.Str(), needVersion.Str())
+    }
+
     return ret, err
 }
 

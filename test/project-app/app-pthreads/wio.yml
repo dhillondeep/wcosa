@@ -1,13 +1,13 @@
 type: app
 
 project:
-  name: cmakeTests
+  name: app-pthreads
   version: 0.0.1
   keywords:
   - wio
   - app
   compile_options:
-    wio_version: 0.5.1
+    wio_version: 0.5.2
     default_target: main
 
 targets:
@@ -19,4 +19,3 @@ libraries:
   Threads:
     global: true
     required: true
-
