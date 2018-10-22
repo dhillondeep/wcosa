@@ -228,11 +228,11 @@ _test22() {
 }
 
 _test18() {
-    cd ./project-app/app-pthreads
+    cd ./project-app/app-pthread
     wio clean --hard
     wio update
     wio build
-    #  wio run
+    wio run
 }
 
 _test19() {
@@ -250,6 +250,15 @@ _test20() {
     wio build test1 test2
     wio run test1
     wio run test2
+}
+
+_test21() {
+    cd ./project-app/app-linker
+    wio clean --hard
+    wio update
+    wio install
+    wio build
+    wio run
 }
 
 # Source and build

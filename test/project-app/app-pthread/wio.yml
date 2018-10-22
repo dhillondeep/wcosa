@@ -7,7 +7,7 @@ project:
   - wio
   - app
   compile_options:
-    wio_version: 0.6.0
+    wio_version: 0.5.2
     default_target: main
 
 targets:
@@ -15,5 +15,5 @@ targets:
     src: src
     platform: native
     linker_flags:
-    - -pthread
+    - -lpthread
 
