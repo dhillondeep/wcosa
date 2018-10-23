@@ -79,12 +79,17 @@ func GenerateCMakeDependencies(cmakePath string, platform string, targets *Targe
     }
 
     for sharedLink := range shared.LinkIterator() {
+        linkerFromName := sharedLink.From.Name + "__" + sharedLink.From.Version
+        if sharedLink.From.Name == MainTarget {
+            linkerFromName = MainTarget
+        }
+
         var finalString string
         if !sharedLink.To.SharedTarget.GetGlobal() {
             finalString := cmake.SharedLibraryInclude
 
             finalString = template.Replace(cmake.SharedLibraryInclude, map[string]string{
-                "TARGET_NAME": sharedLink.From.Name + "__" + sharedLink.From.Version,
+                "TARGET_NAME": linkerFromName,
                 "SHARED_LIB_INCLUDE_PATH": strings.Replace(sharedLink.To.SharedIncludePath,
                     "$(PROJECT_PATH)", sharedLink.To.ParentPath, -1),
             })
@@ -97,13 +102,8 @@ func GenerateCMakeDependencies(cmakePath string, platform string, targets *Targe
             sharedLink.LinkInfo.Visibility = types.Private
         }
 
-        linkerName := sharedLink.From.Name + "__" + sharedLink.From.Version
-        if sharedLink.From.Name == MainTarget {
-            linkerName = MainTarget
-        }
-
         finalString = template.Replace(cmake.LinkString, map[string]string{
-            "LINKER_NAME": linkerName,
+            "LINKER_NAME": linkerFromName,
             "DEPENDENCY_NAME": func() string {
                 if !sharedLink.To.SharedTarget.GetGlobal() {
                     return "${LIB_" + sharedLink.To.Name + "}"

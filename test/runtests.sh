@@ -188,11 +188,11 @@ _test17() {
 }
 
 _test18() {
-    cd ./project-app/app-pthreads
+    cd ./project-app/app-pthread
     wio clean --hard
     wio update
     wio build
-    #  wio run
+    wio run
 }
 
 _test19() {

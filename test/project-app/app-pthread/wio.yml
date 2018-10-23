@@ -1,7 +1,7 @@
 type: app
 
 project:
-  name: app-pthreads
+  name: app-pthread
   version: 0.0.1
   keywords:
   - wio
@@ -14,8 +14,6 @@ targets:
   main:
     src: src
     platform: native
+    linker_flags:
+    - -lpthread
 
-libraries:
-  Threads:
-    global: true
-    required: true

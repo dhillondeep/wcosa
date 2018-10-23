@@ -15,13 +15,13 @@ targets:
     src: src
     platform: native
     linker_flags:
-    - -pthreads
+    - -lpthread
 
 dependencies:
   wio-sqlite3:
     version: 1.0.1
     linker_flags:
-    - $darwin(-pthread)
-    - $linux(-pthread -dl)
+    - $darwin(-lpthread)
+    - $linux(-lpthread -ldl)
     - $windows(-ssp)
 
