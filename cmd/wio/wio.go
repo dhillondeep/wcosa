@@ -4,7 +4,7 @@
 
 // Package main contains the main code for Wio.
 // Wio is a tool to make development of embedded system applications easier and simpler.
-// It allows for building, testing, and uploading AVR applications for Commandline.
+// It allows for building, testing, and uploading C/C++ applications for Commandline.
 package main
 
 import (
@@ -28,20 +28,31 @@ import (
     "github.com/urfave/cli"
 )
 
+var appWideFlags = []cli.Flag{
+    cli.BoolFlag{
+        Name:  "verbose",
+        Usage: "Turns verbose mode on to show detailed logs.",
+    },
+    cli.BoolFlag{
+        Name:  "disable-warnings",
+        Usage: "Disables all the warning shown by wio.",
+    },
+}
+
 var createFlags = []cli.Flag{
     cli.StringFlag{
         Name:  "platform",
-        Usage: "Target platform: 'AVR', 'Native', or 'all'",
+        Usage: "Target platform: 'avr', 'native'.",
         Value: "all",
     },
     cli.StringFlag{
         Name:  "framework",
-        Usage: "Target framework: 'Arduino', 'Cosa', or 'all'",
+        Usage: "Target framework: 'arduino', 'cosa'.",
         Value: "all",
     },
     cli.StringFlag{
         Name:  "board",
-        Usage: "Target boards: e.g. 'uno', 'mega2560', or 'all'",
+        Usage: "Target boards: e.g. 'uno', 'mega2560', etc.",
         Value: "all",
     },
     cli.BoolFlag{
@@ -52,83 +63,69 @@ var createFlags = []cli.Flag{
         Name:  "header-only",
         Usage: "Specify a header-only package.",
     },
-    cli.BoolFlag{
-        Name:  "verbose",
-        Usage: "Turns verbose mode on to show detailed errors and commands being executed.",
-    },
-    cli.BoolFlag{
-        Name:  "disable-warnings",
-        Usage: "Disables all the warning shown by wio",
-    },
 }
 
-var updateFlags = []cli.Flag{
-    cli.BoolFlag{
-        Name:  "verbose",
-        Usage: "Turns verbose mode on to show detailed errors and commands being executed.",
-    },
-    cli.BoolFlag{
-        Name:  "disable-warnings",
-        Usage: "Disables all the warning shown by wio",
-    },
-}
+var updateFlags []cli.Flag
 
 var buildFlags = []cli.Flag{
     cli.BoolFlag{
         Name:  "all",
-        Usage: "Build all available targets",
-    },
-    cli.StringFlag{
-        Name:  "port",
-        Usage: "Specify upload port",
-    },
-    cli.BoolFlag{
-        Name:  "verbose",
-        Usage: "Turns verbose mode on to show detailed errors and commands being executed.",
-    },
-    cli.BoolFlag{
-        Name:  "disable-warnings",
-        Usage: "Disables all the warning shown by wio",
+        Usage: "Build all available targets.",
     },
 }
 
 var cleanFlags = []cli.Flag{
     cli.BoolFlag{
+        Name:  "all",
+        Usage: "Clean all available targets.",
+    },
+    cli.BoolFlag{
         Name:  "hard",
-        Usage: "Removes build directories",
+        Usage: "Removes build directories.",
     },
 }
 
 var runFlags = []cli.Flag{
     cli.StringFlag{
         Name:  "port",
-        Usage: "Specify upload port",
+        Usage: "Specify upload port.",
     },
     cli.StringFlag{
         Name:  "args",
-        Usage: "Arguments passed to executable",
+        Usage: "Arguments passed to executable.",
     },
-    cli.BoolFlag{
-        Name:  "verbose",
-        Usage: "Turns verbose mode on to show detailed errors and commands being executed.",
-    },
-    cli.BoolFlag{
-        Name:  "disable-warnings",
-        Usage: "Disables all the warning shown by wio",
-    },
+}
+
+var monitorFlags = []cli.Flag{
+    cli.IntFlag{Name: "baud",
+        Usage: "Baud rate for the Serial port.",
+        Value: defaults.Baud},
+    cli.StringFlag{Name: "port",
+        Usage: "Serial Port to open.",
+        Value: defaults.Port},
+    cli.BoolFlag{Name: "gui",
+        Usage: "Runs the GUI version of the serial monitor tool."},
+}
+
+var devicesListFlags = []cli.Flag{
+    cli.BoolFlag{Name: "basic",
+        Usage: "Shows only the name of the ports."},
+    cli.BoolFlag{Name: "show-all",
+        Usage: "Shows all the ports, closed or open (Default: only open devices)."},
 }
 
 var command cmd.Command
 var commands = []cli.Command{
     {
-        Name:  "create",
-        Usage: "Creates and initializes a wio project.",
+        Name:      "create",
+        Usage:     "Creates and initializes a wio project.",
+        UsageText: "wio create <subcommand> [arguments]",
         Subcommands: cli.Commands{
             {
                 Name:      "pkg",
                 Usage:     "Creates a wio package.",
-                UsageText: "wio create pkg [command options]",
-                Flags:     createFlags,
+                UsageText: "wio create pkg [directory] [command options]",
+                Flags:     append(createFlags, appWideFlags...),
                 Action: func(c *cli.Context) {
                     command = create.Create{Context: c, Update: false, Type: constants.Pkg}
                 },
@@ -136,20 +133,19 @@ var commands = []cli.Command{
             {
                 Name:      "app",
                 Usage:     "Creates a wio app.",
-                UsageText: "wio create app [command options]",
-                Flags:     createFlags,
+                UsageText: "wio create app [directory] [command options]",
+                Flags:     append(createFlags, appWideFlags...),
                 Action: func(c *cli.Context) {
                     command = create.Create{Context: c, Update: false, Type: constants.App}
                 },
             },
         },
     },
-
     {
         Name:      "update",
         Usage:     "Updates the current project and fixes any issues.",
         UsageText: "wio update [directory] [command options]",
-        Flags:     updateFlags,
+        Flags:     append(updateFlags, appWideFlags...),
         Action: func(c *cli.Context) {
             command = create.Create{Context: c, Update: true}
         },
@@ -157,16 +153,17 @@ var commands = []cli.Command{
     {
         Name:      "build",
         Usage:     "Configure and build the project.",
-        UsageText: "wio build [targets] [command options]",
-        Flags:     buildFlags,
+        UsageText: "wio build [targets...] [command options]",
+        Flags:     append(buildFlags, appWideFlags...),
         Action: func(c *cli.Context) {
             command = run.Run{Context: c, RunType: run.TypeBuild}
         },
     },
     {
-        Name:  "clean",
-        Usage: "Clean project targets",
-        Flags: append(buildFlags, cleanFlags...),
+        Name:      "clean",
+        Usage:     "Clean project targets.",
+        UsageText: "wio clean [targets...] [command options]",
+        Flags:     append(cleanFlags, appWideFlags...),
         Action: func(c *cli.Context) {
             command = run.Run{Context: c, RunType: run.TypeClean}
         },
@@ -174,15 +171,16 @@ var commands = []cli.Command{
     {
         Name:      "run",
         Usage:     "Builds, Runs and/or Uploads the project to a device.",
-        UsageText: "wio run [directory] [command options]",
-        Flags:     runFlags,
+        UsageText: "wio run [targets...] [command options]",
+        Flags:     append(runFlags, appWideFlags...),
         Action: func(c *cli.Context) {
             command = run.Run{Context: c, RunType: run.TypeRun}
         },
     },
     {
-        Name:  "vendor",
-        Usage: "Manage locally vendored dependencies.",
+        Name:      "vendor",
+        Usage:     "Manage locally vendored dependencies.",
+        UsageText: "wio vendor <subcommand> [command options]",
         Subcommands: cli.Commands{
             {
                 Name:      "add",
@@ -205,21 +203,15 @@ var commands = []cli.Command{
     {
         Name:      "install",
         Usage:     "Install packages from remote server.",
-        UsageText: "wio install [name] [version]",
-        Flags: []cli.Flag{
-            cli.BoolFlag{Name: "verbose",
-                Usage: "Turns verbose mode on to show detailed errors and commands being executed."},
-            cli.BoolFlag{Name: "disable-warnings",
-                Usage: "Disables all the warning shown by wio.",
-            },
-        },
+        UsageText: "wio install [packages...]",
+        Flags:     appWideFlags,
         Action: func(c *cli.Context) {
             command = install.Cmd{Context: c}
         },
     },
     {
         Name:      "login",
-        Usage:     "Login to the npm registry.",
+        Usage:     "Login to the registry.",
         UsageText: "wio login",
         Action: func(c *cli.Context) {
             command = user.Login{Context: c}
@@ -227,7 +219,7 @@ var commands = []cli.Command{
     },
     {
         Name:      "logout",
-        Usage:     "Clear login token.",
+        Usage:     "Logout from registry account.",
         UsageText: "wio logout",
         Action: func(c *cli.Context) {
             command = user.Logout{Context: c}
@@ -237,13 +229,7 @@ var commands = []cli.Command{
         Name:      "publish",
         Usage:     "Publish package to registry.",
         UsageText: "wio publish",
-        Flags: []cli.Flag{
-            cli.BoolFlag{Name: "verbose",
-                Usage: "Turns verbose mode on to show detailed errors and commands being executed."},
-            cli.BoolFlag{Name: "disable-warnings",
-                Usage: "Disables all the warning shown by wio.",
-            },
-        },
+        Flags:     appWideFlags,
         Action: func(c *cli.Context) {
             command = publish.Cmd{Context: c}
         },
@@ -251,25 +237,13 @@ var commands = []cli.Command{
     {
         Name:      "devices",
         Usage:     "Handles serial devices connected.",
-        UsageText: "wio devices [command options]",
+        UsageText: "wio devices <subcommand> [command options]",
         Subcommands: cli.Commands{
             cli.Command{
                 Name:      "monitor",
                 Usage:     "Opens a Serial monitor.",
-                UsageText: "wio devices monitor open [command options]",
-                Flags: []cli.Flag{
-                    cli.IntFlag{Name: "baud",
-                        Usage: "Baud rate for the Serial port.",
-                        Value: defaults.Baud},
-                    cli.StringFlag{Name: "port",
-                        Usage: "Serial Port to open.",
-                        Value: defaults.Port},
-                    cli.BoolFlag{Name: "gui",
-                        Usage: "Runs the GUI version of the serial monitor tool"},
-                    cli.BoolFlag{Name: "disable-warnings",
-                        Usage: "Disables all the warning shown by wio.",
-                    },
-                },
+                UsageText: "wio devices monitor [command options]",
+                Flags:     monitorFlags,
                 Action: func(c *cli.Context) {
                     command = devices.Devices{Context: c, Type: devices.MONITOR}
                 },
@@ -278,17 +252,7 @@ var commands = []cli.Command{
                 Name:      "list",
                 Usage:     "Lists all the connected devices/ports and provides information about them.",
                 UsageText: "wio devices list [command options]",
-                Flags: []cli.Flag{
-                    cli.BoolFlag{Name: "basic",
-                        Usage: "Shows only the name of the ports."},
-                    cli.BoolFlag{Name: "show-all",
-                        Usage: "Shows all the ports, closed or open (Default: only open devices)."},
-                    cli.BoolFlag{Name: "verbose",
-                        Usage: "Turns verbose mode on to show detailed errors and commands being executed."},
-                    cli.BoolFlag{Name: "disable-warnings",
-                        Usage: "Disables all the warning shown by wio.",
-                    },
-                },
+                Flags:     devicesListFlags,
                 Action: func(c *cli.Context) {
                     command = devices.Devices{Context: c, Type: devices.LIST}
                 },
@@ -298,20 +262,8 @@ var commands = []cli.Command{
     {
         Name:      "monitor",
         Usage:     "Opens a Serial monitor.",
-        UsageText: "wio monitor open [command options]",
-        Flags: []cli.Flag{
-            cli.IntFlag{Name: "baud",
-                Usage: "Baud rate for the Serial port.",
-                Value: defaults.Baud},
-            cli.StringFlag{Name: "port",
-                Usage: "Serial Port to open.",
-                Value: defaults.Port},
-            cli.BoolFlag{Name: "gui",
-                Usage: "Runs the GUI version of the serial monitor tool"},
-            cli.BoolFlag{Name: "disable-warnings",
-                Usage: "Disables all the warning shown by wio.",
-            },
-        },
+        UsageText: "wio monitor [command options]",
+        Flags:     append(monitorFlags, appWideFlags...),
         Action: func(c *cli.Context) {
             command = devices.Devices{Context: c, Type: devices.MONITOR}
         },
@@ -319,7 +271,6 @@ var commands = []cli.Command{
 }
 
 func wio() error {
-    // read help templates
     appHelpText, err := sys.AssetIO.ReadFile("cli-helper/app-help.txt")
     if err != nil {
         return err

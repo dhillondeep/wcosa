@@ -1,0 +1,27 @@
+type: app
+
+project:
+  name: app-linker
+  version: 0.0.1
+  keywords:
+  - wio
+  - app
+  compile_options:
+    wio_version: 0.5.2
+    default_target: main
+
+targets:
+  main:
+    src: src
+    platform: native
+    linker_flags:
+    - -lpthread
+
+dependencies:
+  wio-sqlite3:
+    version: 1.0.1
+    linker_flags:
+    - $darwin(-lpthread)
+    - $linux(-lpthread -ldl)
+    - $windows(-ssp)
+

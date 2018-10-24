@@ -8,22 +8,26 @@ const AvrHeader = `add_library({{DEPENDENCY_NAME}} INTERFACE)
 target_compile_definitions(
     {{DEPENDENCY_NAME}}
     INTERFACE
-    {{PRIVATE_DEFINITIONS}})
+    {{PRIVATE_DEFINITIONS}}
+)
 
 target_compile_definitions(
     {{DEPENDENCY_NAME}}
     INTERFACE
-    {{PUBLIC_DEFINITIONS}})
+    {{PUBLIC_DEFINITIONS}}
+)
 
 target_compile_options(
     {{DEPENDENCY_NAME}}
     INTERFACE
-    {{DEPENDENCY_FLAGS}})
+    {{DEPENDENCY_FLAGS}}
+)
 
 target_include_directories(
     {{DEPENDENCY_NAME}}
     INTERFACE
-    "{{DEPENDENCY_PATH}}/include")
+    "{{DEPENDENCY_PATH}}/include"
+)
 `
 
 const AvrLibrary = `file(GLOB_RECURSE
@@ -37,40 +41,46 @@ generate_arduino_library(
     SRCS ${{{DEPENDENCY_NAME}}_files}
     BOARD ${BOARD})
 
-set_property(TARGET {{DEPENDENCY_NAME}} PROPERTY CXX_STANDARD {{CXX_STANDARD}})
-set_property(TARGET {{DEPENDENCY_NAME}} PROPERTY C_STANDARD {{C_STANDARD}})
+set_target_properties({{DEPENDENCY_NAME}} PROPERTIES CXX_STANDARD {{CXX_STANDARD}})
+set_target_properties({{DEPENDENCY_NAME}} PROPERTIES C_STANDARD {{C_STANDARD}})
 
 target_compile_definitions(
     {{DEPENDENCY_NAME}}
     PRIVATE
-    {{PRIVATE_DEFINITIONS}})
+    {{PRIVATE_DEFINITIONS}}
+)
 
 target_compile_definitions(
     {{DEPENDENCY_NAME}}
     PUBLIC
-    {{PUBLIC_DEFINITIONS}})
+    {{PUBLIC_DEFINITIONS}}
+)
 
 target_compile_definitions(
     {{DEPENDENCY_NAME}}
     PRIVATE
     WIO_PLATFORM_${PLATFORM}
     WIO_FRAMEWORK_${FRAMEWORK}
-    WIO_BOARD_${BOARD})
+    WIO_BOARD_${BOARD}
+)
 
 target_compile_options(
     {{DEPENDENCY_NAME}}
     PUBLIC
-    {{DEPENDENCY_FLAGS}})
+    {{DEPENDENCY_FLAGS}}
+)
 
 target_include_directories(
     {{DEPENDENCY_NAME}}
     PUBLIC
-    "{{DEPENDENCY_PATH}}/include")
+    "{{DEPENDENCY_PATH}}/include"
+)
 
 target_include_directories(
     {{DEPENDENCY_NAME}}
     PRIVATE
-    "{{DEPENDENCY_PATH}}/src")
+    "{{DEPENDENCY_PATH}}/src"
+)
 `
 
 // This for header only desktop dependency
@@ -79,22 +89,26 @@ const DesktopHeader = `add_library({{DEPENDENCY_NAME}} INTERFACE)
 target_compile_definitions(
     {{DEPENDENCY_NAME}}
     INTERFACE
-    {{PRIVATE_DEFINITIONS}})
+    {{PRIVATE_DEFINITIONS}}
+)
 
 target_compile_definitions(
     {{DEPENDENCY_NAME}}
     INTERFACE
-    {{PUBLIC_DEFINITIONS}})
+    {{PUBLIC_DEFINITIONS}}
+)
 
 target_compile_options(
     {{DEPENDENCY_NAME}}
     INTERFACE
-    {{DEPENDENCY_FLAGS}})
+    {{DEPENDENCY_FLAGS}}
+)
 
 target_include_directories(
     {{DEPENDENCY_NAME}}
     INTERFACE
-    "{{DEPENDENCY_PATH}}/include")
+    "{{DEPENDENCY_PATH}}/include"
+)
 `
 
 const DesktopLibrary = `file(GLOB_RECURSE
@@ -106,71 +120,93 @@ const DesktopLibrary = `file(GLOB_RECURSE
 add_library(
     {{DEPENDENCY_NAME}}
     STATIC
-    ${{{DEPENDENCY_NAME}}_files})
+    ${{{DEPENDENCY_NAME}}_files}
+)
 
-set_property(TARGET {{DEPENDENCY_NAME}} PROPERTY CXX_STANDARD {{CXX_STANDARD}})
-set_property(TARGET {{DEPENDENCY_NAME}} PROPERTY C_STANDARD {{C_STANDARD}})
+set_target_properties({{DEPENDENCY_NAME}} PROPERTIES CXX_STANDARD {{CXX_STANDARD}})
+set_target_properties({{DEPENDENCY_NAME}} PROPERTIES C_STANDARD {{C_STANDARD}})
 
 target_compile_definitions(
     {{DEPENDENCY_NAME}}
     PRIVATE
-    {{PRIVATE_DEFINITIONS}})
+    {{PRIVATE_DEFINITIONS}}
+)
 
 target_compile_definitions(
     {{DEPENDENCY_NAME}}
     PUBLIC
-    {{PUBLIC_DEFINITIONS}})
+    {{PUBLIC_DEFINITIONS}}
+)
 
 target_compile_definitions(
     {{DEPENDENCY_NAME}}
     PRIVATE
     WIO_PLATFORM_${PLATFORM}
     WIO_FRAMEWORK_${FRAMEWORK}
-    WIO_OS_${OS})
+    WIO_OS_${OS}
+)
 
 target_compile_options(
     {{DEPENDENCY_NAME}}
     PUBLIC
-    {{DEPENDENCY_FLAGS}})
+    {{DEPENDENCY_FLAGS}}
+)
 
 target_include_directories(
     {{DEPENDENCY_NAME}}
     PRIVATE
-    "{{DEPENDENCY_PATH}}/src")
+    "{{DEPENDENCY_PATH}}/src"
+)
 
 target_include_directories(
     {{DEPENDENCY_NAME}}
     PUBLIC
-    "{{DEPENDENCY_PATH}}/include")
+    "{{DEPENDENCY_PATH}}/include"
+)
 `
 
-const SharedLibraryFind = `find_library(
-    LIB_{{SHARED_LIB_NAME}}
-    {{SHARED_LIB_NAME_ORG}}
-    PATHS "{{SHARED_LIB_PATH}}"
-    {{SHARED_LIB_REQUIRED}})
+const LibraryFind = `find_library(
+    {{LIB_NAME_VAR}}
+    {{LIB_NAME}}
+    {{LIB_HINTS}}
+    {{LIB_PATHS}}
+    {{LIB_REQUIRED}}
+)
+
+if ({{LIB_NAME_VAR}}-NOTFOUND)
+    message(FATAL_ERROR "{{LIB_NAME}} library not found")
+endif()
 `
 
-const SharedLibraryGlobalFind = `find_package(
-    {{SHARED_LIB_NAME}}
-    {{SHARED_LIB_VERSION}}
-    COMPONENTS {{SHARED_LIB_REQUIRED_COMPONENTS}}
-    OPTIONAL_COMPONENTS {{SHARED_LIB_OPTIONAL_COMPONENTS}}
-    {{SHARED_LIB_REQUIRED}})
-`
-
-const SharedLibraryInclude = `target_include_directories(
-    {{TARGET_NAME}}
+const LibraryInclude = `target_include_directories(
+    {{LIB_NAME_VAR}}
     PRIVATE
-    "{{SHARED_LIB_INCLUDE_PATH}}")
+    "{{LIB_INCLUDE_PATHS}}"
+)
+`
+
+const LibraryPackageFind = `find_package(
+    {{LIB_NAME}}
+    {{LIB_VERSION}}
+    {{LIB_HINTS}}
+    {{LIB_PATHS}}
+    COMPONENTS {{LIB_REQUIRED_COMPONENTS}}
+    OPTIONAL_COMPONENTS {{LIB_OPTIONAL_COMPONENTS}}
+    {{LIB_REQUIRED}}
+)
+
+if (NOT {{LIB_NAME}}_FOUND)
+    message(FATAL_ERROR "{{LIB_NAME}} library not found")
+endif()
 `
 
 /////////////////////////////////////////////// Linking ////////////////////////////////////////////
 
 // This is for linking dependencies
 const LinkString = `target_link_libraries(
-    {{LINKER_NAME}}
+    {{LINK_FROM}}
     {{LINK_VISIBILITY}}
-    {{DEPENDENCY_NAME}}
-    {{LINKER_FLAGS}})
+    {{LINK_TO}}
+    {{LINKER_FLAGS}}
+)
 `

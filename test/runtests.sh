@@ -4,7 +4,7 @@ set -e
 
 test_folder="wio-test"
 base_folder=$(pwd)
-num_tests=18
+num_tests=22
 
 # Check that working directory contains script
 if [ ! -f $(pwd)/`basename "${0}"` ]; then
@@ -32,7 +32,7 @@ _test1() {
     cd ${test_folder}
     rm wio.yml
     wio create pkg --platform native --only-config
-    wio build
+    wio build --all
     wio run
 }
 
@@ -41,7 +41,7 @@ _test2() {
     cd ${test_folder}
     rm wio.yml
     wio create pkg --platform native --only-config
-    wio build
+    wio build --all
     wio run
 }
 
@@ -49,7 +49,7 @@ _test3() {
     cd ./project-pkg/pkg-malloc
     wio clean --hard
     wio update
-    wio build
+    wio build --all
     wio run
     wio clean
 }
@@ -58,7 +58,7 @@ _test4() {
     cd ./project-pkg/pkg-uart
     wio clean --hard
     wio update
-    wio build
+    wio build --all
     wio clean --hard
 }
 
@@ -67,9 +67,8 @@ _test5() {
     wio clean --all --hard
     wio update --verbose
     wio build --all
-    wio clean native-tests --verbose
-    wio build native-tests --disable-warnings
-    wio build avr-tests
+    wio clean --all --verbose
+    wio build --all --disable-warnings
     wio run native-tests
 }
 
@@ -77,21 +76,21 @@ _test6() {
     cd ./project-pkg/pkg-trace
     wio clean --hard
     wio update
-    wio build cosa-tests
+    wio build --all
 }
 
 _test7() {
     cd ./project-app/app-avr
     wio clean --hard
     wio update
-    wio build
+    wio build --all
 }
 
 _test8() {
     cd ./project-app/app-pipe
     wio clean --hard
     wio update
-    wio build
+    wio build --all
     wio run main --args "cat wio.yml"
 }
 
@@ -99,21 +98,21 @@ _test9() {
     cd ./project-app/app-stdout
     wio clean --hard
     wio update
-    wio build
+    wio build --all
     wio run main --args "15 7"
 }
 
 _test10() {
     cd ./project-app/app-alloc/vendor/alloc-one
     wio clean --hard
-    wio build
+    wio build --all
     wio run
 }
 
 _test11() {
     cd ./project-app/app-alloc/vendor/alloc-two
     wio clean --hard
-    wio build
+    wio build --all
     wio run
 }
 
@@ -121,7 +120,7 @@ _test12() {
     cd ./project-app/app-alloc
     wio clean --hard
     wio update
-    wio build
+    wio build --all
     wio run
 }
 
@@ -137,9 +136,7 @@ _test14() {
     wio clean arduino --hard
     wio clean cosa --hard
     wio update
-    wio build native
-    wio build arduino
-    wio build cosa
+    wio build --all
     wio run native
 }
 
@@ -149,7 +146,7 @@ _test15() {
     cd ../../
     wio clean --hard
     wio update
-    wio build
+    wio build --all
     export DYLD_LIBRARY_PATH=$DYLD_LIBRARY_PATH:$(pwd)/shared/honly
     export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$(pwd)/shared/honly
     wio run
@@ -161,7 +158,7 @@ _test16() {
     cd ../../../../
     wio clean --hard
     wio update
-    wio build
+    wio build --all
     export DYLD_LIBRARY_PATH=$DYLD_LIBRARY_PATH:$(pwd)/vendor/pkg-shared/shared/honly
     export LD_LIBRARY_PATH=$DYLD_LIBRARY_PATH:$(pwd)/vendor/pkg-shared/shared/honly
 }
@@ -184,7 +181,50 @@ _test17() {
     echo "    - WLIB_TLSF_LOG2_DIV=4" >> wio.yml
     echo "    - WLIB_TLSF_LOG2_ALIGN=$align" >> wio.yml
     echo "    - WLIB_TLSF_LOG2_MAX=10" >> wio.yml
-    wio build
+    wio build --all
+}
+
+_test18() {
+    cd ./project-app/app-pthread
+    wio clean --hard
+    wio update
+    wio build --all
+    wio run
+}
+
+_test19() {
+    cd ./project-app/app-osspecific
+    wio clean --hard
+    wio update
+    wio build --all
+    wio run
+}
+
+_test20() {
+    cd ./project-pkg/pkg-ingest
+    wio clean test1 test2 --hard
+    wio update
+    wio build --all
+    wio run test1
+    wio run test2
+}
+
+_test21() {
+    cd ./project-app/app-linker
+    wio clean --hard
+    wio update
+    wio install
+    wio build --all
+    wio run
+}
+
+_test22() {
+    cd ./project-pkg/pkg-placeholder
+    wio clean --hard
+    wio update
+    wio build --all
+    wio run test-deep
+    wio run test-jeff
 }
 
 _test18() {

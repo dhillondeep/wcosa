@@ -122,11 +122,11 @@ func dispatchCmakeDependencies(info *runInfo, target types.Target) error {
     }
     cmakePath = sys.Path(cmakePath, "dependencies.cmake")
 
-    buildTargets, sharedTargets, err := dependencies.CreateBuildTargets(info.directory, target)
+    buildTargets, libraryTargets, err := dependencies.CreateBuildTargets(info.directory, target)
     if err != nil {
         return err
     } else {
-        err := dependencies.GenerateCMakeDependencies(cmakePath, target.GetPlatform(), buildTargets, sharedTargets)
+        err := dependencies.GenerateCMakeDependencies(cmakePath, target.GetPlatform(), buildTargets, libraryTargets)
         if err != nil {
             return err
         }

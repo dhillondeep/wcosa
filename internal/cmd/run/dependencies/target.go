@@ -19,19 +19,19 @@ type TargetLinkInfo struct {
 }
 
 type Target struct {
-    Name              string
-    Version           string
-    Path              string
-    FromVendor        bool
-    HeaderOnly        bool
-    Flags             []string
-    Definitions       map[string][]string
-    CXXStandard       string
-    CStandard         string
-    hashValue         string
-    SharedIncludePath string
-    ParentPath        string
-    SharedTarget      types.Library
+    Name        string
+    Version     string
+    Path        string
+    FromVendor  bool
+    HeaderOnly  bool
+    Flags       []string
+    Definitions map[string][]string
+    CXXStandard string
+    CStandard   string
+    hashValue   string
+    ParentPath  string
+
+    Library types.Library
 }
 
 type TargetSet struct {
@@ -57,7 +57,7 @@ func NewTargetSet() *TargetSet {
 }
 
 // Add Target values to TargetSet
-func (targetSet *TargetSet) Add(value *Target) {
+func (targetSet *TargetSet) Add(value *Target, isLibrary bool) {
     value.hashValue = value.hash()
 
     if dupTarget, exists := targetSet.tMap[value.hashValue]; !exists {
@@ -73,10 +73,23 @@ func (targetSet *TargetSet) Add(value *Target) {
         }
 
         value.Name += "__" + strconv.Itoa(namePostfix)
+        if isLibrary {
+            value.Name = "LIB__" + value.Name
+        }
+
         targetSet.tMap[value.hashValue] = value
     } else {
         // use name of previous target with same config
         value.Name = dupTarget.Name
+    }
+}
+
+func GetOriginalName(target *Target, isLibrary bool) string {
+    if isLibrary {
+        newStr := strings.Split(target.Name, "__")[1]
+        return strings.Replace(newStr, "LIB__"+newStr, "", 1)
+    } else {
+        return strings.Split(target.Name, "__")[0]
     }
 }
 

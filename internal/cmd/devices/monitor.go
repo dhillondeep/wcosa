@@ -112,7 +112,7 @@ func HandleMonitor(baud int, portDefined bool, portProvided string) error {
 
     if !portDefined {
         if port == nil {
-            return util.Error("failed to automatically detect AVR port")
+            return util.Error("failed to automatically detect Serial Port")
         } else {
             portToUse = port.Name()
         }

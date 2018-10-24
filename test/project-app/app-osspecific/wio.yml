@@ -1,0 +1,22 @@
+type: app
+
+project:
+  name: app-osspecific
+  version: 0.0.1
+  keywords:
+  - wio
+  - app
+  compile_options:
+    wio_version: 0.5.2
+    default_target: main
+
+targets:
+  main:
+    src: src
+    platform: native
+    definitions:
+      target:
+      - $windows(-DHello=2)
+      - $linux(-DHello=3)
+      - $darwin(-DHello=4)
+

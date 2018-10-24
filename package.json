@@ -1,6 +1,6 @@
 {
   "name": "wio",
-  "version": "0.5.2",
+  "version": "0.6.0",
   "description": "An IOT Development Environment",
   "main": "index.js",
   "scripts": {

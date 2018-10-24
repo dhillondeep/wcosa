@@ -60,3 +60,7 @@ wmake build
 
 ## Contributing
 If you are interested in working on wio, you can read [contribution document](https://github.com/wio/wio/blob/master/CONTRIBUTING.md) and add features/fixes.
+
+## Development
+Well is still in beta and is being actively developed. You can check the changelogs in [`changelog` directory](https://github.com/wio/wio/blob/master/changelogs)
+

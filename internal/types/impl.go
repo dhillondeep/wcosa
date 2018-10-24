@@ -1,5 +1,34 @@
 package types
 
+import (
+    "regexp"
+    "strings"
+    "wio/pkg/util/sys"
+)
+
+// resolves operating system specific flags and definitions
+func resolveOSSpecific(texts []string) []string {
+    if len(texts) == 0 {
+        return texts
+    }
+    os := sys.GetOS()
+    var newTexts []string
+    for _, text := range texts {
+        operatingSystemMath := regexp.MustCompile(
+            `^\$(darwin|windows|linux)\(([a-z_\-$()\s=0-9]*\)|((?:[^/]*)*)(.*))$`)
+        if operatingSystemMath.MatchString(strings.ToLower(text)) {
+            if strings.Contains(text, "$"+os+"(") {
+                newFlag := strings.Replace(text, "$"+os+"(", "", 1)
+                newFlag = newFlag[:len(newFlag)-1]
+                newTexts = append(newTexts, strings.Split(newFlag, " ")...)
+            }
+        } else {
+            newTexts = append(newTexts, text)
+        }
+    }
+    return newTexts
+}
+
 type PropertiesImpl struct {
     Global  []string `yaml:"global,omitempty"`
     Target  []string `yaml:"target,omitempty"`
@@ -10,21 +39,21 @@ func (p *PropertiesImpl) GetGlobal() []string {
     if p == nil {
         return []string{}
     }
-    return p.Global
+    return resolveOSSpecific(p.Global)
 }
 
 func (p *PropertiesImpl) GetTarget() []string {
     if p == nil {
         return []string{}
     }
-    return p.Target
+    return resolveOSSpecific(p.Target)
 }
 
 func (p *PropertiesImpl) GetPackage() []string {
     if p == nil {
         return []string{}
     }
-    return p.Package
+    return resolveOSSpecific(p.Package)
 }
 
 type TargetImpl struct {
@@ -34,8 +63,8 @@ type TargetImpl struct {
     Board       string          `yaml:"board,omitempty"`
     Flags       *PropertiesImpl `yaml:"flags,omitempty"`
     Definitions *PropertiesImpl `yaml:"definitions,omitempty"`
-
-    name string
+    LinkerFlags []string        `yaml:"linker_flags,omitempty"`
+    name        string
 }
 
 func (t *TargetImpl) GetSource() string {
@@ -74,6 +103,10 @@ func (t *TargetImpl) GetDefinitions() Properties {
     return t.Definitions
 }
 
+func (t *TargetImpl) GetLinkerFlags() []string {
+    return resolveOSSpecific(t.LinkerFlags)
+}
+
 func (t *TargetImpl) GetName() string {
     return t.name
 }
@@ -83,19 +116,19 @@ func (t *TargetImpl) SetName(name string) {
 }
 
 type LibraryImpl struct {
-    Global             bool     `yaml:"global"`
+    Package            bool     `yaml:"cmake_package"`
     Version            string   `yaml:"version,omitempty"`
     RequiredComponents []string `yaml:"required_components,omitempty"`
     OptionalComponents []string `yaml:"optional_components,omitempty"`
     Required           bool     `yaml:"required,omitempty"`
-    Path               string   `yaml:"lib_path,omitempty"`
-    IncludePath        string   `yaml:"include_path,omitempty"`
+    Path               []string `yaml:"lib_path,omitempty"`
+    IncludePath        []string `yaml:"include_path,omitempty"`
     LinkerVisibility   string   `yaml:"linker_visibility,omitempty"`
     LinkerFlags        []string `yaml:"linker_flags,omitempty"`
 }
 
-func (l *LibraryImpl) GetGlobal() bool {
-    return l.Global
+func (l *LibraryImpl) IsCmakePackage() bool {
+    return l.Package
 }
 
 func (l *LibraryImpl) GetVersion() string {
@@ -110,16 +143,16 @@ func (l *LibraryImpl) GetOptionalComponents() []string {
     return l.OptionalComponents
 }
 
-func (l *LibraryImpl) GetRequired() bool {
+func (l *LibraryImpl) IsRequired() bool {
     return l.Required
 }
 
-func (l *LibraryImpl) GetPath() string {
-    return l.Path
+func (l *LibraryImpl) GetPath() []string {
+    return resolveOSSpecific(l.Path)
 }
 
-func (l *LibraryImpl) GetIncludePath() string {
-    return l.IncludePath
+func (l *LibraryImpl) GetIncludePath() []string {
+    return resolveOSSpecific(l.IncludePath)
 }
 
 func (l *LibraryImpl) GetLinkerVisibility() string {
@@ -127,7 +160,7 @@ func (l *LibraryImpl) GetLinkerVisibility() string {
 }
 
 func (l *LibraryImpl) GetLinkerFlags() []string {
-    return l.LinkerFlags
+    return resolveOSSpecific(l.LinkerFlags)
 }
 
 type DependencyImpl struct {
@@ -148,15 +181,15 @@ func (d *DependencyImpl) GetVisibility() string {
 }
 
 func (d *DependencyImpl) GetCompileFlags() []string {
-    return d.CompileFlags
+    return resolveOSSpecific(d.CompileFlags)
 }
 
 func (d *DependencyImpl) GetLinkerFlags() []string {
-    return d.LinkerFlags
+    return resolveOSSpecific(d.LinkerFlags)
 }
 
 func (d *DependencyImpl) GetDefinitions() []string {
-    return d.Definitions
+    return resolveOSSpecific(d.Definitions)
 }
 
 func (d *DependencyImpl) IsVendor() bool {
@@ -188,7 +221,7 @@ func (o *OptionsImpl) GetDefault() string {
 }
 
 func (o *OptionsImpl) GetFlags() []string {
-    return o.Flags
+    return resolveOSSpecific(o.Flags)
 }
 
 type DefinitionSetImpl struct {
@@ -200,14 +233,14 @@ func (d *DefinitionSetImpl) GetPublic() []string {
     if d == nil {
         return []string{}
     }
-    return d.Public
+    return resolveOSSpecific(d.Public)
 }
 
 func (d *DefinitionSetImpl) GetPrivate() []string {
     if d == nil {
         return []string{}
     }
-    return d.Private
+    return resolveOSSpecific(d.Private)
 }
 
 type DefinitionsImpl struct {
@@ -215,6 +248,7 @@ type DefinitionsImpl struct {
     Global    *DefinitionSetImpl `yaml:"global,omitempty"`
     Required  *DefinitionSetImpl `yaml:"required,omitempty"`
     Optional  *DefinitionSetImpl `yaml:"optional,omitempty"`
+    Ingest    *DefinitionSetImpl `yaml:"ingest,omitempty"`
 }
 
 func (d *DefinitionsImpl) IsSingleton() bool {
@@ -222,6 +256,13 @@ func (d *DefinitionsImpl) IsSingleton() bool {
         return false
     }
     return d.Singleton
+}
+
+func (d *DefinitionsImpl) GetIngest() DefinitionSet {
+    if d == nil {
+        return &DefinitionSetImpl{}
+    }
+    return d.Ingest
 }
 
 func (d *DefinitionsImpl) GetGlobal() DefinitionSet {
