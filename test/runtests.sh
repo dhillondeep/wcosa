@@ -231,7 +231,7 @@ _test18() {
     cd ./project-app/app-pthread
     wio clean --hard
     wio update
-    wio build
+    wio build --all
     wio run
 }
 
@@ -239,7 +239,7 @@ _test19() {
     cd ./project-app/app-osspecific
     wio clean --hard
     wio update
-    wio build
+    wio build --all
     wio run
 }
 
@@ -247,7 +247,7 @@ _test20() {
     cd ./project-pkg/pkg-ingest
     wio clean test1 test2 --hard
     wio update
-    wio build test1 test2
+    wio build --all
     wio run test1
     wio run test2
 }
@@ -257,8 +257,17 @@ _test21() {
     wio clean --hard
     wio update
     wio install
-    wio build
+    wio build --all
     wio run
+}
+
+_test22() {
+    cd ./project-pkg/pkg-placeholder
+    wio clean --hard
+    wio update
+    wio build --all
+    wio run test-deep
+    wio run test-jeff
 }
 
 # Source and build

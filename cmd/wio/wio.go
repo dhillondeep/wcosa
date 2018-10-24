@@ -86,10 +86,6 @@ var cleanFlags = []cli.Flag{
 }
 
 var runFlags = []cli.Flag{
-    cli.BoolFlag{
-        Name:  "all",
-        Usage: "Run all available targets",
-    },
     cli.StringFlag{
         Name:  "port",
         Usage: "Specify upload port.",
