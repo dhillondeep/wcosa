@@ -87,13 +87,22 @@ func GeneratePackage(dir string, data *npm.Version) error {
         }
     }
 
-    ignorePaths := append(data.IgnorePaths, sys.Path(dir, `\.+.+`))
     var ignorePathsReg []*regexp.Regexp
+    for _, ignorePath := range data.IgnorePaths {
+        isDir, err := sys.IsDir(ignorePath)
+        if err != nil {
+            return err
+        }
 
-    for _, ignorePath := range ignorePaths {
+        if isDir {
+            ignorePath = sys.Path(ignorePath, "*")
+        }
+
         ignorePathsReg = append(ignorePathsReg, regexp.MustCompile(
             strings.Replace(ignorePath, "/", `\/`, -1)))
     }
+
+    ignorePathsReg = append(ignorePathsReg, regexp.MustCompile(sys.Path(dir, `\.+.+`)))
 
     if err := filepath.Walk(dir, func(path string, info os.FileInfo, err error) error {
         if err != nil {
@@ -164,6 +173,6 @@ func VersionData(dir string, cfg types.Config) (*npm.Version, error) {
         Homepage:     info.GetHomepage(),
         Repository:   info.GetRepository(),
 
-        IgnorePaths: info.GetIgnorePaths(),
+        IgnorePaths: info.GetIgnoreFiles(),
     }, nil
 }

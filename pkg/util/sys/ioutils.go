@@ -161,3 +161,14 @@ func Copy(src string, dst string) error {
     }
     return nil
 }
+
+// Checks if the give path is a director and based on the returns
+// true or false. If path does not exist, it throws an error
+func IsDir(path string) (bool, error) {
+    fi, err := os.Stat(path)
+    if err != nil {
+        return false, err
+    }
+
+    return fi.IsDir(), nil
+}
