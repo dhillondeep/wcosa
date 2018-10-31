@@ -9,6 +9,8 @@ import (
     "math/rand"
     "os"
     "path/filepath"
+    "regexp"
+    "strings"
     "time"
     "wio/internal/constants"
     "wio/internal/types"
@@ -84,17 +86,43 @@ func GeneratePackage(dir string, data *npm.Version) error {
             return err
         }
     }
-    copies := []string{"include", "src", "wio.yml", "README.md"}
-    for _, copy := range copies {
-        fullPath := sys.Path(dir, copy)
-        if (copy == "src" || copy == "README.md") && !sys.Exists(fullPath) {
-            continue
+
+    ignorePaths := append(data.IgnorePaths, sys.Path(dir, `\.+.+`))
+    var ignorePathsReg []*regexp.Regexp
+
+    for _, ignorePath := range ignorePaths {
+        ignorePathsReg = append(ignorePathsReg, regexp.MustCompile(
+            strings.Replace(ignorePath, "/", `\/`, -1)))
+    }
+
+    if err := filepath.Walk(dir, func(path string, info os.FileInfo, err error) error {
+        if err != nil {
+            return err
+        } else if path == dir {
+            return nil
         }
 
-        if err := sys.Copy(fullPath, sys.Path(pkg, copy)); err != nil {
+        // ignore all the paths specified
+        for _, ignorePathReg := range ignorePathsReg {
+            if ignorePathReg.MatchString(path) {
+                return nil
+            }
+        }
+
+        relPath, err := filepath.Rel(dir, path)
+        if err != nil {
             return err
         }
+
+        if err := sys.Copy(path, sys.Path(pkg, relPath)); err != nil {
+            return err
+        }
+
+        return nil
+    }); err != nil {
+        return err
     }
+
     return nil
 }
 
@@ -135,5 +163,7 @@ func VersionData(dir string, cfg types.Config) (*npm.Version, error) {
         License:      info.GetLicense(),
         Homepage:     info.GetHomepage(),
         Repository:   info.GetRepository(),
+
+        IgnorePaths: info.GetIgnorePaths(),
     }, nil
 }

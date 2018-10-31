@@ -88,6 +88,7 @@ type Info interface {
     GetBugs() string
     GetContributors() []string
     GetKeywords() []string
+    GetIgnorePaths() []string
 
     GetOptions() Options
     GetDefinitions() Definitions
