@@ -43,7 +43,7 @@ func CreateWioRoot() error {
     // create environment file if it does not exist
     wioInternalConfigPaths.EnvFilePath = sys.Path(wioInternalConfigPaths.WioUserPath, constants.RootEnv)
     if !sys.Exists(wioInternalConfigPaths.EnvFilePath) {
-        if err := CreateEnv(wioInternalConfigPaths.EnvFilePath); err != nil {
+        if err := CreateEnv(); err != nil {
             return err
         }
     }
@@ -52,7 +52,7 @@ func CreateWioRoot() error {
 }
 
 // Creates environment and overrides if there is an old environment
-func CreateEnv(envFilePath string) error {
+func CreateEnv() error {
     wioRoot, err := sys.NormalIO.GetRoot()
     if err != nil {
         return err
@@ -64,7 +64,7 @@ func CreateEnv(envFilePath string) error {
     }
 
     // create wio.env file
-    if err := godotenv.Write(envs, envFilePath); err != nil {
+    if err := godotenv.Write(envs, GetEnvFilePath()); err != nil {
         return err
     }
 

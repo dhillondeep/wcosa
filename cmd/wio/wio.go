@@ -10,6 +10,7 @@ package main
 import (
     "os"
     "time"
+    "wio/internal/cmd/env"
     "wio/internal/executor"
 
     "wio/internal/cmd"
@@ -267,6 +268,37 @@ var commands = []cli.Command{
         Flags:     append(monitorFlags, appWideFlags...),
         Action: func(c *cli.Context) {
             command = devices.Devices{Context: c, Type: devices.MONITOR}
+        },
+    },
+    {
+        Name:      "env",
+        Usage:     "Wio global environment variables.",
+        UsageText: "wio env [command options]",
+        Subcommands: cli.Commands{
+            cli.Command{
+                Name:      "reset",
+                Usage:     "Resets environment variables to default",
+                UsageText: "wio env reset [command options]",
+                Action: func(c *cli.Context) {
+                    command = env.Env{Context: c, Command: env.RESET}
+                },
+            },
+            cli.Command{
+                Name:      "set",
+                Usage:     "Modifies the environment variable or adds a new one (name=value or name).",
+                UsageText: "wio env set [vars...] [command options]",
+                Action: func(c *cli.Context) {
+                    command = env.Env{Context: c, Command: env.SET}
+                },
+            },
+            cli.Command{
+                Name:      "unset",
+                Usage:     "Removes the environment variable.",
+                UsageText: "wio env unset [vars...] [command options]",
+                Action: func(c *cli.Context) {
+                    command = env.Env{Context: c, Command: env.UNSET}
+                },
+            },
         },
     },
 }
