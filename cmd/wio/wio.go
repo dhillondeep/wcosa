@@ -10,6 +10,7 @@ package main
 import (
     "os"
     "time"
+    "wio/internal/executor"
 
     "wio/internal/cmd"
     "wio/internal/cmd/create"
@@ -321,9 +322,16 @@ func wio() error {
 }
 
 func main() {
-    err := wio()
-    if err != nil {
-        log.Errln(err.Error())
-        os.Exit(1)
+    errorHandle := func(err error) {
+        if err != nil {
+            log.Errln(err.Error())
+            os.Exit(1)
+        }
     }
+
+    // startup
+    errorHandle(executor.ExecuteStartup())
+
+    // wio stuff
+    errorHandle(wio())
 }
