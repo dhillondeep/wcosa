@@ -315,7 +315,7 @@ type InfoImpl struct {
     Bugs         string   `yaml:"bugs,omitempty"`
     Contributors []string `yaml:"contributors,omitempty"`
     Keywords     []string `yaml:"keywords,omitempty"`
-    IgnorePaths  []string `yaml:"ignore_files,omitempty"`
+    IgnoreFiles  []string `yaml:"ignore_files,omitempty"`
 
     Options     *OptionsImpl     `yaml:"compile_options"`
     Definitions *DefinitionsImpl `yaml:"definitions,omitempty"`
@@ -361,8 +361,8 @@ func (i *InfoImpl) GetKeywords() []string {
     return i.Keywords
 }
 
-func (i *InfoImpl) GetIgnorePaths() []string {
-    return i.IgnorePaths
+func (i *InfoImpl) GetIgnoreFiles() []string {
+    return i.IgnoreFiles
 }
 
 func (i *InfoImpl) GetOptions() Options {
