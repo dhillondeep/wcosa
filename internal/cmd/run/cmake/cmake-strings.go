@@ -180,7 +180,7 @@ endif()
 
 const LibraryInclude = `target_include_directories(
     {{LIB_NAME_VAR}}
-    PRIVATE
+    {{INCLUDE_VISIBILITY}}
     "{{LIB_INCLUDE_PATHS}}"
 )
 `
@@ -202,6 +202,33 @@ endif()
 
 /////////////////////////////////////////////// Linking ////////////////////////////////////////////
 
+const LibraryLinkImportedTargets = `set({{LIB_NAME}}_REQUIRED_COMPONENTS {{LIB_REQUIRED_COMPONENTS}})
+set({{LIB_NAME}}_OPTIONAL_COMPONENTS {{LIB_OPTIONAL_COMPONENTS}})
+GET_IMPORTED_TARGETS({{LIB_NAME}} {{LIB_NAME}}_REQUIRED_COMPONENTS {{LIB_NAME}}_REQUIRED_IMPORTED_TARGETS)
+GET_IMPORTED_TARGETS({{LIB_NAME}} {{LIB_NAME}}_OPTIONAL_COMPONENTS {{LIB_NAME}}_OPTIONAL_IMPORTED_TARGETS)
+
+target_link_libraries(
+    {{LINK_FROM}}
+    {{LINK_VISIBILITY}}
+    ${{{LIB_NAME}}_REQUIRED_IMPORTED_TARGETS} ${{{LIB_NAME}}_OPTIONAL_IMPORTED_TARGETS}
+    {{LINKER_FLAGS}}
+)
+`
+
+const LibraryLink = `target_include_directories(
+    {{LINK_FROM}}
+    {{INCLUDE_VISIBILITY}}
+    {{LIB_INCLUDE_PATHS}}
+)
+
+target_link_libraries(
+    {{LINK_FROM}}
+    {{LINK_VISIBILITY}}
+    {{LINK_TO}}
+    {{LINKER_FLAGS}}
+)
+`
+
 // This is for linking dependencies
 const LinkString = `target_link_libraries(
     {{LINK_FROM}}
@@ -209,4 +236,16 @@ const LinkString = `target_link_libraries(
     {{LINK_TO}}
     {{LINKER_FLAGS}}
 )
+`
+
+/////////////////////////////////////////////// Macros ////////////////////////////////////////////
+
+const ImportedTargetsMacro = `macro(GET_IMPORTED_TARGETS library components imported_targets)
+    set(${imported_targets})
+    foreach(component ${${components}})
+        if (TARGET "${library}::${component}")
+            list(APPEND ${imported_targets} "${library}::${component}")
+        endif()
+    endforeach()
+endmacro()
 `

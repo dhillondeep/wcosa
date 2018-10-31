@@ -27,6 +27,7 @@ var libraryStrings = map[string]map[bool]string{
 // This creates CMake dependency string using build targets that will be used to link dependencies
 func GenerateCMakeDependencies(cmakePath string, platform string, dependencies *TargetSet, libraries *TargetSet) error {
     cmakeStrings := make([]string, 0, 256)
+    cmakeStrings = append(cmakeStrings, cmake.ImportedTargetsMacro+"\n")
 
     // joins the slice or if empty puts a cmake comment
     cmakeSliceJoin := func(slice []string, message string) string {
@@ -46,38 +47,39 @@ func GenerateCMakeDependencies(cmakePath string, platform string, dependencies *
         }
     }
 
-    // fills $(PROJECT_PATH) with path of the project
-    fillPaths := func(paths []string, replacePath string) []string {
-        var newPaths []string
-        for _, path := range paths {
-            newPaths = append(newPaths, strings.Replace(path, "$(PROJECT_PATH)", replacePath, -1))
-        }
-
-        return newPaths
-    }
-
     // create cmake targets for libraries
     for library := range libraries.TargetIterator() {
         var finalString string
+        libOriginalName := GetOriginalName(library, true)
         configLibrary := library.Library
+
+        for variableName, variableValue := range configLibrary.GetVariables() {
+            finalString += fmt.Sprintf("set(%s %s)\n", variableName, variableValue)
+        }
 
         // Find<LIB_NAME>.cmake file exists for the library
         if configLibrary.IsCmakePackage() {
-            finalString = template.Replace(cmake.LibraryPackageFind, map[string]string{
+            if len(configLibrary.GetPath()) > 0 {
+                finalString += fmt.Sprintf("list(APPEND CMAKE_MODULE_PATH %s CACHE FORCE)", configLibrary.GetPath())
+                finalString += "\n" + cmake.LibraryPackageFind
+            } else {
+                finalString += cmake.LibraryPackageFind
+            }
+
+            finalString = template.Replace(finalString, map[string]string{
                 "LIB_VERSION": configLibrary.GetVersion(),
                 "LIB_REQUIRED_COMPONENTS": cmakeSliceJoin(configLibrary.GetRequiredComponents(),
                     "no required components"),
-                "LIB_OPTIONAL_COMPONENTS": cmakeSliceJoin(configLibrary.GetRequiredComponents(),
+                "LIB_OPTIONAL_COMPONENTS": cmakeSliceJoin(configLibrary.GetOptionalComponents(),
                     "no optional components"),
             })
         } else {
-            finalString = cmake.LibraryFind
+            finalString += cmake.LibraryFind
         }
 
         pathHintsCMake := func(prefix string) string {
-            if len(configLibrary.GetPath()) > 0 {
-                return prefix + " " + cmakeSliceJoin(fillPaths(configLibrary.GetPath(), library.ParentPath),
-                    "no path/hint provided")
+            if len(configLibrary.GetLibPath()) > 0 {
+                return prefix + " " + cmakeSliceJoin(configLibrary.GetLibPath(), "no path/hint provided")
             } else {
                 return "# no path/hint provided"
             }
@@ -85,7 +87,7 @@ func GenerateCMakeDependencies(cmakePath string, platform string, dependencies *
 
         finalString = template.Replace(finalString, map[string]string{
             "LIB_NAME_VAR": library.Name,
-            "LIB_NAME":     GetOriginalName(library, true),
+            "LIB_NAME":     libOriginalName,
             "LIB_PATHS":    pathHintsCMake("PATHS"),
             "LIB_HINTS":    pathHintsCMake("HINTS"),
             "LIB_REQUIRED": func() string {
@@ -121,46 +123,70 @@ func GenerateCMakeDependencies(cmakePath string, platform string, dependencies *
     for libraryLink := range libraries.LinkIterator() {
         var finalString string
         configLibrary := libraryLink.To.Library
+        toOriginalName := GetOriginalName(libraryLink.To, true)
 
-        // include headers for non package library
-        if !configLibrary.IsCmakePackage() {
-            finalString = template.Replace(cmake.LibraryInclude, map[string]string{
-                "LIB_NAME_VAR": libraryLink.From.Name,
-                "LIB_INCLUDE_PATHS": cmakeSliceJoin(fillPaths(configLibrary.GetIncludePath(), libraryLink.To.ParentPath),
-                    "no include paths provided"),
+        if configLibrary.IsCmakePackage() && configLibrary.UseImportedTargets() {
+            finalString = template.Replace(cmake.LibraryLinkImportedTargets, map[string]string{
+                "LIB_NAME": toOriginalName,
+                "LIB_REQUIRED_COMPONENTS": func() string {
+                    var requiredComps []string
+                    if len(configLibrary.GetRequiredComponents()) <= 0 {
+                        requiredComps = append(requiredComps, toOriginalName, strings.ToLower(toOriginalName),
+                            strings.ToUpper(toOriginalName), strings.Title(toOriginalName))
+                    } else {
+                        requiredComps = configLibrary.GetRequiredComponents()
+                    }
+
+                    return strings.Join(requiredComps, " ")
+                }(),
+                "LIB_OPTIONAL_COMPONENTS": strings.Join(configLibrary.GetOptionalComponents(), " "),
             })
-
-            cmakeStrings = append(cmakeStrings, finalString)
+        } else {
+            finalString = cmake.LibraryLink
         }
+
+        libIncludeVisibility := types.Private
 
         if libraryLink.From.HeaderOnly {
             libraryLink.LinkInfo.Visibility = types.Interface
+            libIncludeVisibility = types.Interface
         } else if strings.Trim(libraryLink.LinkInfo.Visibility, " ") == "" {
             libraryLink.LinkInfo.Visibility = types.Private
         }
 
-        finalString = template.Replace(cmake.LinkString, map[string]string{
-            "LINK_FROM":       libraryLink.From.Name,
+        finalString = template.Replace(finalString, map[string]string{
+            "LINK_FROM":          libraryLink.From.Name,
+            "INCLUDE_VISIBILITY": libIncludeVisibility,
+            "LIB_INCLUDE_PATHS": func() string {
+                if configLibrary.IsCmakePackage() {
+                    if strings.Trim(configLibrary.GetIncludesTag(), " ") != "" {
+                        return fmt.Sprintf("${%s}", configLibrary.GetIncludesTag())
+                    } else {
+                        return fmt.Sprintf("${%s_INCLUDE_DIR} ${%s_INCLUDE_DIR} ${%s_INCLUDE_DIR} ${%s_INCLUDE_DIR}",
+                            toOriginalName, strings.ToLower(toOriginalName),
+                            strings.ToUpper(toOriginalName), strings.Title(toOriginalName))
+                    }
+                } else {
+                    return cmakeSliceJoin(configLibrary.GetIncludePath(), "no include paths provided")
+                }
+            }(),
             "LINK_VISIBILITY": libraryLink.LinkInfo.Visibility,
             "LINK_TO": func() string {
-                if !configLibrary.IsCmakePackage() {
-                    return fmt.Sprintf("${%s}", libraryLink.To.Name)
-                }
-
-                fromOriginalName := GetOriginalName(libraryLink.To, true)
-
-                if len(configLibrary.GetRequiredComponents()) > 0 {
-                    var str string
-                    for _, component := range configLibrary.GetRequiredComponents() {
-                        str += fromOriginalName + "::" + component + " "
+                if configLibrary.IsCmakePackage() {
+                    if strings.Trim(configLibrary.GetLibrariesTag(), " ") != "" {
+                        return fmt.Sprintf("${%s}", configLibrary.GetLibrariesTag())
+                    } else {
+                        return fmt.Sprintf("${%s_LIBRARIES} ${%s_LIBRARIES} ${%s_LIBRARIES} ${%s_LIBRARIES}",
+                            toOriginalName, strings.ToLower(toOriginalName),
+                            strings.ToUpper(toOriginalName), strings.Title(toOriginalName))
                     }
-                    return str
                 } else {
-                    return fromOriginalName + "::" + fromOriginalName
+                    return fmt.Sprintf("${%s}", libraryLink.To.Name)
                 }
             }(),
             "LINKER_FLAGS": cmakeSliceJoin(libraryLink.LinkInfo.Flags, "no linker flags provided"),
         })
+
         cmakeStrings = append(cmakeStrings, finalString+"\n")
     }
 
@@ -190,7 +216,7 @@ func CreateBuildTargets(projectDir string, target types.Target) (*TargetSet, *Ta
     libraryTargetSet := NewTargetSet()
 
     i := resolve.NewInfo(projectDir)
-    config, err := types.ReadWioConfig(projectDir)
+    config, err := types.ReadWioConfig(projectDir, true)
     if err != nil {
         return nil, nil, err
     }
@@ -215,7 +241,7 @@ func CreateBuildTargets(projectDir string, target types.Target) (*TargetSet, *Ta
 
             libraryTargetSet.Add(libraryTarget, true)
             libraryTargetSet.Link(parentTarget, libraryTarget, &TargetLinkInfo{
-                Visibility: library.GetLinkerVisibility(),
+                Visibility: library.GetLinkVisibility(),
                 Flags:      library.GetLinkerFlags(),
             })
         }
@@ -234,6 +260,7 @@ func CreateBuildTargets(projectDir string, target types.Target) (*TargetSet, *Ta
                 definitions:    configDependency.GetDefinitions(),
                 linkVisibility: configDependency.GetVisibility(),
                 linkFlags:      configDependency.GetLinkerFlags(),
+                OsSupported:    configDependency.GetOsSupported(),
             }
 
             // all direct dependencies will link to the main target

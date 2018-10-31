@@ -27,23 +27,30 @@ type Target interface {
 
 type Library interface {
     IsCmakePackage() bool
+    UseImportedTargets() bool
     GetVersion() string
+    IsRequired() bool
+    GetVariables() map[string]string
+    GetLibrariesTag() string
+    GetIncludesTag() string
+    GetOsSupported() []string
     GetRequiredComponents() []string
     GetOptionalComponents() []string
-    IsRequired() bool
-    GetPath() []string
+    GetPath() string
+    GetLibPath() []string
     GetIncludePath() []string
-    GetLinkerVisibility() string
+    GetLinkVisibility() string
     GetLinkerFlags() []string
 }
 
 type Dependency interface {
+    IsVendor() bool
     GetVersion() string
+    GetOsSupported() []string
     GetVisibility() string
     GetLinkerFlags() []string
     GetCompileFlags() []string
     GetDefinitions() []string
-    IsVendor() bool
 }
 
 type Options interface {
@@ -52,6 +59,8 @@ type Options interface {
     GetStandard() string
     GetDefault() string
     GetFlags() []string
+    GetLinkerFlags() []string
+    GetLinkVisibility() string
 }
 
 type DefinitionSet interface {

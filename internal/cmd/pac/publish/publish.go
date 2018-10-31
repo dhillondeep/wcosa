@@ -21,7 +21,7 @@ func (c Cmd) Execute() error {
     if err != nil {
         return err
     }
-    cfg, err := types.ReadWioConfig(dir)
+    cfg, err := types.ReadWioConfig(dir, true)
     if err != nil {
         return err
     }

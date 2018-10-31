@@ -27,7 +27,7 @@ func (c Cmd) Execute() error {
     if err != nil {
         return err
     }
-    c.config, err = types.ReadWioConfig(c.dir)
+    c.config, err = types.ReadWioConfig(c.dir, true)
     if err != nil {
         return err
     }

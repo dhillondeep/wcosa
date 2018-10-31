@@ -5,6 +5,9 @@ import (
     "wio/internal/types"
     "wio/pkg/npm/resolve"
     "wio/pkg/util"
+    "wio/pkg/util/sys"
+
+    "github.com/thoas/go-funk"
 )
 
 type definitionsInfo struct {
@@ -23,6 +26,7 @@ type parentGivenInfo struct {
     definitions    []string
     linkVisibility string
     linkFlags      []string
+    OsSupported    []string
 }
 
 func fillDefinitions(info definitionsInfo) (map[string][]string, error) {
@@ -95,6 +99,10 @@ func resolveTree(i *resolve.Info, currNode *resolve.Node, parentTarget *Target, 
         CStandard:   cStandard,
     }
 
+    if parentGiven.OsSupported != nil && !funk.ContainsString(parentGiven.OsSupported, sys.GetOS()) {
+        return nil
+    }
+
     definitions := pkg.Config.GetInfo().GetDefinitions()
     defGlobals := map[string][]string{
         types.Private: definitions.GetGlobal().GetPrivate(),
@@ -140,8 +148,15 @@ func resolveTree(i *resolve.Info, currNode *resolve.Node, parentTarget *Target, 
         Flags:      parentGiven.linkFlags,
     })
 
+    if len(pkg.Config.GetInfo().GetOptions().GetLinkerFlags()) > 0 {
+        targetSet.Link(currTarget, &Target{Name: ""}, &TargetLinkInfo{
+            Visibility: pkg.Config.GetInfo().GetOptions().GetLinkVisibility(),
+            Flags:      pkg.Config.GetInfo().GetOptions().GetLinkerFlags(),
+        })
+    }
+
     // go over all the shared libraries for this package
-    pkgConfig, err := types.ReadWioConfig(pkg.Path)
+    pkgConfig, err := types.ReadWioConfig(pkg.Path, true)
     if err != nil {
         return err
     }
@@ -153,9 +168,13 @@ func resolveTree(i *resolve.Info, currNode *resolve.Node, parentTarget *Target, 
             Library:    library,
         }
 
+        if library.GetOsSupported() != nil && !funk.ContainsString(library.GetOsSupported(), sys.GetOS()) {
+            continue
+        }
+
         librarySet.Add(libraryTarget, true)
         librarySet.Link(currTarget, libraryTarget, &TargetLinkInfo{
-            Visibility: library.GetLinkerVisibility(),
+            Visibility: library.GetLinkVisibility(),
             Flags:      library.GetLinkerFlags(),
         })
     }
@@ -177,6 +196,7 @@ func resolveTree(i *resolve.Info, currNode *resolve.Node, parentTarget *Target, 
                 definitions:    parentDefinitions,
                 linkVisibility: configDependency.GetVisibility(),
                 linkFlags:      configDependency.GetLinkerFlags(),
+                OsSupported:    configDependency.GetOsSupported(),
             }
             if err := resolveTree(i, dep, currTarget, targetSet, librarySet, globalFlags, globalDefinitions, parentInfo); err != nil {
                 return err

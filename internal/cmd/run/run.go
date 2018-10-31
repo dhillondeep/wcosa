@@ -12,6 +12,7 @@ import (
     "wio/internal/types"
     "wio/pkg/log"
     "wio/pkg/util"
+    "wio/pkg/util/sys"
 
     "github.com/fatih/color"
     "github.com/urfave/cli"
@@ -62,7 +63,7 @@ func (run Run) Execute() error {
     if err != nil {
         return err
     }
-    config, err := types.ReadWioConfig(directory)
+    config, err := types.ReadWioConfig(directory, true)
     if err != nil {
         return err
     }
@@ -99,6 +100,14 @@ func (info *runInfo) clean(targets []types.Target) error {
     targetDirs := make([]string, 0, len(targets))
     for _, target := range targets {
         targetDirs = append(targetDirs, targetPath(info, target))
+
+        wioTimePath := sys.Path(targetPath(info, target), "wio.time")
+
+        if sys.Exists(wioTimePath) {
+            if err := os.Remove(wioTimePath); err != nil {
+                return err
+            }
+        }
     }
 
     log.Infoln(log.Cyan.Add(color.Underline), "Cleaning targets")
@@ -107,12 +116,12 @@ func (info *runInfo) clean(targets []types.Target) error {
     if err := awaitErrors(errs); err != nil {
         return err
     }
+
     log.Infoln(log.Green, "Done!")
     return nil
 }
 
 func (info *runInfo) build(targets []types.Target) error {
-    log.Infoln(log.Cyan, "Generating files ... ")
     targetDirs, err := configureTargets(info, targets)
     if err != nil {
         return err
@@ -172,16 +181,29 @@ func getTargetArgs(info *runInfo) ([]types.Target, error) {
 func configureTargets(info *runInfo, targets []types.Target) ([]string, error) {
     targetDirs := make([]string, 0, len(targets))
     for _, target := range targets {
-        if err := dispatchCmake(info, target); err != nil {
+        buildStatus, err := shouldCreateBuildFiles(info.directory, target.GetName())
+        if err != nil {
             return nil, err
         }
-        if err := dispatchCmakeDependencies(info, target); err != nil {
-            return nil, err
+
+        if buildStatus {
+            log.Infoln(log.Cyan, "Generating files for target %s...", target.GetName())
+
+            if err := dispatchCmake(info, target); err != nil {
+                return nil, err
+            }
+            if err := dispatchCmakeDependencies(info, target); err != nil {
+                return nil, err
+            }
+        } else {
+            log.Infoln(log.Cyan, "Build files up to date for target \"%s\"", target.GetName())
         }
+
         targetDir := targetPath(info, target)
         if err := os.MkdirAll(targetDir, os.ModePerm); err != nil {
             return nil, err
         }
+
         targetDirs = append(targetDirs, targetDir)
     }
     return targetDirs, nil
