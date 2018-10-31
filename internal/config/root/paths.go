@@ -8,3 +8,19 @@ type configPaths struct {
 }
 
 var wioInternalConfigPaths = configPaths{}
+
+func GetWioUserPath() string {
+    return wioInternalConfigPaths.WioUserPath
+}
+
+func GetToolchainPath() string {
+    return wioInternalConfigPaths.ToolchainPath
+}
+
+func GetUpdatePath() string {
+    return wioInternalConfigPaths.UpdatePath
+}
+
+func GetEnvFilePath() string {
+    return wioInternalConfigPaths.EnvFilePath
+}

@@ -70,3 +70,8 @@ func CreateEnv(envFilePath string) error {
 
     return nil
 }
+
+// Loads environment
+func LoadEnv(envFilePath string) error {
+    return godotenv.Load(envFilePath)
+}
