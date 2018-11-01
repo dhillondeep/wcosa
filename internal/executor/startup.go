@@ -9,7 +9,7 @@ func ExecuteStartup() error {
     }
 
     // load up environment for wio
-    if err := root.LoadEnv(root.GetEnvFilePath()); err != nil {
+    if err := root.LoadEnv(); err != nil {
         return err
     }
 

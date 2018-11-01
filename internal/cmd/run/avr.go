@@ -2,7 +2,7 @@ package run
 
 import (
     "strings"
-    "wio/internal/toolchain"
+    "wio/internal/cmd/devices"
     "wio/internal/types"
     "wio/pkg/util"
     "wio/pkg/util/sys"
@@ -12,11 +12,11 @@ func getPort(info *runInfo) (string, error) {
     if info.context.IsSet("port") {
         return info.context.String("port"), nil
     }
-    ports, err := toolchain.GetPorts()
+    ports, err := devices.GetPorts()
     if err != nil {
         return "", err
     }
-    serialPort := toolchain.GetArduinoPort(ports)
+    serialPort := devices.GetArduinoPort(ports)
     if serialPort == nil {
         return "", util.Error("failed to find Arduino port")
     }

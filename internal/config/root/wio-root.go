@@ -72,6 +72,6 @@ func CreateEnv() error {
 }
 
 // Loads environment
-func LoadEnv(envFilePath string) error {
-    return godotenv.Load(envFilePath)
+func LoadEnv() error {
+    return godotenv.Load(GetEnvFilePath())
 }

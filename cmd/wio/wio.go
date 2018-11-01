@@ -274,6 +274,9 @@ var commands = []cli.Command{
         Name:      "env",
         Usage:     "Wio global environment variables.",
         UsageText: "wio env [command options]",
+        Action: func(c *cli.Context) {
+            command = env.Env{Context: c, Command: env.VIEW}
+        },
         Subcommands: cli.Commands{
             cli.Command{
                 Name:      "reset",

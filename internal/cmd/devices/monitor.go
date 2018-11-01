@@ -12,7 +12,6 @@ import (
     "os/signal"
     "strings"
     "syscall"
-    "wio/internal/toolchain"
     "wio/pkg/log"
     "wio/pkg/util"
 
@@ -50,7 +49,7 @@ func (devices Devices) Execute() error {
 
 // Provides information abouts ports
 func handlePorts(basic bool, showAll bool) error {
-    ports, err := toolchain.GetPorts()
+    ports, err := GetPorts()
     if err != nil {
         return err
     }
@@ -101,11 +100,11 @@ func handlePorts(basic bool, showAll bool) error {
 func HandleMonitor(baud int, portDefined bool, portProvided string) error {
     var port *serial.Info
 
-    ports, err := toolchain.GetPorts()
+    ports, err := GetPorts()
     if err != nil {
         port = nil
     } else {
-        port = toolchain.GetArduinoPort(ports)
+        port = GetArduinoPort(ports)
     }
 
     portToUse := portProvided
