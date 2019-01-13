@@ -10,11 +10,11 @@ BINARY_UNIX=$(BINARY_NAME)_unix
 all: build run
 
 get:
-	go get -u github.com/jteeuwen/go-bindata/...
-	go get -u github.com/kardianos/govendor
+	go get -u github.com/golang/dep/cmd/dep
 	go get -u github.com/davecgh/go-spew/spew
 	go get -u github.com/stretchr/testify
 	go get -u github.com/pmezard/go-difflib/difflib
+	go get -u github.com/kevinburke/go-bindata/...
 
 build:
 	@echo Building $(BINARY_NAME) project:
