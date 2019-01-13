@@ -148,7 +148,7 @@ func packAndCompress(destFolder string, otherFiles []string) error {
                 switch osExt {
                 case "zip":
                     fmt.Println("creating build zip file for " + f.Name() + "...")
-                    if err := archiver.Zip.Make(compressedPath, compressFiles); err != nil {
+                    if err := archiver.Archive(compressFiles, compressedPath); err != nil {
                         return err
                     }
                     if err := os.Remove(filePath); err != nil {
@@ -157,7 +157,7 @@ func packAndCompress(destFolder string, otherFiles []string) error {
                     break
                 case "tar.gz":
                     fmt.Println("creating build tar.gz file for " + f.Name() + "...")
-                    if err := archiver.TarGz.Make(compressedPath, compressFiles); err != nil {
+                    if err := archiver.Archive(compressFiles, compressedPath); err != nil {
                         return err
                     }
                     if err := os.Remove(filePath); err != nil {
