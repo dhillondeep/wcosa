@@ -52,7 +52,7 @@ func (c Cmd) Execute() error {
 }
 
 func (info *Info) AddVendorPackage() error {
-    config, err := types.ReadWioConfig(info.Dir)
+    config, err := types.ReadWioConfig(info.Dir, false)
     if err != nil {
         return err
     }
@@ -61,7 +61,7 @@ func (info *Info) AddVendorPackage() error {
     if !exists {
         return util.Error("failed to find vendor/%s", info.Name)
     }
-    vendorConfig, err := types.ReadWioConfig(pkgDir)
+    vendorConfig, err := types.ReadWioConfig(pkgDir, false)
     if err != nil {
         return err
     }
@@ -85,7 +85,7 @@ func (info *Info) AddVendorPackage() error {
 }
 
 func (info *Info) RemoveVendorPackage() error {
-    config, err := types.ReadWioConfig(info.Dir)
+    config, err := types.ReadWioConfig(info.Dir, false)
     if err != nil {
         return err
     }

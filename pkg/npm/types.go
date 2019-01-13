@@ -51,6 +51,8 @@ type Version struct {
     License      interface{} `json:"license"`
     Homepage     interface{} `json:"homepage"`
     Repository   interface{} `json:"repository"`
+
+    IgnorePaths []string `json:"ignore-files"`
 }
 
 type Repository struct {

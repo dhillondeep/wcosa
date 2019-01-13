@@ -27,3 +27,5 @@ _link ${dir}/project-pkg/pkg-malloc ${dir}/project-app/app-alloc/vendor/pkg-mall
 _link ${dir}/project-pkg/pkg-malloc ${dir}/project-app/app-alloc/vendor/alloc-one/vendor/pkg-malloc
 _link ${dir}/project-pkg/pkg-malloc ${dir}/project-app/app-alloc/vendor/alloc-two/vendor/pkg-malloc
 _link ${dir}/project-pkg/pkg-shared ${dir}/project-app/app-shared/vendor/pkg-shared
+_link ${dir}/project-pkg/pkg-ingest ${dir}/project-pkg/pkg-placeholder/vendor/pkg-ingest
+

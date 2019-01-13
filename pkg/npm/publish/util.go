@@ -9,6 +9,8 @@ import (
     "math/rand"
     "os"
     "path/filepath"
+    "regexp"
+    "strings"
     "time"
     "wio/internal/constants"
     "wio/internal/types"
@@ -59,7 +61,7 @@ func MakeTar(dir, dst string) error {
         return err
     }
     content := sys.Path(dir, sys.Folder, "package")
-    return archiver.TarGz.Make(dst, []string{content})
+    return archiver.Archive([]string{content}, dst)
 }
 
 func GeneratePackage(dir string, data *npm.Version) error {
@@ -84,17 +86,52 @@ func GeneratePackage(dir string, data *npm.Version) error {
             return err
         }
     }
-    copies := []string{"include", "src", "wio.yml", "README.md"}
-    for _, copy := range copies {
-        fullPath := sys.Path(dir, copy)
-        if (copy == "src" || copy == "README.md") && !sys.Exists(fullPath) {
-            continue
-        }
 
-        if err := sys.Copy(fullPath, sys.Path(pkg, copy)); err != nil {
+    var ignorePathsReg []*regexp.Regexp
+    for _, ignorePath := range data.IgnorePaths {
+        isDir, err := sys.IsDir(ignorePath)
+        if err != nil {
             return err
         }
+
+        if isDir {
+            ignorePath = sys.Path(ignorePath, "*")
+        }
+
+        ignorePathsReg = append(ignorePathsReg, regexp.MustCompile(
+            strings.Replace(ignorePath, "/", `\/`, -1)))
     }
+
+    ignorePathsReg = append(ignorePathsReg, regexp.MustCompile(sys.Path(dir, `\.+.+`)))
+
+    if err := filepath.Walk(dir, func(path string, info os.FileInfo, err error) error {
+        if err != nil {
+            return err
+        } else if path == dir {
+            return nil
+        }
+
+        // ignore all the paths specified
+        for _, ignorePathReg := range ignorePathsReg {
+            if ignorePathReg.MatchString(path) {
+                return nil
+            }
+        }
+
+        relPath, err := filepath.Rel(dir, path)
+        if err != nil {
+            return err
+        }
+
+        if err := sys.Copy(path, sys.Path(pkg, relPath)); err != nil {
+            return err
+        }
+
+        return nil
+    }); err != nil {
+        return err
+    }
+
     return nil
 }
 
@@ -135,5 +172,7 @@ func VersionData(dir string, cfg types.Config) (*npm.Version, error) {
         License:      info.GetLicense(),
         Homepage:     info.GetHomepage(),
         Repository:   info.GetRepository(),
+
+        IgnorePaths: info.GetIgnoreFiles(),
     }, nil
 }

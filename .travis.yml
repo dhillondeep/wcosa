@@ -10,7 +10,7 @@ before_install:
   - source wenv
   - sudo apt-get update
   - sudo apt-get install gcc-avr avr-libc avrdude
-
+  - sudo apt-get install libboost-system-dev libboost-thread-dev libboost-coroutine-dev
 install:
   - wmake travis-setup
 

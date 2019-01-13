@@ -1,0 +1,36 @@
+type: pkg
+
+project:
+  name: pkg-libraries-complex
+  version: 0.0.1
+  compile_options:
+    wio_version: 0.6.2
+    header_only: true
+    standard: C++11
+    default_target: example-ws
+    flags:
+    - $darwin(-Wall -Wextra -Wsign-conversion)
+    - $linux(-Wall -Wextra -Wsign-conversion)
+    - $windows(/W1)
+    linker_flags:
+    - $windows(ws2_32 wsock32)
+
+targets:
+  example-ws:
+    src: examples/ws
+    platform: native
+
+libraries:
+  Boost:
+    cmake_package: true
+    use_imported_targets: true
+    required: true
+    required_components:
+    - system
+    - thread
+    - coroutine
+  Threads:
+    cmake_package: true
+    required: true
+    libraries_tag: CMAKE_THREAD_LIBS_INIT
+

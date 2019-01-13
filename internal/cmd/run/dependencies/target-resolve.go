@@ -5,6 +5,9 @@ import (
     "wio/internal/types"
     "wio/pkg/npm/resolve"
     "wio/pkg/util"
+    "wio/pkg/util/sys"
+
+    "github.com/thoas/go-funk"
 )
 
 type definitionsInfo struct {
@@ -14,6 +17,7 @@ type definitionsInfo struct {
     globals      map[string][]string
     required     map[string][]string
     optional     map[string][]string
+    ingest       map[string][]string
     singleton    bool
 }
 
@@ -22,16 +26,17 @@ type parentGivenInfo struct {
     definitions    []string
     linkVisibility string
     linkFlags      []string
+    OsSupported    []string
 }
 
 func fillDefinitions(info definitionsInfo) (map[string][]string, error) {
     var all = map[string][]string{}
 
-    globalPrivate, err := fillDefinition(info.globalsGiven, info.globals[types.Private])
+    globalPrivate, err := fillDefinition(info.globalsGiven, info.globals[types.Private], false)
     if err != nil {
         return nil, util.Error(err.Error(), "global", info.name)
     }
-    globalPublic, err := fillDefinition(info.globalsGiven, info.globals[types.Public])
+    globalPublic, err := fillDefinition(info.globalsGiven, info.globals[types.Public], false)
     if err != nil {
         return nil, util.Error(err.Error(), "global", info.name)
     }
@@ -41,33 +46,35 @@ func fillDefinitions(info definitionsInfo) (map[string][]string, error) {
 
     if !info.singleton {
         if len(info.required[types.Private]) > 0 || len(info.required[types.Public]) > 0 {
-            requiredPrivate, err := fillDefinition(info.otherGiven, info.required[types.Private])
+            requiredPrivate, err := fillDefinition(info.otherGiven, info.required[types.Private], false)
             if err != nil {
                 return nil, util.Error(err.Error(), "required", info.name)
             }
-            requiredPublic, err := fillDefinition(info.otherGiven, info.required[types.Public])
+            requiredPublic, err := fillDefinition(info.otherGiven, info.required[types.Public], false)
             if err != nil {
                 return nil, util.Error(err.Error(), "required", info.name)
             }
             all[types.Private] = util.AppendIfMissing(all[types.Private], requiredPrivate)
             all[types.Public] = util.AppendIfMissing(all[types.Public], requiredPublic)
-        } else if len(info.optional[types.Private]) > 0 || len(info.optional[types.Public]) > 0 {
-            optionalPrivate := fillOptionalDefinition(info.otherGiven, info.optional[types.Private])
-            optionalPublic := fillOptionalDefinition(info.otherGiven, info.optional[types.Public])
+        }
+
+        if len(info.optional[types.Private]) > 0 || len(info.optional[types.Public]) > 0 {
+            optionalPrivate, _ := fillDefinition(info.otherGiven, info.optional[types.Private], true)
+            optionalPublic, _ := fillDefinition(info.otherGiven, info.optional[types.Public], true)
 
             all[types.Private] = util.AppendIfMissing(all[types.Private], optionalPrivate)
             all[types.Public] = util.AppendIfMissing(all[types.Public], optionalPublic)
         }
-    } else {
-        all[types.Private] = util.AppendIfMissing(all[types.Private], info.optional[types.Private])
-        all[types.Public] = util.AppendIfMissing(all[types.Public], info.optional[types.Public])
     }
+
+    all[types.Private] = util.AppendIfMissing(all[types.Private], info.ingest[types.Private])
+    all[types.Public] = util.AppendIfMissing(all[types.Public], info.ingest[types.Public])
 
     return all, nil
 }
 
 func resolveTree(i *resolve.Info, currNode *resolve.Node, parentTarget *Target, targetSet *TargetSet,
-    sharedSet *TargetSet, globalFlags, globalDefinitions []string, parentGiven *parentGivenInfo) error {
+    librarySet *TargetSet, globalFlags, globalDefinitions []string, parentGiven *parentGivenInfo) error {
     var err error
 
     pkg, err := i.GetPkg(currNode.Name, currNode.ResolvedVersion.Str())
@@ -92,6 +99,10 @@ func resolveTree(i *resolve.Info, currNode *resolve.Node, parentTarget *Target, 
         CStandard:   cStandard,
     }
 
+    if parentGiven.OsSupported != nil && !funk.ContainsString(parentGiven.OsSupported, sys.GetOS()) {
+        return nil
+    }
+
     definitions := pkg.Config.GetInfo().GetDefinitions()
     defGlobals := map[string][]string{
         types.Private: definitions.GetGlobal().GetPrivate(),
@@ -108,6 +119,11 @@ func resolveTree(i *resolve.Info, currNode *resolve.Node, parentTarget *Target, 
         types.Public:  definitions.GetOptional().GetPublic(),
     }
 
+    defIngest := map[string][]string{
+        types.Private: definitions.GetIngest().GetPrivate(),
+        types.Public:  definitions.GetIngest().GetPublic(),
+    }
+
     // definitions
     if currTarget.Definitions, err = fillDefinitions(
         definitionsInfo{
@@ -117,6 +133,7 @@ func resolveTree(i *resolve.Info, currNode *resolve.Node, parentTarget *Target, 
             globals:      defGlobals,
             required:     defRequired,
             optional:     defOptional,
+            ingest:       defIngest,
             singleton:    definitions.IsSingleton(),
         }); err != nil {
         return err
@@ -125,31 +142,40 @@ func resolveTree(i *resolve.Info, currNode *resolve.Node, parentTarget *Target, 
     // flags
     currTarget.Flags = util.AppendIfMissing(pkg.Config.GetInfo().GetOptions().GetFlags(), parentGiven.flags)
 
-    targetSet.Add(currTarget)
+    targetSet.Add(currTarget, false)
     targetSet.Link(parentTarget, currTarget, &TargetLinkInfo{
         Visibility: parentGiven.linkVisibility,
         Flags:      parentGiven.linkFlags,
     })
 
+    if len(pkg.Config.GetInfo().GetOptions().GetLinkerFlags()) > 0 {
+        targetSet.Link(currTarget, &Target{Name: ""}, &TargetLinkInfo{
+            Visibility: pkg.Config.GetInfo().GetOptions().GetLinkVisibility(),
+            Flags:      pkg.Config.GetInfo().GetOptions().GetLinkerFlags(),
+        })
+    }
+
     // go over all the shared libraries for this package
-    pkgConfig, err := types.ReadWioConfig(pkg.Path)
+    pkgConfig, err := types.ReadWioConfig(pkg.Path, true)
     if err != nil {
         return err
     }
 
-    for name, shared := range pkgConfig.GetLibraries() {
-        sharedTarget := &Target{
-            Name:              name,
-            Path:              shared.GetPath(),
-            SharedIncludePath: shared.GetIncludePath(),
-            ParentPath:        currTarget.Path,
-            SharedTarget:      shared,
+    for name, library := range pkgConfig.GetLibraries() {
+        libraryTarget := &Target{
+            Name:       name,
+            ParentPath: currTarget.Path,
+            Library:    library,
         }
 
-        sharedSet.Add(sharedTarget)
-        sharedSet.Link(currTarget, sharedTarget, &TargetLinkInfo{
-            Visibility: shared.GetLinkerVisibility(),
-            Flags:      shared.GetLinkerFlags(),
+        if library.GetOsSupported() != nil && !funk.ContainsString(library.GetOsSupported(), sys.GetOS()) {
+            continue
+        }
+
+        librarySet.Add(libraryTarget, true)
+        librarySet.Link(currTarget, libraryTarget, &TargetLinkInfo{
+            Visibility: library.GetLinkVisibility(),
+            Flags:      library.GetLinkerFlags(),
         })
     }
 
@@ -159,11 +185,6 @@ func resolveTree(i *resolve.Info, currNode *resolve.Node, parentTarget *Target, 
                 dep.ResolvedVersion.Str())
         } else {
             // resolve placeholders
-            parentFlags, err := fillPlaceholders(currTarget.Flags, configDependency.GetCompileFlags())
-            if err != nil {
-                return util.Error(err.Error(), currTarget.Name)
-            }
-
             tDef := util.AppendIfMissing(currTarget.Definitions[types.Private], currTarget.Definitions[types.Public])
             parentDefinitions, err := fillPlaceholders(tDef, configDependency.GetDefinitions())
             if err != nil {
@@ -171,11 +192,13 @@ func resolveTree(i *resolve.Info, currNode *resolve.Node, parentTarget *Target, 
             }
 
             parentInfo := &parentGivenInfo{
-                flags:          parentFlags,
+                flags:          configDependency.GetCompileFlags(),
                 definitions:    parentDefinitions,
                 linkVisibility: configDependency.GetVisibility(),
+                linkFlags:      configDependency.GetLinkerFlags(),
+                OsSupported:    configDependency.GetOsSupported(),
             }
-            if err := resolveTree(i, dep, currTarget, targetSet, sharedSet, globalFlags, globalDefinitions, parentInfo); err != nil {
+            if err := resolveTree(i, dep, currTarget, targetSet, librarySet, globalFlags, globalDefinitions, parentInfo); err != nil {
                 return err
             }
         }

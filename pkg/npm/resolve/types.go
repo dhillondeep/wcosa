@@ -225,7 +225,7 @@ func (i *Info) LoadLocal() error {
         return err
     }
     for _, path := range paths {
-        cfg, err := types.ReadWioConfig(path)
+        cfg, err := types.ReadWioConfig(path, true)
         if err != nil {
             return err
         }

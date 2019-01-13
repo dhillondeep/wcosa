@@ -35,3 +35,4 @@ rmdir %DIR%\project-app\app-alloc\vendor\alloc-two\vendor\pkg-malloc 2>NUL
 mklink /D %DIR%\project-app\app-alloc\vendor\pkg-malloc %DIR%\project-pkg\pkg-malloc
 mklink /D %DIR%\project-app\app-alloc\vendor\alloc-one\vendor\pkg-malloc %DIR%\project-pkg\pkg-malloc
 mklink /D %DIR%\project-app\app-alloc\vendor\alloc-two\vendor\pkg-malloc %DIR%\project-pkg\pkg-malloc
+mklink /D %DIR%\project-pkg\pkg-placement\vendor\pkg-ingest %DIR%\project-pkg\pkg-ingest

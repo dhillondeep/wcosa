@@ -34,8 +34,8 @@ type TargetImpl struct {
     Board       string          `yaml:"board,omitempty"`
     Flags       *PropertiesImpl `yaml:"flags,omitempty"`
     Definitions *PropertiesImpl `yaml:"definitions,omitempty"`
-
-    name string
+    LinkerFlags []string        `yaml:"linker_flags,omitempty"`
+    name        string
 }
 
 func (t *TargetImpl) GetSource() string {
@@ -74,6 +74,10 @@ func (t *TargetImpl) GetDefinitions() Properties {
     return t.Definitions
 }
 
+func (t *TargetImpl) GetLinkerFlags() []string {
+    return t.LinkerFlags
+}
+
 func (t *TargetImpl) GetName() string {
     return t.name
 }
@@ -83,23 +87,53 @@ func (t *TargetImpl) SetName(name string) {
 }
 
 type LibraryImpl struct {
-    Global             bool     `yaml:"global"`
-    Version            string   `yaml:"version,omitempty"`
-    RequiredComponents []string `yaml:"required_components,omitempty"`
-    OptionalComponents []string `yaml:"optional_components,omitempty"`
-    Required           bool     `yaml:"required,omitempty"`
-    Path               string   `yaml:"lib_path,omitempty"`
-    IncludePath        string   `yaml:"include_path,omitempty"`
-    LinkerVisibility   string   `yaml:"linker_visibility,omitempty"`
-    LinkerFlags        []string `yaml:"linker_flags,omitempty"`
+    Package            bool              `yaml:"cmake_package,omitempty"`
+    ImportedTargets    bool              `yaml:"use_imported_targets,omitempty"`
+    Version            string            `yaml:"version,omitempty"`
+    Required           bool              `yaml:"required,omitempty"`
+    Variables          map[string]string `yaml:"variables,omitempty"`
+    LibrariesTag       string            `yaml:"libraries_tag,omitempty"`
+    IncludesTag        string            `yaml:"includes_tag,omitempty"`
+    OsSupported        []string          `yaml:"os_supported,omitempty"`
+    RequiredComponents []string          `yaml:"required_components,omitempty"`
+    OptionalComponents []string          `yaml:"optional_components,omitempty"`
+    Path               string            `yaml:"path,omitempty"`
+    LibPath            []string          `yaml:"lib_path,omitempty"`
+    IncludePath        []string          `yaml:"include_path,omitempty"`
+    LinkVisibility     string            `yaml:"link_visibility,omitempty"`
+    LinkerFlags        []string          `yaml:"linker_flags,omitempty"`
 }
 
-func (l *LibraryImpl) GetGlobal() bool {
-    return l.Global
+func (l *LibraryImpl) IsCmakePackage() bool {
+    return l.Package
+}
+
+func (l *LibraryImpl) UseImportedTargets() bool {
+    return l.ImportedTargets
 }
 
 func (l *LibraryImpl) GetVersion() string {
     return l.Version
+}
+
+func (l *LibraryImpl) IsRequired() bool {
+    return l.Required
+}
+
+func (l *LibraryImpl) GetVariables() map[string]string {
+    return l.Variables
+}
+
+func (l *LibraryImpl) GetLibrariesTag() string {
+    return l.LibrariesTag
+}
+
+func (l *LibraryImpl) GetIncludesTag() string {
+    return l.IncludesTag
+}
+
+func (l *LibraryImpl) GetOsSupported() []string {
+    return l.OsSupported
 }
 
 func (l *LibraryImpl) GetRequiredComponents() []string {
@@ -110,20 +144,20 @@ func (l *LibraryImpl) GetOptionalComponents() []string {
     return l.OptionalComponents
 }
 
-func (l *LibraryImpl) GetRequired() bool {
-    return l.Required
-}
-
 func (l *LibraryImpl) GetPath() string {
     return l.Path
 }
 
-func (l *LibraryImpl) GetIncludePath() string {
+func (l *LibraryImpl) GetLibPath() []string {
+    return l.LibPath
+}
+
+func (l *LibraryImpl) GetIncludePath() []string {
     return l.IncludePath
 }
 
-func (l *LibraryImpl) GetLinkerVisibility() string {
-    return l.LinkerVisibility
+func (l *LibraryImpl) GetLinkVisibility() string {
+    return l.LinkVisibility
 }
 
 func (l *LibraryImpl) GetLinkerFlags() []string {
@@ -133,6 +167,7 @@ func (l *LibraryImpl) GetLinkerFlags() []string {
 type DependencyImpl struct {
     Vendor       bool     `yaml:"vendor,omitempty"`
     Version      string   `yaml:"version"`
+    OsSupported  []string `yaml:"os_supported,omitempty"`
     Visibility   string   `yaml:"link_visibility,omitempty"`
     LinkerFlags  []string `yaml:"linker_flags,omitempty"`
     CompileFlags []string `yaml:"compile_flags,omitempty"`
@@ -145,6 +180,10 @@ func (d *DependencyImpl) GetVersion() string {
 
 func (d *DependencyImpl) GetVisibility() string {
     return d.Visibility
+}
+
+func (d *DependencyImpl) GetOsSupported() []string {
+    return d.OsSupported
 }
 
 func (d *DependencyImpl) GetCompileFlags() []string {
@@ -164,11 +203,13 @@ func (d *DependencyImpl) IsVendor() bool {
 }
 
 type OptionsImpl struct {
-    Version  string   `yaml:"wio_version"`
-    Header   bool     `yaml:"header_only,omitempty"`
-    Standard string   `yaml:"standard,omitempty"`
-    Default  string   `yaml:"default_target,omitempty"`
-    Flags    []string `yaml:"flags,omitempty"`
+    Version        string   `yaml:"wio_version"`
+    Header         bool     `yaml:"header_only,omitempty"`
+    Standard       string   `yaml:"standard,omitempty"`
+    Default        string   `yaml:"default_target,omitempty"`
+    Flags          []string `yaml:"flags,omitempty"`
+    LinkerFlags    []string `yaml:"linker_flags,omitempty"`
+    LinkVisibility string   `yaml:"link_visibility,omitempty"`
 }
 
 func (o *OptionsImpl) GetWioVersion() string {
@@ -189,6 +230,14 @@ func (o *OptionsImpl) GetDefault() string {
 
 func (o *OptionsImpl) GetFlags() []string {
     return o.Flags
+}
+
+func (o *OptionsImpl) GetLinkerFlags() []string {
+    return o.LinkerFlags
+}
+
+func (o *OptionsImpl) GetLinkVisibility() string {
+    return o.LinkVisibility
 }
 
 type DefinitionSetImpl struct {
@@ -215,6 +264,7 @@ type DefinitionsImpl struct {
     Global    *DefinitionSetImpl `yaml:"global,omitempty"`
     Required  *DefinitionSetImpl `yaml:"required,omitempty"`
     Optional  *DefinitionSetImpl `yaml:"optional,omitempty"`
+    Ingest    *DefinitionSetImpl `yaml:"ingest,omitempty"`
 }
 
 func (d *DefinitionsImpl) IsSingleton() bool {
@@ -222,6 +272,13 @@ func (d *DefinitionsImpl) IsSingleton() bool {
         return false
     }
     return d.Singleton
+}
+
+func (d *DefinitionsImpl) GetIngest() DefinitionSet {
+    if d == nil {
+        return &DefinitionSetImpl{}
+    }
+    return d.Ingest
 }
 
 func (d *DefinitionsImpl) GetGlobal() DefinitionSet {
@@ -258,6 +315,7 @@ type InfoImpl struct {
     Bugs         string   `yaml:"bugs,omitempty"`
     Contributors []string `yaml:"contributors,omitempty"`
     Keywords     []string `yaml:"keywords,omitempty"`
+    IgnoreFiles  []string `yaml:"ignore_files,omitempty"`
 
     Options     *OptionsImpl     `yaml:"compile_options"`
     Definitions *DefinitionsImpl `yaml:"definitions,omitempty"`
@@ -301,6 +359,10 @@ func (i *InfoImpl) GetContributors() []string {
 
 func (i *InfoImpl) GetKeywords() []string {
     return i.Keywords
+}
+
+func (i *InfoImpl) GetIgnoreFiles() []string {
+    return i.IgnoreFiles
 }
 
 func (i *InfoImpl) GetOptions() Options {

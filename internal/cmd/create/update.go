@@ -73,7 +73,7 @@ func (info *createInfo) update(config types.Config) error {
 
 // Update Wio project
 func (create Create) handleUpdate(directory string) error {
-    cfg, err := types.ReadWioConfig(directory)
+    cfg, err := types.ReadWioConfig(directory, false)
     if err != nil {
         return err
     }

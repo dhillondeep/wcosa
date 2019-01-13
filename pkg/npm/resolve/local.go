@@ -61,7 +61,7 @@ func tryGetConfig(path string) (types.Config, error) {
     if !sys.Exists(wioPath) {
         return nil, nil
     }
-    config, err := types.ReadWioConfig(path)
+    config, err := types.ReadWioConfig(path, true)
     if err != nil {
         return nil, err
     }

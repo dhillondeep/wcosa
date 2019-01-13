@@ -1,4 +1,4 @@
-package toolchain
+package devices
 
 import (
     "strings"

@@ -17,6 +17,8 @@ targets:
 
 libraries:
   honly:
-    lib_path: $(PROJECT_PATH)/shared/honly
-    include_path: $(PROJECT_PATH)/shared/honly/include
+    lib_path:
+    - $(PROJECT_PATH)/shared/honly
+    include_path:
+    - $(PROJECT_PATH)/shared/honly/include
 

@@ -2,27 +2,142 @@ package types
 
 import (
     "bufio"
+    "fmt"
     "regexp"
     "strings"
+    "time"
+    "wio/internal/config/meta"
     "wio/internal/constants"
+    "wio/pkg/npm/semver"
     "wio/pkg/util"
     "wio/pkg/util/sys"
 
     "gopkg.in/yaml.v2"
 )
 
-func ReadWioConfig(dir string) (Config, error) {
+var configCategoryTag = regexp.MustCompile(`^[\s\w]*[a-z]:\s*$`)
+
+func resolveVariables(line string, projectPath string) string {
+    return strings.Replace(line, "$(PROJECT_PATH)", projectPath, -1)
+}
+
+// resolves operating system specific flags and definitions
+func resolveOSSpecific(line string) (string, error) {
+    osName := sys.GetOS()
+
+    const windowsStr = "$windows("
+    const darwinStr = "$darwin("
+    const linuxStr = "$linux("
+
+    diffOsSystemMatch := regexp.MustCompile(
+        strings.Replace(`\$(darwin|windows|linux)\(([^,])*\)`, osName, "", 1))
+
+    i := 0
+    for end := time.Now().Add(time.Second); ; {
+        if i&0x0f == 0 { // Check in every 16th iteration
+            if time.Now().After(end) {
+                return "", util.Error("error occured while fulfulling OS variables")
+            }
+        }
+
+        if strings.Contains(line, windowsStr) || strings.Contains(line, darwinStr) || strings.Contains(line, linuxStr) {
+            line = diffOsSystemMatch.ReplaceAllString(line, "")
+            line = strings.Replace(line, ",", "", -1)
+            line = strings.TrimSuffix(line, " ")
+
+            if strings.Contains(line, fmt.Sprintf("$%s(", osName)) {
+                line = strings.Replace(line, "$"+osName+"(", "", 1)
+                line = line[:len(line)-1]
+            }
+        } else {
+            break
+        }
+
+        i++
+    }
+
+    return line, nil
+}
+
+func fulfillVariables(data []byte, projectPath string) ([]byte, error) {
+    scanner := bufio.NewScanner(strings.NewReader(string(data)))
+    newStr := ""
+
+    for scanner.Scan() {
+        if configCategoryTag.MatchString(scanner.Text()) {
+            newStr += scanner.Text() + "\n"
+            continue
+        }
+
+        // resolve operating system constrains
+        osStr, err := resolveOSSpecific(scanner.Text())
+        if err != nil {
+            return nil, err
+        }
+
+        // resolve PROJECT_PATH variable
+        variableStr := resolveVariables(osStr, projectPath)
+
+        newStr += variableStr + "\n"
+    }
+
+    return []byte(newStr), nil
+}
+
+func ReadWioConfig(dir string, fulfill bool) (Config, error) {
     path := sys.Path(dir, sys.Config)
     if !sys.Exists(path) {
         return nil, util.Error("path does not contain a wio.yml: %s", dir)
     }
-    ret := &ConfigImpl{}
-    err := sys.NormalIO.ParseYml(path, ret)
 
-    // check if it is a valid config
-    if ret.GetType() != constants.App && ret.GetType() != constants.Pkg {
-        return nil, util.Error("wio.yml has invalid type: %s", ret.GetType())
+    text, err := sys.NormalIO.ReadFile(path)
+    if err != nil {
+        return nil, err
     }
+
+    if fulfill {
+        text, err = fulfillVariables(text, dir)
+        if err != nil {
+            return nil, err
+        }
+    }
+
+    ret := &ConfigImpl{}
+    if err = yaml.Unmarshal(text, ret); err != nil {
+        return nil, err
+    }
+
+    // Check to give error on older versions of wio
+    pkgRegex := regexp.MustCompile(`(\s+|)pkg:`)
+    appRegex := regexp.MustCompile(`(\s+|)app:`)
+    versionRegex := regexp.MustCompile(`wio_version:(|\s+)0.0.[0-3]`)
+
+    // check if wio config is for older versions
+    if pkgRegex.MatchString(string(text)) || appRegex.MatchString(string(text)) ||
+        versionRegex.MatchString(string(text)) {
+        return nil, util.Error("%s: wio version < 0.4.0 is not supported by "+
+            "current wio version", dir)
+    }
+
+    // check for wio.yml validity
+    if ret.GetType() != constants.App && ret.GetType() != constants.Pkg {
+        if strings.Trim(ret.GetType(), " ") == "" {
+            return nil, util.Error("%s: wio.yml is invalid or cannot be parsed", dir)
+        }
+
+        return nil, util.Error("%s: wio.yml has invalid project type: %s", dir, ret.GetType())
+    } else if semver.Parse(ret.GetInfo().GetOptions().GetWioVersion()) == nil {
+        return nil, util.Error("%s: wio.yml does not have a valid version", dir)
+    }
+
+    currVersion := semver.Parse(meta.Version)
+    needVersion := semver.Parse(ret.Info.GetOptions().GetWioVersion())
+
+    if currVersion.Lt(needVersion) {
+        return nil, util.Error("%s: current wio version is %s but wio.yml needs it >= %s", dir,
+            currVersion.Str(), needVersion.Str())
+    }
+
     return ret, err
 }
 

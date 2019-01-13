@@ -19,30 +19,38 @@ type Target interface {
     GetBoard() string
     GetFlags() Properties
     GetDefinitions() Properties
+    GetLinkerFlags() []string
 
     GetName() string
     SetName(name string)
 }
 
 type Library interface {
-    GetGlobal() bool
+    IsCmakePackage() bool
+    UseImportedTargets() bool
     GetVersion() string
+    IsRequired() bool
+    GetVariables() map[string]string
+    GetLibrariesTag() string
+    GetIncludesTag() string
+    GetOsSupported() []string
     GetRequiredComponents() []string
     GetOptionalComponents() []string
-    GetRequired() bool
     GetPath() string
-    GetIncludePath() string
-    GetLinkerVisibility() string
+    GetLibPath() []string
+    GetIncludePath() []string
+    GetLinkVisibility() string
     GetLinkerFlags() []string
 }
 
 type Dependency interface {
+    IsVendor() bool
     GetVersion() string
+    GetOsSupported() []string
     GetVisibility() string
     GetLinkerFlags() []string
     GetCompileFlags() []string
     GetDefinitions() []string
-    IsVendor() bool
 }
 
 type Options interface {
@@ -51,6 +59,8 @@ type Options interface {
     GetStandard() string
     GetDefault() string
     GetFlags() []string
+    GetLinkerFlags() []string
+    GetLinkVisibility() string
 }
 
 type DefinitionSet interface {
@@ -63,6 +73,7 @@ type Definitions interface {
     GetGlobal() DefinitionSet
     GetRequired() DefinitionSet
     GetOptional() DefinitionSet
+    GetIngest() DefinitionSet
 }
 
 type Info interface {
@@ -77,6 +88,7 @@ type Info interface {
     GetBugs() string
     GetContributors() []string
     GetKeywords() []string
+    GetIgnoreFiles() []string
 
     GetOptions() Options
     GetDefinitions() Definitions

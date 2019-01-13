@@ -60,8 +60,8 @@ _linux_setup() {
     go get -u golang.org/x/sys/unix
     printf "Done!\n"
 
-    printf "Getting govendor dependencies... "
-    govendor sync
+    printf "Getting dep dependencies... "
+    dep ensure
     printf "Done!\n"
 
     printf "Linking toolchain... "
