@@ -98,9 +98,10 @@ func download(url string, dst string, cb io.Writer) error {
     return os.Rename(dst+sys.Temp, dst)
 }
 
-func untar(src string, dst string) error {
-    return archiver.TarGz.Open(src, dst)
+func untar(src string, dest string) error {
+    return archiver.Unarchive(src, dest)
 }
+
 
 func installCallback(name string, ver string) callback {
     return func(curr uint64, total uint64) {

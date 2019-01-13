@@ -11,8 +11,6 @@ import (
     "io"
     "os"
     "strings"
-
-    "github.com/mholt/archiver"
 )
 
 const timeoutSeconds = 10
@@ -119,8 +117,4 @@ func downloadTarball(url string, dest string) error {
     }
     _, err = io.Copy(out, resp.Body)
     return err
-}
-
-func untar(src string, dest string) error {
-    return archiver.TarGz.Open(src, dest)
 }

@@ -61,7 +61,7 @@ func MakeTar(dir, dst string) error {
         return err
     }
     content := sys.Path(dir, sys.Folder, "package")
-    return archiver.TarGz.Make(dst, []string{content})
+    return archiver.Archive([]string{content}, dst)
 }
 
 func GeneratePackage(dir string, data *npm.Version) error {
