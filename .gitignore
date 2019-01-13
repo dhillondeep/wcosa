@@ -35,3 +35,5 @@ wio-app/
 *.un~
 *~
 
+# local test
+local-test-env

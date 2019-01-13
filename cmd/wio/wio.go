@@ -116,6 +116,11 @@ var devicesListFlags = []cli.Flag{
         Usage: "Shows all the ports, closed or open (Default: only open devices)."},
 }
 
+var envFlags = []cli.Flag{
+    cli.BoolFlag{Name: "local",
+        Usage: "Creates and updates local environment"},
+}
+
 var command cmd.Command
 var commands = []cli.Command{
     {
@@ -282,6 +287,7 @@ var commands = []cli.Command{
                 Name:      "reset",
                 Usage:     "Resets environment variables to default",
                 UsageText: "wio env reset [command options]",
+                Flags:     envFlags,
                 Action: func(c *cli.Context) {
                     command = env.Env{Context: c, Command: env.RESET}
                 },
@@ -290,6 +296,7 @@ var commands = []cli.Command{
                 Name:      "set",
                 Usage:     "Modifies the environment variable or adds a new one (name=value or name).",
                 UsageText: "wio env set [vars...] [command options]",
+                Flags:     envFlags,
                 Action: func(c *cli.Context) {
                     command = env.Env{Context: c, Command: env.SET}
                 },
@@ -298,6 +305,7 @@ var commands = []cli.Command{
                 Name:      "unset",
                 Usage:     "Removes the environment variable.",
                 UsageText: "wio env unset [vars...] [command options]",
+                Flags:     envFlags,
                 Action: func(c *cli.Context) {
                     command = env.Env{Context: c, Command: env.UNSET}
                 },

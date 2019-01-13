@@ -71,6 +71,18 @@ func CreateEnv() error {
     return nil
 }
 
+// Creates environment and overrides if there is an old environment
+func CreateLocalEnv(path string) error {
+    envs := map[string]string{}
+
+    // create wio.env file
+    if err := godotenv.Write(envs, path); err != nil {
+        return err
+    }
+
+    return nil
+}
+
 // Loads environment
 func LoadEnv() error {
     return godotenv.Load(GetEnvFilePath())
