@@ -3,7 +3,7 @@ package devices
 import (
     "strings"
 
-    "github.com/dhillondeep/go-serial"
+    serial "github.com/dhillondeep/go-serial"
 )
 
 func GetPorts() ([]*serial.Info, error) {

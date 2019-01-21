@@ -5,6 +5,11 @@ import (
     "wio/pkg/util/sys"
 )
 
+func IsCommandAvailable(name string, args ...string) bool {
+    cmd := exec.Command(name, args...)
+    return nil == cmd.Run()
+}
+
 func mingwExists() bool {
     cmd := exec.Command("mingw32-make", "--version")
     return nil == cmd.Run()

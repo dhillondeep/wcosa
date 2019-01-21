@@ -43,6 +43,12 @@ func platformExtension(platform string) string {
 
 func shouldCreateBuildFiles(projectDir string, targetName string) (bool, error) {
     wioTimeFile := sys.Path(cmake.BuildPath(projectDir), targetName, "wio.time")
+    wioCMakeListsFile := sys.Path(cmake.BuildPath(projectDir), targetName, "CMakeLists.txt")
+
+    // check if CMakeLists.txt file exists
+    if !sys.Exists(wioCMakeListsFile) {
+        return true, nil
+    }
 
     // check if wio.time file exists
     if sys.Exists(wioTimeFile) {

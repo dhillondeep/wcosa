@@ -8,22 +8,17 @@ import (
     "wio/internal/cmd/run/dependencies"
     "wio/internal/constants"
     "wio/internal/types"
+    "wio/pkg/downloader"
     "wio/pkg/log"
     "wio/pkg/util"
     "wio/pkg/util/sys"
-
-    "github.com/thoas/go-funk"
 )
 
-type dispatchCmakeFunc func(info *runInfo, target types.Target) error
+type dispatchCmakeFunc func(info *runInfo, target types.Target, toolchainPath string) error
 
 var dispatchCmakeFuncPlatform = map[string]dispatchCmakeFunc{
     constants.Avr:    dispatchCmakeAvr,
     constants.Native: dispatchCmakeNative,
-}
-var dispatchCmakeFuncAvrFramework = map[string]dispatchCmakeFunc{
-    constants.Cosa:    dispatchCmakeAvrCosa,
-    constants.Arduino: dispatchCmakeAvrArduino,
 }
 
 func dispatchCmake(info *runInfo, target types.Target) error {
@@ -39,19 +34,29 @@ func dispatchCmake(info *runInfo, target types.Target) error {
         message := fmt.Sprintf("Platform [%s] is not supported", platform)
         return util.Error(message)
     }
-    return dispatchCmakeFuncPlatform[platform](info, target)
+
+    toolchainPath := ""
+    if platform != constants.Native {
+        framework := func() string {
+            if val, exists := downloader.SupportedToolchains[target.GetFramework()]; exists {
+                return val
+            } else {
+                return target.GetFramework()
+            }
+        }()
+
+        if path, err := downloader.DownloadToolchain(framework); err != nil {
+            return err
+        } else {
+            toolchainPath = path
+        }
+    }
+
+    return dispatchCmakeFuncPlatform[platform](info, target, toolchainPath)
 }
 
-func dispatchCmakeAvr(info *runInfo, target types.Target) error {
-    framework := strings.Trim(strings.ToLower(target.GetFramework()), " ")
+func dispatchCmakeAvr(info *runInfo, target types.Target, toolchainPath string) error {
     board := strings.Trim(strings.ToUpper(target.GetBoard()), " ")
-
-    // this means framework was not specified at all
-    if framework == "" {
-        message := fmt.Sprintf("No Framework specified by the [%s] target. Try one of %s",
-            target.GetName(), funk.Keys(dispatchCmakeFuncAvrFramework))
-        return util.Error(message)
-    }
 
     // this means board was not specified at all
     if board == "" {
@@ -59,18 +64,6 @@ func dispatchCmakeAvr(info *runInfo, target types.Target) error {
         return util.Error(message)
     }
 
-    if _, exists := dispatchCmakeFuncAvrFramework[framework]; !exists {
-        message := fmt.Sprintf("Framework [%s] not supported", framework)
-        return util.Error(message)
-    }
-    return dispatchCmakeFuncAvrFramework[framework](info, target)
-}
-
-func dispatchCmakeNative(info *runInfo, target types.Target) error {
-    return dispatchCmakeNativeGeneric(info, target)
-}
-
-func dispatchCmakeAvrCosa(info *runInfo, target types.Target) error {
     projectName := info.config.GetName()
     projectPath := info.directory
     port, err := getPort(info)
@@ -82,28 +75,10 @@ func dispatchCmakeAvrCosa(info *runInfo, target types.Target) error {
         return err
     }
 
-    return cmake.GenerateAvrCmakeLists("toolchain/cmake/CosaToolchain.cmake", target,
-        projectName, projectPath, cppStandard, cStandard, port)
+    return cmake.GenerateAvrCmakeLists(toolchainPath, target, projectName, projectPath, cppStandard, cStandard, port)
 }
 
-func dispatchCmakeAvrArduino(info *runInfo, target types.Target) error {
-    projectName := info.config.GetName()
-    projectPath := info.directory
-    port, err := getPort(info)
-    if err != nil && info.runType == TypeRun {
-        return err
-    }
-
-    cppStandard, cStandard, err := cmake.GetStandard(info.config.GetInfo().GetOptions().GetStandard())
-    if err != nil {
-        return err
-    }
-
-    return cmake.GenerateAvrCmakeLists("toolchain/cmake/ArduinoToolchain.cmake", target,
-        projectName, projectPath, cppStandard, cStandard, port)
-}
-
-func dispatchCmakeNativeGeneric(info *runInfo, target types.Target) error {
+func dispatchCmakeNative(info *runInfo, target types.Target, _ string) error {
     projectName := info.config.GetName()
     projectPath := info.directory
 

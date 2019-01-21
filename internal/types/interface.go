@@ -16,6 +16,7 @@ type Target interface {
     GetSource() string
     GetPlatform() string
     GetFramework() string
+    SetFramework(name string)
     GetBoard() string
     GetFlags() Properties
     GetDefinitions() Properties

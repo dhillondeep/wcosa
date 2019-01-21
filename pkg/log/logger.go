@@ -14,7 +14,7 @@ import (
     "wio/pkg/util"
 
     "github.com/fatih/color"
-    "github.com/mattn/go-colorable"
+    colorable "github.com/mattn/go-colorable"
 )
 
 type Indentation string

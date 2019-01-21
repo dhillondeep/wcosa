@@ -7,7 +7,7 @@ import (
     "wio/pkg/util"
     "wio/pkg/util/sys"
 
-    "github.com/thoas/go-funk"
+    funk "github.com/thoas/go-funk"
 )
 
 type definitionsInfo struct {

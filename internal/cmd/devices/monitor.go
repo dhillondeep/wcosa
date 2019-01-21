@@ -15,7 +15,7 @@ import (
     "wio/pkg/log"
     "wio/pkg/util"
 
-    "github.com/dhillondeep/go-serial"
+    serial "github.com/dhillondeep/go-serial"
     "github.com/urfave/cli"
     bserial "go.bug.st/serial.v1"
 )

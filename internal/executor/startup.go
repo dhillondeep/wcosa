@@ -1,6 +1,8 @@
 package executor
 
-import "wio/internal/config/root"
+import (
+    "wio/internal/config/root"
+)
 
 func ExecuteStartup() error {
     // make sure wio root folder exists

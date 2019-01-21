@@ -59,6 +59,10 @@ func (t *TargetImpl) GetFramework() string {
     return t.Framework
 }
 
+func (t *TargetImpl) SetFramework(name string) {
+    t.Framework = name
+}
+
 func (t *TargetImpl) GetBoard() string {
     if t == nil {
         return ""
