@@ -37,8 +37,6 @@ goto default
     REM Perform symlinks
     echo Creating symlinks ...
     mkdir %DIR%\bin 2>NUL
-    rmdir %DIR%\bin\toolchain 2>NUL
-    mklink /D %DIR%\bin\toolchain %DIR%\toolchain
 
     goto end
 

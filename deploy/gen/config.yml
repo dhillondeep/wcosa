@@ -9,5 +9,3 @@ targets :
   - linux/arm-6
   - linux/arm-7
   - windows/*
-other_files:
-  - ./../../toolchain

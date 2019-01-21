@@ -1,9 +1,0 @@
-[submodule "toolchain/arduino-cmake"]
-	path = toolchain/arduino-cmake
-	url = https://github.com/arduino-cmake/arduino-cmake.git
-[submodule "toolchain/cosa"]
-	path = toolchain/cosa
-	url = https://github.com/mikaelpatel/cosa
-[submodule "toolchain/arduino/hardware/arduino/avr"]
-	path = toolchain/arduino/hardware/arduino/avr
-	url = https://github.com/arduino/ArduinoCore-avr.git
