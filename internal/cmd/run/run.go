@@ -42,6 +42,9 @@ type runInfo struct {
 
     runType Type
     jobs    int
+
+    force  bool
+    retool bool
 }
 
 type runExecuteFunc func(*runInfo, []types.Target) error
@@ -75,6 +78,8 @@ func (run Run) Execute() error {
         projectType: config.GetType(),
         headerOnly:  config.GetInfo().GetOptions().GetIsHeaderOnly(),
         targets:     targets,
+        force:       run.Context.Bool("force"),
+        retool:      run.Context.Bool("retool"),
     }
     if err := info.execute(run.RunType); err != nil {
         return err
@@ -186,7 +191,7 @@ func configureTargets(info *runInfo, targets []types.Target) ([]string, error) {
             return nil, err
         }
 
-        if buildStatus {
+        if info.retool || info.force || buildStatus {
             log.Infoln(log.Cyan, "Generating files for target %s...", target.GetName())
 
             if err := dispatchCmake(info, target); err != nil {

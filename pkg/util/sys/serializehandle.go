@@ -3,7 +3,7 @@ package sys
 import (
     "encoding/json"
 
-    "gopkg.in/yaml.v2"
+    yaml "gopkg.in/yaml.v2"
 )
 
 // Parses JSON from the file on filesystem

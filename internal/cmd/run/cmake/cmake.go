@@ -6,6 +6,7 @@ import (
     "strings"
     "wio/internal/constants"
     "wio/internal/types"
+    "wio/pkg/downloader"
     "wio/pkg/util"
     "wio/pkg/util/sys"
     "wio/pkg/util/template"
@@ -93,14 +94,14 @@ func GenerateAvrCmakeLists(
     framework := target.GetFramework()
     buildPath := sys.Path(BuildPath(projectPath), target.GetName())
     templateFile := "CMakeListsAVR"
-    executablePath, err := sys.NormalIO.GetRoot()
-    if err != nil {
+
+    moduleData := &downloader.ModuleData{}
+    if err := sys.NormalIO.ParseJson(sys.Path(toolchainPath, "package.json"), moduleData); err != nil {
         return err
     }
 
     return generateCmakeLists(templateFile, buildPath, map[string]string{
-        "TOOLCHAIN_PATH":             filepath.ToSlash(executablePath),
-        "TOOLCHAIN_FILE_REL":         filepath.ToSlash(toolchainPath),
+        "TOOLCHAIN_FILE":             sys.Path(filepath.ToSlash(toolchainPath), moduleData.ToolchainFile),
         "PROJECT_PATH":               filepath.ToSlash(projectPath),
         "PROJECT_NAME":               projectName,
         "CPP_STANDARD":               cppStandard,

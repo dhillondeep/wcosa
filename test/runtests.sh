@@ -4,7 +4,7 @@ set -e
 
 test_folder="wio-test"
 base_folder=$(pwd)
-num_tests=23
+num_tests=24
 
 # Check that working directory contains script
 if [ ! -f $(pwd)/`basename "${0}"` ]; then
@@ -233,6 +233,14 @@ _test23() {
     wio update
     wio build --all
     wio run
+}
+
+_test24() {
+    cd ./project-app/app-toolchain-downloader
+    wio clean --all --hard
+    wio build --all
+    wio build --all --retool
+    wio build
 }
 
 # Source and build

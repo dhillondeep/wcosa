@@ -1,0 +1,32 @@
+type: app
+
+project:
+  name: testOne
+  version: 0.0.1
+  keywords:
+  - wio
+  - app
+  compile_options:
+    wio_version: 0.6.2
+    default_target: main
+
+targets:
+  main:
+    src: src
+    platform: avr
+    framework: github.com/wio/framework-avr-cosa
+    board: uno
+  test1:
+    src: src
+    platform: avr
+    framework: cosa
+    board: uno
+  test2:
+    src: src2
+    platform: avr
+    framework: arduino
+    board: uno
+  test3:
+    src: src3
+    platform: native
+

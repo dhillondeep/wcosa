@@ -12,7 +12,7 @@ import (
     "wio/pkg/util"
     "wio/pkg/util/sys"
 
-    "gopkg.in/yaml.v2"
+    yaml "gopkg.in/yaml.v2"
 )
 
 var configCategoryTag = regexp.MustCompile(`^[\s\w]*[a-z]:\s*$`)

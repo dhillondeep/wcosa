@@ -66,14 +66,20 @@ func (i *Info) install(name, ver string, data *npm.Version) error {
     }
 
     modules := sys.Path(i.dir, sys.Folder, sys.Modules)
-    pkg := sys.Path(modules, "package")
-    if err := os.RemoveAll(pkg); err != nil {
-        return err
+
+    if !sys.Exists(sys.Path(modules, file)) {
+        pkg := sys.Path(modules, "package")
+        if err := os.RemoveAll(pkg); err != nil {
+            return err
+        }
+        if err := untar(tar, modules); err != nil {
+            return err
+        }
+
+        return os.Rename(pkg, sys.Path(modules, file))
     }
-    if err := untar(tar, modules); err != nil {
-        return err
-    }
-    return os.Rename(pkg, sys.Path(modules, file))
+
+    return nil
 }
 
 func download(url string, dst string, cb io.Writer) error {
@@ -101,7 +107,6 @@ func download(url string, dst string, cb io.Writer) error {
 func untar(src string, dest string) error {
     return archiver.Unarchive(src, dest)
 }
-
 
 func installCallback(name string, ver string) callback {
     return func(curr uint64, total uint64) {

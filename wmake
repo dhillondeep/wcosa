@@ -64,12 +64,6 @@ _linux_setup() {
     dep ensure
     printf "Done!\n"
 
-    printf "Linking toolchain... "
-    mkdir -p $(pwd)/bin
-    rm -rf $(pwd)/bin/toolchain
-    ln -s -f $(pwd)/toolchain $(pwd)/bin/toolchain
-    printf "Done!\n"
-
     printf "Linking test vendor packages... "
     cd test
     ./symlinks.sh

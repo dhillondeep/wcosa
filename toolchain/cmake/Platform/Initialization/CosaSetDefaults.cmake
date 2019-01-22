@@ -1,5 +1,0 @@
-set(COSA_DEFAULT_BOARD uno CACHE STRING "Default board to use when building")
-set(COSA_DEFAULT_BOARD_CPU atmega328 "Default board CPU to use when building")
-set(COSA_DEFAULT_PORT CACHE STRING "Default port when none specified")
-set(COSA_DEFAULT_SERIAL CACHE STRING "Default serial command when none specified")
-set(COSA_DEFAULT_CMAKE_RECURSION FALSE CACHE BOOL "Default recursion behaviour during library setup")
