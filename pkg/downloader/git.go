@@ -3,7 +3,6 @@ package downloader
 import (
     "fmt"
     "os"
-    "wio-utils/cmd/io"
     "wio/pkg/log"
     "wio/pkg/util"
     "wio/pkg/util/sys"
@@ -58,7 +57,7 @@ func (gitDownloader GitDownloader) DownloadModule(path, url, reference string, r
 
     moduleData := &ModuleData{}
 
-    if err := io.NormalIO.ParseJson(sys.Path(clonePath, "package.json"), moduleData); err != nil {
+    if err := sys.NormalIO.ParseJson(sys.Path(clonePath, "package.json"), moduleData); err != nil {
         return "", util.Error("toolchain config error")
     }
 

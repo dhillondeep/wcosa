@@ -3,7 +3,6 @@ package downloader
 import (
     "fmt"
     "strings"
-    "wio-utils/cmd/io"
     "wio/internal/config/root"
     "wio/pkg/util"
     "wio/pkg/util/sys"
@@ -83,7 +82,7 @@ func createDepAttributes(file string, configData string) (string, error) {
 
     moduleData := &ModuleData{}
 
-    if err := io.NormalIO.ParseJson(sys.Path(file, "package.json"), moduleData); err != nil {
+    if err := sys.NormalIO.ParseJson(sys.Path(file, "package.json"), moduleData); err != nil {
         return "", err
     }
 
@@ -116,7 +115,7 @@ func createDepAttributes(file string, configData string) (string, error) {
         "VAR_VALUE": file,
     }) + "\n"
 
-    if err := io.NormalIO.WriteFile(wioConfigPath, []byte(writeConfigData)); err != nil {
+    if err := sys.NormalIO.WriteFile(wioConfigPath, []byte(writeConfigData)); err != nil {
         return configData, err
     }
 

@@ -4,7 +4,6 @@ import (
     "os"
     "path/filepath"
     "strings"
-    "wio-utils/cmd/io"
     "wio/internal/constants"
     "wio/internal/types"
     "wio/pkg/downloader"
@@ -97,7 +96,7 @@ func GenerateAvrCmakeLists(
     templateFile := "CMakeListsAVR"
 
     moduleData := &downloader.ModuleData{}
-    if err := io.NormalIO.ParseJson(sys.Path(toolchainPath, "package.json"), moduleData); err != nil {
+    if err := sys.NormalIO.ParseJson(sys.Path(toolchainPath, "package.json"), moduleData); err != nil {
         return err
     }
 
