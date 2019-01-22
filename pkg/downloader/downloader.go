@@ -5,10 +5,17 @@ import (
     "strings"
     "wio-utils/cmd/io"
     "wio/internal/config/root"
-    "wio/pkg/log"
     "wio/pkg/util"
     "wio/pkg/util/sys"
+    "wio/pkg/util/template"
 )
+
+var SupportedToolchains = map[string]string{
+    "cosa":    "wio-framework-avr-cosa",
+    "arduino": "wio-framework-avr-arduino",
+}
+
+const WioConfigSet = "set({{VAR_NAME}} \"{{VAR_VALUE}}\")"
 
 type ModuleData struct {
     Name        string `json:"name"`
@@ -22,18 +29,13 @@ type ModuleData struct {
 }
 
 type Downloader interface {
-    DownloadModule(path, url, reference string) (string, error)
+    DownloadModule(path, url, reference string, retool bool) (string, error)
 }
 
-var SupportedToolchains = map[string]string{
-    "cosa":    "wio-framework-avr-cosa",
-    "arduino": "wio-framework-avr-arduino",
-}
-
-func DownloadToolchain(toolchainLink string) (string, error) {
+func DownloadToolchain(toolchainLink string, retool bool) (string, error) {
     // link must be plain without these accessors
     if strings.Contains(toolchainLink, "https://") || strings.Contains(toolchainLink, "http://") {
-        return "", util.Error("toolchain link must be without https or http")
+        return "", util.Error("toolchain link provided must be without https or http, ex: github.com/foo")
     }
 
     toolchainName, toolchainRef := func() (string, string) {
@@ -46,25 +48,25 @@ func DownloadToolchain(toolchainLink string) (string, error) {
         }
     }()
 
+    // use alias
+    toolchainName = func() string {
+        if val, exists := SupportedToolchains[toolchainName]; exists {
+            return val
+        } else {
+            return toolchainName
+        }
+    }()
+
     var d Downloader
 
-    // this is not a valid name
+    // this is not a valid name so it must be a url
     if strings.Contains(toolchainName, ".") && strings.Contains(toolchainName, "/") {
         d = GitDownloader{}
     } else {
         d = NpmDownloader{}
     }
 
-    log.Writeln(log.Yellow, "-------------------------------")
-    log.Write(log.Cyan, "Verifying/Downloading toolchain module from ")
-    log.Write(log.Yellow, toolchainLink)
-    log.Writeln(log.Cyan, "...")
-
-    defer func() {
-        log.Writeln(log.Yellow, "-------------------------------")
-    }()
-
-    if path, err := d.DownloadModule(root.GetToolchainPath(), toolchainName, toolchainRef); err != nil {
+    if path, err := d.DownloadModule(root.GetToolchainPath(), toolchainName, toolchainRef, retool); err != nil {
         return "", err
     } else {
         _, err := createDepAttributes(path, "")
@@ -88,18 +90,31 @@ func createDepAttributes(file string, configData string) (string, error) {
     for name, version := range moduleData.Dependencies {
         depPath := sys.Path(root.GetToolchainPath(), name+"__"+version)
 
-        configData += fmt.Sprintf("set(WIO_DEP_%s_PATH \"%s\")\n", strings.ToUpper(name), depPath)
-        configData += fmt.Sprintf("set(WIO_DEP_%s_VERSION \"%s\")\n", strings.ToUpper(name), depPath)
+        configData += template.Replace(WioConfigSet, map[string]string{
+            "VAR_NAME":  fmt.Sprintf("WIO_DEP_%s_PATH", strings.ToUpper(name)),
+            "VAR_VALUE": depPath,
+        }) + "\n"
+        configData += template.Replace(WioConfigSet, map[string]string{
+            "VAR_NAME":  fmt.Sprintf("WIO_DEP_%s_VERSION", strings.ToUpper(name)),
+            "VAR_VALUE": version,
+        }) + "\n"
+
         returnedData, err := createDepAttributes(depPath, "")
-        configData += "\n" + returnedData
+        configData += returnedData
         if err != nil {
             return configData, err
         }
     }
 
     writeConfigData := configData
-    writeConfigData += fmt.Sprintf("set(WIO_TOOLCHAIN_FOLDER_PATH \"%s\")\n", root.GetToolchainPath())
-    writeConfigData += fmt.Sprintf("set(WIO_CURRENT_TOOLCHAIN_PATH \"%s\")\n", file)
+    writeConfigData += template.Replace(WioConfigSet, map[string]string{
+        "VAR_NAME":  "WIO_TOOLCHAIN_PATH",
+        "VAR_VALUE": root.GetToolchainPath(),
+    }) + "\n"
+    writeConfigData += template.Replace(WioConfigSet, map[string]string{
+        "VAR_NAME":  "WIO_CURRENT_TOOLCHAIN_PATH",
+        "VAR_VALUE": file,
+    }) + "\n"
 
     if err := io.NormalIO.WriteFile(wioConfigPath, []byte(writeConfigData)); err != nil {
         return configData, err

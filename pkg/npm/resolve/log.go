@@ -45,7 +45,7 @@ func printTree(node *Node, pre string) {
 }
 
 func logInstallStart() {
-    log.Infoln(log.Cyan, "Installing dependencies")
+    log.Infoln(log.Cyan, "Installing dependencies ")
 }
 
 func logInstall(name string, ver string, curr uint64, total uint64) {

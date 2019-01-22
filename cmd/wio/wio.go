@@ -71,6 +71,14 @@ var updateFlags []cli.Flag
 
 var buildFlags = []cli.Flag{
     cli.BoolFlag{
+        Name:  "force",
+        Usage: "Forces a full build for targets.",
+    },
+    cli.BoolFlag{
+        Name:  "retool",
+        Usage: "Removes existing toolchain and hard resets it.",
+    },
+    cli.BoolFlag{
         Name:  "all",
         Usage: "Build all available targets.",
     },

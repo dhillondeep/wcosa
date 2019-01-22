@@ -25,7 +25,7 @@ func dispatchCmake(info *runInfo, target types.Target) error {
     platform := strings.ToLower(target.GetPlatform())
 
     // this means platform was not specified at all
-    if strings.Trim(platform, " ") == "" {
+    if util.IsEmptyString(platform) {
         message := fmt.Sprintf("No Platform specified by the [%s] target", target.GetName())
         return util.Error(message)
     }
@@ -35,20 +35,17 @@ func dispatchCmake(info *runInfo, target types.Target) error {
         return util.Error(message)
     }
 
-    toolchainPath := ""
+    var toolchainPath string
+    var err error
     if platform != constants.Native {
-        framework := func() string {
-            if val, exists := downloader.SupportedToolchains[target.GetFramework()]; exists {
-                return val
-            } else {
-                return target.GetFramework()
-            }
+        defer func() {
+            log.Writeln(log.Yellow, "-------------------------------")
         }()
 
-        if path, err := downloader.DownloadToolchain(framework); err != nil {
+        log.Writeln(log.Yellow, "-------------------------------")
+
+        if toolchainPath, err = downloader.DownloadToolchain(target.GetFramework(), info.retool); err != nil {
             return err
-        } else {
-            toolchainPath = path
         }
     }
 
