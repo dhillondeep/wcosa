@@ -29,7 +29,7 @@ Global options:
 Copyright:
    {{.Copyright}}
    {{end}}{{if .Version}}
-Vesrion:
+Version:
    {{.Version}}
    {{end}}
 Run "wio command <help>" for more information about a command.
