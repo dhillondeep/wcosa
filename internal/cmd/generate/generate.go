@@ -17,8 +17,8 @@ import (
     "wio/pkg/util/template"
 )
 
-var supportedPlatforms = map[string]bool {
-    constants.Avr: true,
+var supportedPlatforms = map[string]bool{
+    constants.Avr:    true,
     constants.Native: true,
 }
 
@@ -55,7 +55,7 @@ func HardwareFile(info *InfoGenerate, target types.Target) error {
     }
 
     return template.IOReplace(hardwareFilePath, map[string]string{
-        "UPLOAD_PORT": info.Port,
+        "UPLOAD_PORT":     info.Port,
         "TARGET_HARDWARE": hardware,
     })
 }

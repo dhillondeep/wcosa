@@ -45,8 +45,8 @@ func (create Create) generateIdeFiles(ide string, directory string, config types
 func dispatchIdeGenClion(directory string, target types.Target, config types.Config) (types.Target, error) {
     cmakeListsPath := sys.Path(directory, "CMakeLists.txt")
     miscPath := getIdeaFilePath(directory, "misc.xml")
-    watcherTasksPath := getIdeaFilePath(directory,"watcherTasks.xml")
-    workplacePath := getIdeaFilePath(directory,"workspace.xml")
+    watcherTasksPath := getIdeaFilePath(directory, "watcherTasks.xml")
+    workplacePath := getIdeaFilePath(directory, "workspace.xml")
 
     if err := os.MkdirAll(sys.Path(directory, sys.WioFolder, sys.IdeFolder, constants.Clion,
         target.GetName()), os.ModePerm); err != nil {
@@ -67,14 +67,14 @@ func dispatchIdeGenClion(directory string, target types.Target, config types.Con
 
     if err := template.IOReplace(workplacePath, map[string]string{
         "PROJECT_NAME": config.GetName(),
-        "TARGET_NAME": target.GetName(),
-        "TARGET_SRC": target.GetSource(),
+        "TARGET_NAME":  target.GetName(),
+        "TARGET_SRC":   target.GetSource(),
     }); err != nil {
         return nil, err
     }
 
     return target, template.IOReplace(cmakeListsPath, map[string]string{
         "TARGET_NAME": target.GetName(),
-        "WIO_PATH": env.GetWioPath(),
+        "WIO_PATH":    env.GetWioPath(),
     })
 }

@@ -119,13 +119,13 @@ func (info *runInfo) clean(targets []types.Target) error {
 
     doHardClean := info.context.Bool("hard")
 
-    log.Infoln(log.Magenta, "Running " + func() string {
+    log.Infoln(log.Magenta, "Running "+func() string {
         if doHardClean {
             return "hard "
         } else {
             return ""
         }
-    }() +  "clean with JOBS=%d", runtime.NumCPU()+2)
+    }()+"clean with JOBS=%d", runtime.NumCPU()+2)
 
     errs := asyncCleanTargets(targetDirs, doHardClean)
     if err := awaitErrors(errs); err != nil {

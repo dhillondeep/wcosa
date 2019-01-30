@@ -70,10 +70,10 @@ func (create Create) handleUpdate(directory string) (*createInfo, error) {
     }
 
     info := &createInfo{
-        context:   create.Context,
-        directory: directory,
-        name:      cfg.GetName(),
-        ide:       create.Context.String("ide"),
+        context:    create.Context,
+        directory:  directory,
+        name:       cfg.GetName(),
+        ide:        create.Context.String("ide"),
         fullUpdate: create.Context.Bool("full"),
         updateOnly: create.Update,
     }

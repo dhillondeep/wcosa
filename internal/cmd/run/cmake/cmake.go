@@ -76,8 +76,8 @@ func generateCmakeLists(templateFile string, buildPath string, values map[string
     return template.IOReplace(cmakeListsPath, values)
 }
 
-var templateFiles = map[string]string {
-    constants.Avr: "CMakeListsAVR",
+var templateFiles = map[string]string{
+    constants.Avr:    "CMakeListsAVR",
     constants.Native: "CMakeListsNative",
 }
 
@@ -116,9 +116,9 @@ func GenerateCmakeLists(
         "TARGET_LINK_LIBRARIES": func() string {
             if len(target.GetLinkerFlags()) > 0 {
                 return "\n" + template.Replace(LinkString, map[string]string{
-                    "LINK_FROM":     "${TARGET_NAME}",
+                    "LINK_FROM":       "${TARGET_NAME}",
                     "LINK_VISIBILITY": "PRIVATE",
-                    "LINK_TO": "# no dep",
+                    "LINK_TO":         "# no dep",
                     "LINKER_FLAGS":    strings.Join(target.GetLinkerFlags(), " "),
                 })
             } else {

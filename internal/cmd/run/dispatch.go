@@ -8,7 +8,6 @@ import (
     "wio/pkg/util/sys"
 )
 
-
 func dispatchRunTarget(info *runInfo, target types.Target) error {
     binDir := binaryPath(info, target)
     platform := target.GetPlatform()
@@ -28,7 +27,6 @@ func dispatchRunTarget(info *runInfo, target types.Target) error {
 
         return nil
     }
-
 
     switch platform {
     case constants.Avr:
@@ -57,6 +55,6 @@ func dispatchRunTarget(info *runInfo, target types.Target) error {
 func dispatchCanRunTarget(info *runInfo, target types.Target) bool {
     binDir := binaryPath(info, target)
     platform := target.GetPlatform()
-    file := sys.Path(binDir, target.GetName() + platformExtension(platform))
+    file := sys.Path(binDir, target.GetName()+platformExtension(platform))
     return sys.Exists(file)
 }

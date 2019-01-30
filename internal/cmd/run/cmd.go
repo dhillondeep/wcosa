@@ -66,8 +66,8 @@ func cleanIfExists(dir string, errChan chan error) {
 func hardClean(dir string, errChan chan error) {
     log.Verbln(log.Magenta, "Removing directory: %s", dir)
     errChan <- os.RemoveAll(dir)
-        os.MkdirAll(dir, os.ModePerm)
-        os.Create(sys.Path(dir, "CMakeLists.txt"))
+    os.MkdirAll(dir, os.ModePerm)
+    os.Create(sys.Path(dir, "CMakeLists.txt"))
 }
 
 func Execute(dir string, name string, args ...string) error {
