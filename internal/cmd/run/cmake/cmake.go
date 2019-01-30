@@ -6,6 +6,7 @@ import (
     "strings"
     "wio/internal/constants"
     "wio/internal/types"
+    "wio/internal/utils"
     "wio/pkg/downloader"
     "wio/pkg/util"
     "wio/pkg/util/sys"
@@ -63,10 +64,6 @@ func GetStandard(standard string) (string, string, error) {
     return cppStandard, cStandard, nil
 }
 
-func BuildPath(projectPath string) string {
-    return sys.Path(projectPath, sys.Folder, constants.TargetDir)
-}
-
 func generateCmakeLists(templateFile string, buildPath string, values map[string]string) error {
     templatePath := sys.Path("templates", "cmake", templateFile+".txt.tpl")
     cmakeListsPath := sys.Path(buildPath, "CMakeLists.txt")
@@ -79,57 +76,13 @@ func generateCmakeLists(templateFile string, buildPath string, values map[string
     return template.IOReplace(cmakeListsPath, values)
 }
 
-// This creates the main CMakeLists.txt file for AVR app type project
-func GenerateAvrCmakeLists(
-    toolchainPath string,
-    target types.Target,
-    projectName string,
-    projectPath string,
-    cppStandard string,
-    cStandard string,
-    port string) error {
-
-    flags := target.GetFlags().GetTarget()
-    definitions := target.GetDefinitions().GetTarget()
-    framework := target.GetFramework()
-    buildPath := sys.Path(BuildPath(projectPath), target.GetName())
-    templateFile := "CMakeListsAVR"
-
-    moduleData := &downloader.ModuleData{}
-    if err := sys.NormalIO.ParseJson(sys.Path(toolchainPath, "package.json"), moduleData); err != nil {
-        return err
-    }
-
-    return generateCmakeLists(templateFile, buildPath, map[string]string{
-        "TOOLCHAIN_FILE":             sys.Path(filepath.ToSlash(toolchainPath), moduleData.ToolchainFile),
-        "PROJECT_PATH":               filepath.ToSlash(projectPath),
-        "PROJECT_NAME":               projectName,
-        "CPP_STANDARD":               cppStandard,
-        "C_STANDARD":                 cStandard,
-        "PORT":                       port,
-        "PLATFORM":                   strings.ToUpper(constants.Avr),
-        "FRAMEWORK":                  strings.ToUpper(framework),
-        "BOARD":                      target.GetBoard(),
-        "TARGET_NAME":                target.GetName(),
-        "ENTRY":                      target.GetSource(),
-        "TARGET_COMPILE_FLAGS":       strings.Join(flags, " "),
-        "TARGET_COMPILE_DEFINITIONS": strings.Join(definitions, " "),
-        "TARGET_LINK_LIBRARIES": func() string {
-            if len(target.GetLinkerFlags()) > 0 {
-                return "\n" + template.Replace(LinkString, map[string]string{
-                    "LINKER_NAME":     "${TARGET_NAME}",
-                    "LINK_VISIBILITY": "PRIVATE",
-                    "DEPENDENCY_NAME": "# no dep",
-                    "LINKER_FLAGS":    strings.Join(target.GetLinkerFlags(), " "),
-                })
-            } else {
-                return ""
-            }
-        }(),
-    })
+var templateFiles = map[string]string {
+    constants.Avr: "CMakeListsAVR",
+    constants.Native: "CMakeListsNative",
 }
 
-func GenerateNativeCmakeLists(
+func GenerateCmakeLists(
+    toolchainPath string,
     target types.Target,
     projectName string,
     projectPath string,
@@ -138,27 +91,34 @@ func GenerateNativeCmakeLists(
 
     flags := target.GetFlags().GetTarget()
     definitions := target.GetDefinitions().GetTarget()
-    buildPath := sys.Path(BuildPath(projectPath), target.GetName())
-    templateFile := "CMakeListsNative"
+    buildPath := sys.Path(utils.BuildPath(projectPath), target.GetName())
 
-    return generateCmakeLists(templateFile, buildPath, map[string]string{
+    moduleData := &downloader.ModuleData{}
+    packageInfoPath := sys.Path(toolchainPath, "package.json")
+    if sys.Exists(packageInfoPath) {
+        if err := sys.NormalIO.ParseJson(packageInfoPath, moduleData); err != nil {
+            return err
+        }
+    }
+
+    return generateCmakeLists(templateFiles[target.GetPlatform()], buildPath, map[string]string{
+        "TOOLCHAIN_FILE":             sys.Path(filepath.ToSlash(toolchainPath), moduleData.ToolchainFile),
         "PROJECT_PATH":               filepath.ToSlash(projectPath),
         "PROJECT_NAME":               projectName,
         "CPP_STANDARD":               cppStandard,
         "C_STANDARD":                 cStandard,
-        "TARGET_NAME":                target.GetName(),
-        "PLATFORM":                   strings.ToUpper(constants.Native),
+        "PLATFORM":                   strings.ToUpper(target.GetPlatform()),
         "FRAMEWORK":                  strings.ToUpper(target.GetFramework()),
-        "OS":                         strings.ToUpper(target.GetBoard()),
+        "TARGET_NAME":                target.GetName(),
         "ENTRY":                      target.GetSource(),
         "TARGET_COMPILE_FLAGS":       strings.Join(flags, " "),
         "TARGET_COMPILE_DEFINITIONS": strings.Join(definitions, " "),
         "TARGET_LINK_LIBRARIES": func() string {
             if len(target.GetLinkerFlags()) > 0 {
                 return "\n" + template.Replace(LinkString, map[string]string{
-                    "LINK_FROM":       "${TARGET_NAME}",
+                    "LINK_FROM":     "${TARGET_NAME}",
                     "LINK_VISIBILITY": "PRIVATE",
-                    "LINK_TO":         "# no dep",
+                    "LINK_TO": "# no dep",
                     "LINKER_FLAGS":    strings.Join(target.GetLinkerFlags(), " "),
                 })
             } else {

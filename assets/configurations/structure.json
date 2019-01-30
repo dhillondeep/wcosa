@@ -1,0 +1,151 @@
+{
+  "shared": {
+    "paths": [
+      {
+        "constraints": ["ide=clion"],
+        "entry": "/",
+        "files": [
+          {
+            "from": "templates/ide/clion/CMakeLists.txt.tpl",
+            "to": "CMakeLists.txt",
+            "override": true,
+            "update": true,
+            "allowFull": true
+          },
+          {
+            "from": "templates/ide/clion/args.cmake.tpl",
+            "to": "args.cmake",
+            "override": false,
+            "update": true
+          }
+        ]
+      },
+      {
+        "constraints": ["ide=clion"],
+        "entry": "/.idea",
+        "files": [
+          {
+            "from": "templates/ide/clion/.idea/misc.xml.tpl",
+            "to": "misc.xml",
+            "override": true,
+            "update": true,
+            "allowFull": true
+          },
+          {
+            "from": "templates/ide/clion/.idea/modules.xml.tpl",
+            "to": "modules.xml",
+            "override": true,
+            "update": true,
+            "allowFull": true
+          },
+          {
+            "from": "templates/ide/clion/.idea/watcherTasks.xml.tpl",
+            "to": "watcherTasks.xml",
+            "override": true,
+            "update": true,
+            "allowFull": true
+          },
+          {
+            "from": "templates/ide/clion/.idea/wio.impl.tpl",
+            "to": "wio.iml",
+            "override": true,
+            "update": true,
+            "allowFull": true
+          },
+          {
+            "from": "templates/ide/clion/.idea/workspace.xml.tpl",
+            "to": "workspace.xml",
+            "override": false,
+            "update": true,
+            "allowFull": true
+          }
+        ]
+      }
+    ]
+  },
+  "app": {
+    "paths": [
+      {
+        "constraints": [],
+        "entry": "/",
+        "files": [
+          {
+            "constraints": ["extra"],
+            "from": "templates/gitignore/.gitignore-general",
+            "to": ".gitignore",
+            "override": false,
+            "update": false
+          },
+          {
+            "constraints": ["extra"],
+            "from": "templates/readme/APP_README.md",
+            "to": "README.md",
+            "override": false,
+            "update": false
+          }
+        ]
+      },
+      {
+        "entry": "src",
+        "files": [
+          {
+            "from": "templates/sample-program/pkg/main.cpp",
+            "to": "main.cpp",
+            "override": false,
+            "update": false
+          }
+        ]
+      }
+    ]
+  },
+  "pkg": {
+    "paths": [
+      {
+        "constraints": [],
+        "entry": "/",
+        "files": [
+          {
+            "constraints": ["extra"],
+            "from": "templates/gitignore/.gitignore-general",
+            "to": ".gitignore",
+            "override": false,
+            "update": false
+          },
+          {
+            "constraints": ["extra"],
+            "from": "templates/readme/PKG_README.md",
+            "to": "README.md",
+            "override": false,
+            "update": false
+          }
+        ]
+      },
+      {
+        "entry": "include"
+      },
+      {
+        "constraints": ["!header-only"],
+        "entry": "src",
+        "files": [
+          {
+            "from": "templates/sample-program/pkg/main.cpp",
+            "to": "main.cpp",
+            "override": false,
+            "update": false
+          }
+        ]
+      },
+      {
+        "entry": "tests",
+        "files": [
+          {
+            "from": "templates/sample-program/pkg/test.cpp",
+            "to": "test.cpp",
+            "override": false,
+            "update": false
+          }
+        ]
+      }
+    ]
+  }
+}

@@ -35,7 +35,7 @@ func Do(dir string, cfg types.Config) error {
         return err
     }
     tarFile := fmt.Sprintf("%s-%s.tgz", data.Name, data.Version)
-    tarPath := sys.Path(dir, sys.Folder, tarFile)
+    tarPath := sys.Path(dir, sys.WioFolder, tarFile)
     if err := MakeTar(dir, tarPath); err != nil {
         log.WriteFailure()
         return err

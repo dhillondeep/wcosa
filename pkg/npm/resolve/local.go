@@ -11,7 +11,7 @@ import (
 func findLocalConfigs(root string) ([]string, error) {
     paths := []string{
         sys.Path(root, sys.Vendor),
-        sys.Path(root, sys.Folder, sys.Modules),
+        sys.Path(root, sys.WioFolder, sys.Modules),
     }
     var ret []string
     for _, path := range paths {

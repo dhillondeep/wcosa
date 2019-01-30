@@ -4,4 +4,5 @@ package env
 var envMeta = map[string]bool{
     "WIOROOT": true,
     "WIOOS":   true,
+    "WIOPATH": true,
 }

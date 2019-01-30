@@ -6,7 +6,9 @@ set(CMAKE_VER 3.1.0)
 set(PROJECT_NAME {{PROJECT_NAME}})
 set(PROJECT_PATH "{{PROJECT_PATH}}")
 set(CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR})
-set(DEPENDENCY_FILE dependencies)
+
+# Hardware
+include("${PROJECT_PATH}/.wio/targets/{{TARGET_NAME}}/hardware.cmake")
 
 # C++ standard
 set(CMAKE_CXX_STANDARD {{CPP_STANDARD}})
@@ -20,7 +22,7 @@ set(CMAKE_C_EXTENSIONS OFF)
 
 # Properties
 set(TARGET_NAME {{TARGET_NAME}})
-set(OS {{OS}})
+set(OS ${WIO_TARGET_HARDWARE})
 set(PLATFORM {{PLATFORM}})
 set(FRAMEWORK {{FRAMEWORK}})
 set(ENTRY {{ENTRY}})
@@ -29,10 +31,8 @@ set(ENTRY {{ENTRY}})
 cmake_minimum_required(VERSION ${CMAKE_VERSION})
 project(${PROJECT_NAME} C CXX ASM)
 
-# Variables
-set(PLATFORM {{PLATFORM}})
-set(FRAMEWORK {{FRAMEWORK}})
-set(BOARD {{BOARD}})
+# Dependencies
+set(DEPENDENCY_FILE "${PROJECT_PATH}/.wio/targets/${TARGET_NAME}/dependencies.cmake")
 
 file(GLOB_RECURSE ${TARGET_NAME}_files
     ${PROJECT_PATH}/${ENTRY}/*.cpp

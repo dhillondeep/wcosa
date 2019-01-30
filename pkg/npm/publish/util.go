@@ -60,12 +60,12 @@ func MakeTar(dir, dst string) error {
     if err := os.MkdirAll(filepath.Dir(dst), os.ModePerm); err != nil {
         return err
     }
-    content := sys.Path(dir, sys.Folder, "package")
+    content := sys.Path(dir, sys.WioFolder, "package")
     return archiver.Archive([]string{content}, dst)
 }
 
 func GeneratePackage(dir string, data *npm.Version) error {
-    pkg := sys.Path(dir, sys.Folder, "package")
+    pkg := sys.Path(dir, sys.WioFolder, "package")
     if err := os.RemoveAll(pkg); err != nil {
         return err
     }

@@ -66,26 +66,33 @@ func (info createInfo) toLowerCase() {
     info.platform = strings.ToLower(info.platform)
     info.framework = strings.ToLower(info.framework)
     info.board = strings.ToLower(info.board)
+    info.ide = strings.ToLower(info.ide)
 }
 
 func (info *createInfo) generateConstraints() (map[string]bool, map[string]bool) {
     context := info.context
     dirConstraints := map[string]bool{
-        "tests":          false,
-        "no-header-only": !context.Bool("header-only"),
+        "tests":        false,
+        "!header-only": !context.Bool("header-only"),
+        "header-only":  context.Bool("header-only"),
     }
     fileConstraints := map[string]bool{
-        "ide=clion":      false,
-        "extra":          !context.Bool("no-extras"),
-        "example":        context.Bool("create-example"),
-        "no-header-only": !context.Bool("no-header-only"),
+        "extra":        !context.Bool("no-extras"),
+        "example":      context.Bool("create-example"),
+        "!header-only": !context.Bool("header-only"),
+        "header-only":  context.Bool("header-only"),
     }
+
+    if info.ide != "none" {
+        fileConstraints["ide="+info.ide] = true
+    }
+
     return dirConstraints, fileConstraints
 }
 
 // This uses a structure.json file and creates a project structure based on that. It takes in consideration
 // all the constrains and copies files. This should be used for creating project for any type of app/pkg
-func copyProjectAssets(queue *log.Queue, info *createInfo, data *StructureTypeData) error {
+func copyProjectAssets(queue *log.Queue, info *createInfo, data *StructureTypeData, updateOverride bool) error {
     dirConstraints, fileConstraints := info.generateConstraints()
     for _, path := range data.Paths {
         directoryPath := sys.Path(info.directory, path.Entry)
@@ -95,6 +102,10 @@ func copyProjectAssets(queue *log.Queue, info *createInfo, data *StructureTypeDa
         for _, constraint := range path.Constraints {
             _, exists := dirConstraints[constraint]
             if exists && !dirConstraints[constraint] {
+                log.Verbln(queue, "constraint not satisfied and hence skipping this directory")
+                skipDir = true
+                break
+            } else if !exists {
                 log.Verbln(queue, "constraint not specified and hence skipping this directory")
                 skipDir = true
                 break
@@ -119,6 +130,10 @@ func copyProjectAssets(queue *log.Queue, info *createInfo, data *StructureTypeDa
             for _, constraint := range file.Constraints {
                 _, exists := fileConstraints[constraint]
                 if exists && !fileConstraints[constraint] {
+                    log.Verbln(queue, "constraint not satisfied and hence skipping this file")
+                    skipFile = true
+                    break
+                } else if !exists {
                     log.Verbln(queue, "constraint not specified and hence skipping this file")
                     skipFile = true
                     break
@@ -128,10 +143,13 @@ func copyProjectAssets(queue *log.Queue, info *createInfo, data *StructureTypeDa
                 continue
             }
 
-            // handle updates
-            if !file.Update && info.updateOnly {
-                log.Verbln(queue, "project is not updating, hence skipping update for path: %s", toPath)
+            if info.updateOnly && !file.Update {
+                log.Verbln(queue, "file doesn't support updates, hence skipping update for path: %s", toPath)
                 continue
+            }
+
+            if info.updateOnly && file.Update && file.AllowFull && updateOverride {
+                file.Override = true
             }
 
             // copy assets

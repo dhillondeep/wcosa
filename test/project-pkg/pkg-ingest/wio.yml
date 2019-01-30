@@ -9,6 +9,7 @@ project:
   compile_options:
     wio_version: 0.5.2
     header_only: true
+    default_target: test1
   definitions:
     required:
       private:

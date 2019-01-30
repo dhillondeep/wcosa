@@ -13,7 +13,7 @@ import (
 type NpmDownloader struct{}
 
 func traverseAndDelete(n *resolve.Node) error {
-    path := sys.Path(root.GetToolchainPath(), sys.Folder, sys.Modules, n.Name+"__"+n.ResolvedVersion.Str())
+    path := sys.Path(root.GetToolchainPath(), sys.WioFolder, sys.Modules, n.Name+"__"+n.ResolvedVersion.Str())
 
     if err := os.RemoveAll(path); err != nil {
         return err
@@ -29,7 +29,7 @@ func traverseAndDelete(n *resolve.Node) error {
 }
 
 func traverseAndSymlink(n *resolve.Node) error {
-    oldPath := sys.Path(root.GetToolchainPath(), sys.Folder, sys.Modules, n.Name+"__"+n.ResolvedVersion.Str())
+    oldPath := sys.Path(root.GetToolchainPath(), sys.WioFolder, sys.Modules, n.Name+"__"+n.ResolvedVersion.Str())
     newFilePath := sys.Path(root.GetToolchainPath(), fmt.Sprintf("%s__%s", n.Name, n.ResolvedVersion.Str()))
 
     if sys.Exists(newFilePath) {
@@ -62,8 +62,7 @@ func (npmDownloaded NpmDownloader) DownloadModule(path, name, version string, re
     }
 
     log.Write(log.Cyan, "Fetching toolchain ")
-    log.Write(log.Yellow, "%s@%s", name, version)
-    log.Writeln(log.Cyan, "... ")
+    log.Writeln(log.Green, "%s@%s", name, version)
 
     node := &resolve.Node{Name: name, ConfigVersion: version}
 
@@ -71,7 +70,7 @@ func (npmDownloaded NpmDownloader) DownloadModule(path, name, version string, re
         return "", err
     }
 
-    pkgPath := sys.Path(root.GetToolchainPath(), sys.Folder, sys.Modules, name+"__"+version)
+    pkgPath := sys.Path(root.GetToolchainPath(), sys.WioFolder, sys.Modules, name+"__"+version)
 
     shouldDownload := false
     if sys.Exists(pkgPath) && retool {
@@ -90,7 +89,7 @@ func (npmDownloaded NpmDownloader) DownloadModule(path, name, version string, re
             return "", err
         }
     } else {
-        log.Writeln(log.Cyan, "|> Already Exists!")
+        log.Writeln(log.Green, "|> Already Exists!")
     }
 
     if err := traverseAndSymlink(node); err != nil {

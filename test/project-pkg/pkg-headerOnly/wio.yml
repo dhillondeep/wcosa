@@ -9,6 +9,7 @@ project:
   compile_options:
     wio_version: 0.4.0
     header_only: true
+    default_target: native
 
 targets:
   arduino:

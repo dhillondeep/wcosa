@@ -63,7 +63,7 @@ func ReqBody(user, pass, email string) *Body {
 }
 
 func (t *Token) Save(dir string) error {
-    path := sys.Path(dir, sys.Folder)
+    path := sys.Path(dir, sys.WioFolder)
     if err := os.MkdirAll(path, os.ModePerm); err != nil {
         return err
     }
@@ -73,7 +73,7 @@ func (t *Token) Save(dir string) error {
 }
 
 func LoadToken(dir string) (*Token, error) {
-    path := sys.Path(dir, sys.Folder, "token.json")
+    path := sys.Path(dir, sys.WioFolder, "token.json")
     if !sys.Exists(path) {
         return nil, errors.New("not logged in")
     }

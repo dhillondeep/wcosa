@@ -271,7 +271,7 @@ func isReadOnly(envName string) bool {
 
 func getLocalEnvPath() (string, error) {
     directory, err := os.Getwd()
-    envPath := sys.Path(directory, sys.Folder, constants.RootEnv)
+    envPath := sys.Path(directory, sys.WioFolder, constants.RootEnv)
 
     if err != nil {
         return "", err

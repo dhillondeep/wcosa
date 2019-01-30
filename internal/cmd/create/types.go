@@ -13,6 +13,7 @@ type StructureFilesData struct {
     To          string
     Override    bool
     Update      bool
+    AllowFull   bool `json:"allowFull"`
 }
 
 type StructurePathData struct {
@@ -26,6 +27,7 @@ type StructureTypeData struct {
 }
 
 type StructureConfigData struct {
-    App StructureTypeData
-    Pkg StructureTypeData
+    Shared StructureTypeData
+    App    StructureTypeData
+    Pkg    StructureTypeData
 }

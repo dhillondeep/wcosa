@@ -20,8 +20,7 @@ const (
 
 func (gitDownloader GitDownloader) DownloadModule(path, url, reference string, retool bool) (string, error) {
     log.Write(log.Cyan, "Fetching toolchain using git from ")
-    log.Write(log.Yellow, url)
-    log.Write(log.Cyan, "... ")
+    log.Writeln(log.Green, url)
 
     cloneOptions := &git.CloneOptions{
         URL:               fmt.Sprintf("%s://%s", Protocol, url),

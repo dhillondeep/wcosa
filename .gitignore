@@ -20,6 +20,8 @@ bin/toolchain
 test/**/*/vendor/
 test/**/*/README.md
 test/**/*/.gitignore
+test/**/*/CMakeLists.txt
+test/**/*/args.cmake
 vendor/*
 !vendor/vendor.json
 test/project-app/app-linker/expenses.db

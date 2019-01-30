@@ -1,6 +1,8 @@
 package cmd
 
-import "os"
+import (
+    "os"
+)
 
 func GetDirectory(cmd Command) (string, error) {
     ctx := cmd.GetContext()

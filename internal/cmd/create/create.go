@@ -19,8 +19,8 @@ import (
 )
 
 // Creation of AVR projects
-func (create Create) createProject(dir string) error {
-    info := createInfo{
+func (create Create) createProject(dir string) (*createInfo, error) {
+    info := &createInfo{
         context:     create.Context,
         directory:   dir,
         projectType: create.Type,
@@ -28,6 +28,7 @@ func (create Create) createProject(dir string) error {
         platform:    create.Context.String("platform"),
         framework:   create.Context.String("framework"),
         board:       create.Context.String("board"),
+        ide:         create.Context.String("ide"),
         configOnly:  create.Context.Bool("only-config"),
         headerOnly:  create.Context.Bool("header-only"),
         updateOnly:  create.Update,
@@ -37,10 +38,10 @@ func (create Create) createProject(dir string) error {
     // Generate project structure
     queue := log.GetQueue()
     if !info.configOnly {
-        log.Info(log.Cyan, "creating project structure ... ")
-        if err := createStructure(queue, &info); err != nil {
+        log.Info(log.Cyan, "Creating project structure... ")
+        if err := createStructure(queue, info); err != nil {
             log.WriteFailure()
-            return err
+            return nil, err
         } else {
             log.WriteSuccess()
         }
@@ -49,27 +50,26 @@ func (create Create) createProject(dir string) error {
 
     // Fill configuration file
     queue = log.GetQueue()
-    log.Info(log.Cyan, "configuring project files ... ")
-    if err := fillConfig(&info); err != nil {
+    log.Info(log.Cyan, "Configuring project files... ")
+    if err := fillConfig(info); err != nil {
         log.WriteFailure()
-        return err
-    } else {
-        log.WriteSuccess()
+        return nil, err
     }
+
     log.PrintQueue(queue, log.TWO_SPACES)
 
     // print structure summary
     info.printPackageCreateSummary()
-    return nil
+    return info, nil
 }
 
 // Copy and generate files for a package project
 func createStructure(queue *log.Queue, info *createInfo) error {
-    log.Verb(queue, "reading paths.json file ... ")
+    log.Verb(queue, "Reading paths.json file... ")
     structureData := &StructureConfigData{}
 
     // read configurationsFile
-    if err := sys.AssetIO.ParseJson("configurations/structure-avr.json", structureData); err != nil {
+    if err := sys.AssetIO.ParseJson("configurations/structure.json", structureData); err != nil {
         log.WriteFailure(queue, log.VERB)
         return err
     } else {
@@ -83,8 +83,9 @@ func createStructure(queue *log.Queue, info *createInfo) error {
     if info.projectType == constants.App {
         dataType = &structureData.App
     }
+    dataType.Paths = append(dataType.Paths, structureData.Shared.Paths...)
 
-    if err := copyProjectAssets(subQueue, info, dataType); err != nil {
+    if err := copyProjectAssets(subQueue, info, dataType, false); err != nil {
         log.WriteFailure(queue, log.VERB)
         log.CopyQueue(subQueue, queue, log.FOUR_SPACES)
         return err

@@ -13,11 +13,11 @@ func (c Logout) Execute() error {
     if err != nil {
         return nil
     }
-    path := sys.Path(dir, sys.Folder, "token.json")
+    path := sys.Path(dir, sys.WioFolder, "token.json")
     if !sys.Exists(path) {
         return util.Error("not logged in")
     }
-    log.Info(log.Cyan, "Logging out ... ")
+    log.Info(log.Cyan, "Logging out... ")
     if err := os.RemoveAll(path); err != nil {
         log.WriteFailure()
         return err

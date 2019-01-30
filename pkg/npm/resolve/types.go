@@ -189,7 +189,7 @@ func (i *Info) GetPkg(name, ver string) (*Package, error) {
     paths := []string{
         sys.Path(i.dir, sys.Vendor, name),
         sys.Path(i.dir, sys.Vendor, name+"__"+ver),
-        sys.Path(i.dir, sys.Folder, sys.Modules, name+"__"+ver),
+        sys.Path(i.dir, sys.WioFolder, sys.Modules, name+"__"+ver),
     }
     for n, path := range paths {
         ret, err := tryFindConfig(name, ver, path, strict[n])

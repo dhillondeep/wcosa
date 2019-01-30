@@ -57,6 +57,11 @@ var createFlags = []cli.Flag{
         Usage: "Target boards: e.g. 'uno', 'mega2560', etc.",
         Value: "all",
     },
+    cli.StringFlag{
+        Name:  "ide",
+        Usage: "[clion]",
+        Value: "none",
+    },
     cli.BoolFlag{
         Name:  "only-config",
         Usage: "Creates only the configuration file (wio.yml).",
@@ -67,7 +72,17 @@ var createFlags = []cli.Flag{
     },
 }
 
-var updateFlags []cli.Flag
+var updateFlags = []cli.Flag{
+    cli.StringFlag{
+        Name:  "ide",
+        Usage: "[clion]",
+        Value: "none",
+    },
+    cli.BoolFlag{
+        Name:  "full",
+        Usage: "Full update and overrides files",
+    },
+}
 
 var buildFlags = []cli.Flag{
     cli.BoolFlag{
@@ -99,6 +114,7 @@ var runFlags = []cli.Flag{
     cli.StringFlag{
         Name:  "port",
         Usage: "Specify upload port.",
+        Value: "none",
     },
     cli.StringFlag{
         Name:  "args",

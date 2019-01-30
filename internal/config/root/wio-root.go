@@ -58,9 +58,15 @@ func CreateEnv() error {
         return err
     }
 
+    wioPath, err := os.Executable()
+    if err != nil {
+        return err
+    }
+
     envs := map[string]string{
         "WIOROOT": wioRoot,
         "WIOOS":   sys.GetOS(),
+        "WIOPATH": wioPath,
     }
 
     // create wio.env file

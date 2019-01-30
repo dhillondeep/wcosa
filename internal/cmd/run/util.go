@@ -3,14 +3,14 @@ package run
 import (
     "os"
     "strconv"
-    "wio/internal/cmd/run/cmake"
     "wio/internal/constants"
     "wio/internal/types"
+    "wio/internal/utils"
     "wio/pkg/util/sys"
 )
 
 func buildPath(info *runInfo) string {
-    return cmake.BuildPath(info.directory)
+    return utils.BuildPath(info.directory)
 }
 
 func targetPath(info *runInfo, target types.Target) string {
@@ -18,7 +18,7 @@ func targetPath(info *runInfo, target types.Target) string {
 }
 
 func binaryPath(info *runInfo, target types.Target) string {
-    return sys.Path(targetPath(info, target), constants.BinDir)
+    return sys.Path(targetPath(info, target), sys.BinDir)
 }
 
 func nativeExtension() string {
@@ -42,8 +42,8 @@ func platformExtension(platform string) string {
 }
 
 func shouldCreateBuildFiles(projectDir string, targetName string) (bool, error) {
-    wioTimeFile := sys.Path(cmake.BuildPath(projectDir), targetName, "wio.time")
-    wioCMakeListsFile := sys.Path(cmake.BuildPath(projectDir), targetName, "CMakeLists.txt")
+    wioTimeFile := sys.Path(utils.BuildPath(projectDir), targetName, "wio.time")
+    wioCMakeListsFile := sys.Path(utils.BuildPath(projectDir), targetName, "CMakeLists.txt")
 
     // check if CMakeLists.txt file exists
     if !sys.Exists(wioCMakeListsFile) {
@@ -76,7 +76,7 @@ func shouldCreateBuildFiles(projectDir string, targetName string) (bool, error) 
             return false, nil
         }
     } else {
-        info, err := os.Stat(sys.Path(projectDir, "wio.yml"))
+        info, err := os.Stat(sys.Path(projectDir, sys.Config))
         if err != nil {
             return true, err
         }

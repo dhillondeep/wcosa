@@ -34,3 +34,7 @@ ehthumbs_vista.db
 *.so
 *.dylib
 *.dll
+
+# Clion
+.idea/
+args.cmake
