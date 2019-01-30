@@ -4,9 +4,16 @@ import (
     "bytes"
     "encoding/json"
     "net/http"
+    "wio/internal/config/root"
     "wio/pkg/log"
     "wio/pkg/npm/client"
+    "wio/pkg/npm/registry"
     "wio/pkg/util"
+    "wio/pkg/util/sys"
+)
+
+const (
+    TokensFileName = "tokens.json"
 )
 
 func Do(name, pass, email string) (*Response, error) {
@@ -36,7 +43,7 @@ func Do(name, pass, email string) (*Response, error) {
 }
 
 func Request(header *Header, body *Body) (*http.Request, error) {
-    url := client.UrlResolve(client.BaseUrl, "-", "user", body.Id)
+    url := client.UrlResolve(registry.WioPackageRegistry, "-", "user", body.Id)
     log.Verbln("\nPUT %s", url)
     str, _ := json.MarshalIndent(body, "", Indent)
     log.Verbln("Body:\n%s", str)
@@ -50,10 +57,19 @@ func Request(header *Header, body *Body) (*http.Request, error) {
     return req, nil
 }
 
-func GetToken(name, pass, email string) (*Token, error) {
+func GetToken(name, pass, email, registry string) (*Tokens, error) {
     res, err := Do(name, pass, email)
     if err != nil {
         return nil, err
     }
-    return &Token{Value: res.Token}, nil
+
+    tokensFile := sys.Path(root.GetSecurityPath(), TokensFileName)
+    tokens := &Tokens{}
+
+    if err := sys.NormalIO.ParseJson(tokensFile, tokens); err != nil {
+        tokens.Values = map[string]string{}
+    }
+    tokens.Values[registry] = res.Token
+
+    return tokens, sys.NormalIO.WriteJson(tokensFile, tokens)
 }

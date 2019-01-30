@@ -11,18 +11,19 @@ import (
     "wio/pkg/npm"
     "wio/pkg/npm/client"
     "wio/pkg/npm/login"
+    "wio/pkg/npm/registry"
     "wio/pkg/util/sys"
 )
 
-func Do(dir string, cfg types.Config) error {
+func Do(dir, registryProvided string, cfg types.Config) error {
     log.Info(log.Cyan, "Retrieving token ... ")
-    token, err := login.LoadToken(dir)
+    token, err := login.LoadToken(registryProvided)
     if err != nil {
         log.WriteFailure()
         return err
     }
     log.WriteSuccess()
-    header := NewHeader(token.Value)
+    header := NewHeader(token)
 
     log.Info(log.Cyan, "Zipping package .... ")
     data, err := VersionData(dir, cfg)
@@ -54,7 +55,7 @@ func Do(dir string, cfg types.Config) error {
     log.Verbln("Data length:    %d", len(tarData))
     log.Verbln("Encoded length: %d", len(tarDist))
 
-    tarUrl := client.UrlResolve(client.BaseUrl, data.Name, "-", tarFile)
+    tarUrl := client.UrlResolve(registry.WioPackageRegistry, data.Name, "-", tarFile)
     data.Dist = npm.Dist{Shasum: shasum, Tarball: tarUrl}
 
     payload := &Attachment{
@@ -73,7 +74,7 @@ func Do(dir string, cfg types.Config) error {
         Attachments: map[string]*Attachment{tarFile: payload},
     }
 
-    url := client.UrlResolve(client.BaseUrl, data.Name)
+    url := client.UrlResolve(registryProvided, data.Name)
     log.Verbln("PUT %s", url)
     str, _ := json.MarshalIndent(header, "", login.Indent)
     log.Verbln("Header:\n%s", string(str))

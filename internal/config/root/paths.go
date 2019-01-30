@@ -3,6 +3,7 @@ package root
 type configPaths struct {
     WioUserPath   string
     ToolchainPath string
+    SecurityPath  string
     UpdatePath    string
     EnvFilePath   string
 }
@@ -15,6 +16,10 @@ func GetWioUserPath() string {
 
 func GetToolchainPath() string {
     return wioInternalConfigPaths.ToolchainPath
+}
+
+func GetSecurityPath() string {
+    return wioInternalConfigPaths.SecurityPath
 }
 
 func GetUpdatePath() string {

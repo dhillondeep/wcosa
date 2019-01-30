@@ -8,6 +8,7 @@ import (
     "os"
     "strings"
     "time"
+    "wio/internal/config/root"
     "wio/pkg/util/sys"
 )
 
@@ -32,8 +33,8 @@ type Response struct {
     Token  string `json:"token"`
 }
 
-type Token struct {
-    Value string `json:"token"`
+type Tokens struct {
+    Values map[string]string `json:"tokens"`
 }
 
 const TimeFormat = "2006-01-01 15:04:05.000"
@@ -62,28 +63,33 @@ func ReqBody(user, pass, email string) *Body {
     }
 }
 
-func (t *Token) Save(dir string) error {
-    path := sys.Path(dir, sys.WioFolder)
+func (t *Tokens) Save() error {
+    path := sys.Path(root.GetSecurityPath())
     if err := os.MkdirAll(path, os.ModePerm); err != nil {
         return err
     }
-    path = sys.Path(path, "token.json")
-    str, _ := json.MarshalIndent(t, "", Indent)
+    path = sys.Path(path, TokensFileName)
+    str, _ := json.Marshal(t)
     return ioutil.WriteFile(path, []byte(str), os.ModePerm)
 }
 
-func LoadToken(dir string) (*Token, error) {
-    path := sys.Path(dir, sys.WioFolder, "token.json")
+func LoadToken(registry string) (string, error) {
+    path := sys.Path(root.GetSecurityPath(), TokensFileName)
     if !sys.Exists(path) {
-        return nil, errors.New("not logged in")
+        return "", errors.New("not logged in")
     }
     data, err := ioutil.ReadFile(path)
     if err != nil {
-        return nil, err
+        return "", err
     }
-    ret := &Token{}
+    ret := &Tokens{}
     if err := json.Unmarshal(data, ret); err != nil {
-        return nil, err
+        return "", err
     }
-    return ret, nil
+
+    if value, exists := ret.Values[registry]; exists {
+        return value, nil
+    } else {
+        return "", errors.New("not logged in")
+    }
 }

@@ -6,6 +6,7 @@ import (
     "net/http"
     "time"
     "wio/pkg/npm"
+    "wio/pkg/npm/registry"
     "wio/pkg/util"
 
     "io"
@@ -14,10 +15,6 @@ import (
 )
 
 const timeoutSeconds = 10
-
-const (
-    BaseUrl = "https://registry.npmjs.org"
-)
 
 var Npm = &http.Client{Timeout: timeoutSeconds * time.Second}
 
@@ -58,7 +55,7 @@ func UrlResolve(values ...string) string {
 
 func FetchPackageData(name string) (*npm.Data, error) {
     var data npm.Data
-    url := UrlResolve(BaseUrl, name)
+    url := UrlResolve(registry.WioPackageRegistry, name)
     req, err := http.NewRequest("GET", url, nil)
     if err != nil {
         return nil, err
@@ -80,7 +77,7 @@ func FetchPackageData(name string) (*npm.Data, error) {
 func FetchPackageVersion(name string, versionStr string) (*npm.Version, error) {
     // assumes `versionStr` is a hard version
     var version npm.Version
-    url := UrlResolve(BaseUrl, name, versionStr)
+    url := UrlResolve(registry.WioPackageRegistry, name, versionStr)
     req, err := http.NewRequest("GET", url, nil)
     if err != nil {
         return nil, err

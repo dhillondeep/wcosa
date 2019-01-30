@@ -5,26 +5,20 @@ import (
     "os"
     "strings"
     "syscall"
-    "wio/internal/cmd"
     "wio/pkg/log"
     "wio/pkg/npm/login"
+    "wio/pkg/npm/registry"
 
     "golang.org/x/crypto/ssh/terminal"
 )
 
 type loginArgs struct {
-    dir   string
     name  string
     pass  string
     email string
 }
 
 func (c Login) getArgs() (*loginArgs, error) {
-    dir, err := cmd.GetDirectory(c)
-    if err != nil {
-        return nil, err
-    }
-
     reader := bufio.NewReader(os.Stdin)
     log.Info(log.Cyan, "Username: ")
     username, _ := reader.ReadString('\n')
@@ -40,7 +34,6 @@ func (c Login) getArgs() (*loginArgs, error) {
     log.Infoln()
 
     return &loginArgs{
-        dir:   dir,
         name:  strings.Trim(username, "\n"),
         pass:  string(bytePassword),
         email: strings.Trim(email, "\n"),
@@ -53,14 +46,14 @@ func (c Login) Execute() error {
         return err
     }
     log.Info(log.Cyan, "Sending login info ... ")
-    token, err := login.GetToken(args.name, args.pass, args.email)
+    tokens, err := login.GetToken(args.name, args.pass, args.email, registry.WioPackageRegistry)
     if err != nil {
         log.WriteFailure()
         return err
     }
     log.WriteSuccess()
     log.Info(log.Cyan, "Saving login token ... ")
-    if err := token.Save(args.dir); err != nil {
+    if err := tokens.Save(); err != nil {
         log.WriteFailure()
         return err
     }

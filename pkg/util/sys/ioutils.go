@@ -18,16 +18,16 @@ import (
 )
 
 const (
-    WioFolder  = ".wio"
-    TempFolder = ".tmp"
-    Config     = "wio.yml"
-    Modules    = "packages"
-    Vendor     = "vendor"
-    Download   = "cache"
-    TargetDir  = "targets"
-    BinDir     = "bin"
-    IdeaFolder = ".idea"
-    IdeFolder  = "ide"
+    WioFolder     = ".wio"
+    TempFolder    = ".tmp"
+    Config        = "wio.yml"
+    Modules       = "packages"
+    Vendor        = "vendor"
+    Download      = "cache"
+    TargetDir     = "targets"
+    BinDir        = "bin"
+    IdeaFolder    = ".idea"
+    IdeFolder     = "ide"
 )
 
 const (

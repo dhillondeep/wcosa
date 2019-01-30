@@ -25,15 +25,23 @@ func CreateWioRoot() error {
     }
 
     // create toolchain directory if it does not exist
-    wioInternalConfigPaths.ToolchainPath = sys.Path(wioInternalConfigPaths.WioUserPath, constants.RootToolchain)
+    wioInternalConfigPaths.ToolchainPath = sys.Path(GetWioUserPath(), constants.RootToolchain)
     if !sys.Exists(wioInternalConfigPaths.ToolchainPath) {
         if err := os.Mkdir(wioInternalConfigPaths.ToolchainPath, os.ModePerm); err != nil {
             return err
         }
     }
 
+    // create security directory if it does not exist
+    wioInternalConfigPaths.SecurityPath = sys.Path(GetWioUserPath(), constants.Security)
+    if !sys.Exists(wioInternalConfigPaths.SecurityPath) {
+        if err := os.Mkdir(wioInternalConfigPaths.SecurityPath, os.ModePerm); err != nil {
+            return err
+        }
+    }
+
     // create update directory if it does not exist
-    wioInternalConfigPaths.UpdatePath = sys.Path(wioInternalConfigPaths.WioUserPath, constants.RootUpdate)
+    wioInternalConfigPaths.UpdatePath = sys.Path(GetWioUserPath(), constants.RootUpdate)
     if !sys.Exists(wioInternalConfigPaths.UpdatePath) {
         if err := os.Mkdir(wioInternalConfigPaths.UpdatePath, os.ModePerm); err != nil {
             return err
@@ -41,7 +49,7 @@ func CreateWioRoot() error {
     }
 
     // create environment file if it does not exist
-    wioInternalConfigPaths.EnvFilePath = sys.Path(wioInternalConfigPaths.WioUserPath, constants.RootEnv)
+    wioInternalConfigPaths.EnvFilePath = sys.Path(GetWioUserPath(), constants.RootEnv)
     if !sys.Exists(wioInternalConfigPaths.EnvFilePath) {
         if err := CreateEnv(); err != nil {
             return err

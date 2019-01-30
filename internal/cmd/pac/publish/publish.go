@@ -4,6 +4,7 @@ import (
     "wio/internal/cmd"
     "wio/internal/types"
     "wio/pkg/npm/publish"
+    "wio/pkg/npm/registry"
 
     "github.com/urfave/cli"
 )
@@ -25,5 +26,5 @@ func (c Cmd) Execute() error {
     if err != nil {
         return err
     }
-    return publish.Do(dir, cfg)
+    return publish.Do(dir, registry.WioPackageRegistry, cfg)
 }

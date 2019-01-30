@@ -18,6 +18,7 @@ const (
 const (
     WioRoot       = ".wio-root"
     RootToolchain = "toolchain"
+    Security      = "security"
     RootUpdate    = "update"
     RootEnv       = "wio.env"
 )
