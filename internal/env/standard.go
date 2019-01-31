@@ -13,3 +13,7 @@ func GetWioRoot() string {
 func GetOS() string {
     return os.Getenv("WIOOS")
 }
+
+func GetArch() string {
+    return os.Getenv("WIOARCH")
+}

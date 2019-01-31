@@ -19,7 +19,7 @@ get:
 build:
 	@echo Building $(BINARY_NAME) project:
 	@cd "$(CURDIR)/pkg/util/sys" && go-bindata -nomemcopy -pkg sys -prefix ../../../ ../../../assets/...
-	@cd "$(CURDIR)/cmd/$(BINARY_NAME)" && $(GOBUILD) -o ../../bin/$(BINARY_NAME) -v
+	@cd "$(CURDIR)/cmd/$(BINARY_NAME)" && $(GOBUILD) -ldflags="-s -w" -o ../../bin/$(BINARY_NAME) -v
 	@echo Done!
 
 clean:

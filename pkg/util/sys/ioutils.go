@@ -15,19 +15,20 @@ import (
     "path"
     "path/filepath"
     "runtime"
+    "strings"
 )
 
 const (
-    WioFolder     = ".wio"
-    TempFolder    = ".tmp"
-    Config        = "wio.yml"
-    Modules       = "packages"
-    Vendor        = "vendor"
-    Download      = "cache"
-    TargetDir     = "targets"
-    BinDir        = "bin"
-    IdeaFolder    = ".idea"
-    IdeFolder     = "ide"
+    WioFolder  = ".wio"
+    TempFolder = ".tmp"
+    Config     = "wio.yml"
+    Modules    = "packages"
+    Vendor     = "vendor"
+    Download   = "cache"
+    TargetDir  = "targets"
+    BinDir     = "bin"
+    IdeaFolder = ".idea"
+    IdeFolder  = "ide"
 )
 
 const (
@@ -93,6 +94,11 @@ func GetOS() string {
     } else {
         return LINUX
     }
+}
+
+// Returns architecture
+func GetArch() string {
+    return strings.ToLower(runtime.GOARCH)
 }
 
 func Exists(path string) bool {

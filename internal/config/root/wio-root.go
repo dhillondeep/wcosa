@@ -74,6 +74,7 @@ func CreateEnv() error {
     envs := map[string]string{
         "WIOROOT": wioRoot,
         "WIOOS":   sys.GetOS(),
+        "WIOARCH": sys.GetArch(),
         "WIOPATH": wioPath,
     }
 

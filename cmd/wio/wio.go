@@ -21,6 +21,7 @@ import (
     "wio/internal/cmd/pac/user"
     "wio/internal/cmd/pac/vendor"
     "wio/internal/cmd/run"
+    "wio/internal/cmd/upgrade"
     "wio/internal/config/defaults"
     "wio/internal/config/meta"
     "wio/internal/constants"
@@ -334,6 +335,14 @@ var commands = []cli.Command{
                     command = env.Env{Context: c, Command: env.UNSET}
                 },
             },
+        },
+    },
+    {
+        Name:      "upgrade",
+        Usage:     "Upgrades wio to a specific version or latest version.",
+        UsageText: "wio upgrade [version]",
+        Action: func(c *cli.Context) {
+            command = upgrade.Upgrade{Context: c}
         },
     },
 }
