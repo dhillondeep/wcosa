@@ -9,6 +9,10 @@ import (
     "github.com/joho/godotenv"
 )
 
+type WioRootConfig struct {
+    Updated bool `json:"updated"`
+}
+
 func CreateWioRoot() error {
     currUser, err := user.Current()
     if err != nil {
@@ -48,39 +52,93 @@ func CreateWioRoot() error {
         }
     }
 
+    // create config file if doesn't exist
+    wioInternalConfigPaths.ConfigFilePath = sys.Path(GetWioUserPath(), constants.RootConfig)
+    config, err := CreateConfig()
+    if err != nil {
+        return err
+    }
+
     // create environment file if it does not exist
     wioInternalConfigPaths.EnvFilePath = sys.Path(GetWioUserPath(), constants.RootEnv)
-    if !sys.Exists(wioInternalConfigPaths.EnvFilePath) {
-        if err := CreateEnv(); err != nil {
-            return err
-        }
+    if err := CreateEnv(config); err != nil {
+        return err
     }
 
     return nil
 }
 
+// Create config file
+func CreateConfig() (*WioRootConfig, error) {
+    var config *WioRootConfig
+    if !sys.Exists(wioInternalConfigPaths.ConfigFilePath) {
+        config = &WioRootConfig{
+            Updated: false,
+        }
+        if err := sys.NormalIO.WriteJson(wioInternalConfigPaths.ConfigFilePath, config); err != nil {
+            return nil, err
+        }
+    } else {
+        config = &WioRootConfig{}
+        if err := sys.NormalIO.ParseJson(wioInternalConfigPaths.ConfigFilePath, config); err != nil {
+            return nil, err
+        }
+    }
+
+    return config, nil
+}
+
 // Creates environment and overrides if there is an old environment
-func CreateEnv() error {
-    wioRoot, err := sys.NormalIO.GetRoot()
-    if err != nil {
-        return err
+func CreateEnv(config *WioRootConfig) error {
+    var wioRoot string
+    var wioPath string
+    var err error
+
+    readValues := func() error {
+        wioRoot, err = sys.NormalIO.GetRoot()
+        if err != nil {
+            return err
+        }
+
+        wioPath, err = os.Executable()
+        if err != nil {
+            return err
+        }
+
+        return nil
     }
 
-    wioPath, err := os.Executable()
-    if err != nil {
-        return err
-    }
+    if !sys.Exists(wioInternalConfigPaths.EnvFilePath) {
+        if err := readValues(); err != nil {
+            return err
+        }
 
-    envs := map[string]string{
-        "WIOROOT": wioRoot,
-        "WIOOS":   sys.GetOS(),
-        "WIOARCH": sys.GetArch(),
-        "WIOPATH": wioPath,
-    }
+        envs := map[string]string{
+            "WIOROOT": wioRoot,
+            "WIOOS":   sys.GetOS(),
+            "WIOARCH": sys.GetArch(),
+            "WIOPATH": wioPath,
+        }
 
-    // create wio.env file
-    if err := godotenv.Write(envs, GetEnvFilePath()); err != nil {
-        return err
+        return godotenv.Write(envs, wioInternalConfigPaths.EnvFilePath)
+    } else {
+        if err := readValues(); err != nil {
+            return err
+        }
+
+        if config.Updated {
+            envsRead, err := godotenv.Read(wioInternalConfigPaths.EnvFilePath)
+            if err != nil {
+                return err
+            }
+
+            envsRead["WIOROOT"] = wioRoot
+            envsRead["WIOOS"] = sys.GetOS()
+            envsRead["WIOARCH"] = sys.GetArch()
+            envsRead["WIOPATH"] = wioPath
+
+            return godotenv.Write(envsRead, wioInternalConfigPaths.EnvFilePath)
+        }
     }
 
     return nil

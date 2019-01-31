@@ -6,6 +6,7 @@ type configPaths struct {
     SecurityPath  string
     UpdatePath    string
     EnvFilePath   string
+    ConfigFilePath   string
 }
 
 var wioInternalConfigPaths = configPaths{}
@@ -28,4 +29,8 @@ func GetUpdatePath() string {
 
 func GetEnvFilePath() string {
     return wioInternalConfigPaths.EnvFilePath
+}
+
+func GetConfigFilePath() string {
+    return wioInternalConfigPaths.ConfigFilePath
 }

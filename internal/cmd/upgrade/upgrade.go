@@ -69,8 +69,8 @@ func (upgrade Upgrade) Execute() error {
         return util.Error("wio version %s is invalid", version)
     }
 
-    if versionToUpgradeSem.Lt(semver.Parse("0.7.0")) {
-        return util.Error("wio can only be upgraded/downgraded to versions >= 0.7.0")
+    if !upgrade.Context.Bool("force") && versionToUpgradeSem.Lt(semver.Parse("0.7.0")) {
+       return util.Error("wio can only be upgraded/downgraded to versions >= 0.7.0")
     }
 
     version = versionToUpgradeSem.Str()
@@ -164,6 +164,15 @@ func (upgrade Upgrade) Execute() error {
     if err = update.Apply(newWioExec, update.Options{}); err != nil {
         log.WriteFailure()
         return util.Error("failed to upgrade wio to version %s", version)
+    } else {
+        wioRootConfig := &root.WioRootConfig{}
+        if err := sys.NormalIO.ParseJson(root.GetConfigFilePath(), wioRootConfig); err != nil {
+            return util.Error("wio upgraded to %s but an error occurred and it's not complete", version)
+        }
+        wioRootConfig.Updated = true
+        if err := sys.NormalIO.WriteJson(root.GetConfigFilePath(), wioRootConfig); err != nil {
+            return util.Error("wio upgraded to %s but an error occurred and it's not complete", version)
+        }
     }
 
     log.WriteSuccess()

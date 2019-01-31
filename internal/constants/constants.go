@@ -21,4 +21,5 @@ const (
     Security      = "security"
     RootUpdate    = "update"
     RootEnv       = "wio.env"
+    RootConfig    = "config.json"
 )

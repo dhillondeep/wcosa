@@ -81,7 +81,7 @@ var updateFlags = []cli.Flag{
     },
     cli.BoolFlag{
         Name:  "full",
-        Usage: "Full update and overrides files",
+        Usage: "Full update and overrides files.",
     },
 }
 
@@ -143,7 +143,12 @@ var devicesListFlags = []cli.Flag{
 
 var envFlags = []cli.Flag{
     cli.BoolFlag{Name: "local",
-        Usage: "Creates and updates local environment"},
+        Usage: "Creates and updates local environment."},
+}
+
+var upgradeFlags = []cli.Flag{
+    cli.BoolFlag{Name: "force",
+        Usage: "Overrides all the restrictions and forces an update."},
 }
 
 var command cmd.Command
@@ -218,6 +223,7 @@ var commands = []cli.Command{
                 Name:      "add",
                 Usage:     "Add a vendored package as a dependency.",
                 UsageText: "wio vendor add [package]",
+                Flags: appWideFlags,
                 Action: func(c *cli.Context) {
                     command = vendor.Cmd{Context: c, Op: vendor.Add}
                 },
@@ -226,6 +232,7 @@ var commands = []cli.Command{
                 Name:      "rm",
                 Usage:     "Remove a vendor dependency.",
                 UsageText: "wio vendor rm [package]",
+                Flags: appWideFlags,
                 Action: func(c *cli.Context) {
                     command = vendor.Cmd{Context: c, Op: vendor.Remove}
                 },
@@ -245,6 +252,7 @@ var commands = []cli.Command{
         Name:      "login",
         Usage:     "Login to the registry.",
         UsageText: "wio login",
+        Flags: appWideFlags,
         Action: func(c *cli.Context) {
             command = user.Login{Context: c}
         },
@@ -253,6 +261,7 @@ var commands = []cli.Command{
         Name:      "logout",
         Usage:     "Logout from registry account.",
         UsageText: "wio logout",
+        Flags: appWideFlags,
         Action: func(c *cli.Context) {
             command = user.Logout{Context: c}
         },
@@ -275,7 +284,7 @@ var commands = []cli.Command{
                 Name:      "monitor",
                 Usage:     "Opens a Serial monitor.",
                 UsageText: "wio devices monitor [command options]",
-                Flags:     monitorFlags,
+                Flags:     append(monitorFlags, appWideFlags...),
                 Action: func(c *cli.Context) {
                     command = devices.Devices{Context: c, Type: devices.MONITOR}
                 },
@@ -284,7 +293,7 @@ var commands = []cli.Command{
                 Name:      "list",
                 Usage:     "Lists all the connected devices/ports and provides information about them.",
                 UsageText: "wio devices list [command options]",
-                Flags:     devicesListFlags,
+                Flags:     append(devicesListFlags, appWideFlags...),
                 Action: func(c *cli.Context) {
                     command = devices.Devices{Context: c, Type: devices.LIST}
                 },
@@ -312,7 +321,7 @@ var commands = []cli.Command{
                 Name:      "reset",
                 Usage:     "Resets environment variables to default",
                 UsageText: "wio env reset [command options]",
-                Flags:     envFlags,
+                Flags:     append(envFlags, appWideFlags...),
                 Action: func(c *cli.Context) {
                     command = env.Env{Context: c, Command: env.RESET}
                 },
@@ -321,7 +330,7 @@ var commands = []cli.Command{
                 Name:      "set",
                 Usage:     "Modifies the environment variable or adds a new one (name=value or name).",
                 UsageText: "wio env set [vars...] [command options]",
-                Flags:     envFlags,
+                Flags:     append(envFlags, appWideFlags...),
                 Action: func(c *cli.Context) {
                     command = env.Env{Context: c, Command: env.SET}
                 },
@@ -330,7 +339,7 @@ var commands = []cli.Command{
                 Name:      "unset",
                 Usage:     "Removes the environment variable.",
                 UsageText: "wio env unset [vars...] [command options]",
-                Flags:     envFlags,
+                Flags:     append(envFlags, appWideFlags...),
                 Action: func(c *cli.Context) {
                     command = env.Env{Context: c, Command: env.UNSET}
                 },
@@ -341,6 +350,7 @@ var commands = []cli.Command{
         Name:      "upgrade",
         Usage:     "Upgrades wio to a specific version or latest version.",
         UsageText: "wio upgrade [version]",
+        Flags: append(upgradeFlags, appWideFlags...),
         Action: func(c *cli.Context) {
             command = upgrade.Upgrade{Context: c}
         },

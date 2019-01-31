@@ -63,9 +63,15 @@ func (env Env) Execute() error {
                 log.WriteFailure()
                 return err
             }
-        } else if err := root.CreateEnv(); err != nil {
-            log.WriteFailure()
-            return err
+        } else {
+            if err := os.RemoveAll(root.GetEnvFilePath()); err != nil {
+                return err
+            }
+
+            if err := root.CreateEnv(nil); err != nil {
+                log.WriteFailure()
+                return err
+            }
         }
 
         log.WriteSuccess()
