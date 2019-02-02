@@ -98,10 +98,13 @@ func DependenciesFile(info *InfoGenerate, target types.Target) error {
     if err := os.MkdirAll(cmakePath, os.ModePerm); err != nil {
         return err
     }
+
     cmakePath = sys.Path(cmakePath, "dependencies.cmake")
 
-    if _, err := os.Create(cmakePath); err != nil {
-        return err
+    if !sys.Exists(cmakePath) {
+        if _, err := os.Create(cmakePath); err != nil {
+            return err
+        }
     }
 
     if !info.NoDepCreate {
