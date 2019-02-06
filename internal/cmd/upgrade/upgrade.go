@@ -69,11 +69,11 @@ func (upgrade Upgrade) Execute() error {
         return util.Error("wio version %s is invalid", version)
     }
 
-    if !upgrade.Context.Bool("force") && versionToUpgradeSem.Lt(semver.Parse("0.7.0")) {
+    if !upgrade.Context.Bool("force") && versionToUpgradeSem.LT(*semver.Parse("0.7.0")) {
         return util.Error("wio can only be upgraded/downgraded to versions >= 0.7.0")
     }
 
-    version = versionToUpgradeSem.Str()
+    version = versionToUpgradeSem.String()
 
     if _, err := info.GetVersion(constants.Wio, version); err != nil {
         return util.Error("wio version %s does not exist", version)

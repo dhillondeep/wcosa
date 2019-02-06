@@ -5,6 +5,8 @@ import (
     "fmt"
     "regexp"
     "strings"
+
+    "github.com/blang/semver"
 )
 
 type queryOp int
@@ -19,31 +21,31 @@ const (
     queryGe queryOp = 4
 )
 
-func (op queryOp) compare(a *Version, b *Version) bool {
+func (op queryOp) compare(a *semver.Version, b *semver.Version) bool {
     switch op {
     case queryEq:
-        return a.eq(b)
+        return a.EQ(*b)
     case queryLt:
-        return a.less(b)
+        return a.LT(*b)
     case queryGt:
-        return b.less(a)
+        return b.GT(*a)
     case queryLe:
-        return !b.less(a)
+        return !b.LE(*a)
     case queryGe:
-        return !a.less(b)
+        return !a.GE(*b)
     default:
         return false
     }
 }
 
 type Query interface {
-    Matches(ver *Version) bool
-    FindBest(list List) *Version
+    Matches(ver *semver.Version) bool
+    FindBest(list List) *semver.Version
     Str() string
 }
 
 type singleBound struct {
-    ver *Version
+    ver *semver.Version
     op  queryOp
 }
 
@@ -56,11 +58,11 @@ type dualBound struct {
 
 type queryList []Query
 
-func (q *singleBound) Matches(ver *Version) bool {
+func (q *singleBound) Matches(ver *semver.Version) bool {
     return q.op.compare(ver, q.ver)
 }
 
-func (q *singleBound) FindBest(list List) *Version {
+func (q *singleBound) FindBest(list List) *semver.Version {
     // assumes list is sorted
     if len(list) <= 0 {
         return nil
@@ -69,7 +71,7 @@ func (q *singleBound) FindBest(list List) *Version {
     switch q.op {
     case queryEq:
         for _, ver := range list {
-            if q.ver.eq(ver) {
+            if q.ver.EQ(*ver) {
                 return ver
             }
         }
@@ -98,14 +100,14 @@ func (q *singleBound) FindBest(list List) *Version {
 }
 
 func (q *singleBound) Str() string {
-    return fmt.Sprintf("%s%s", queryInv[q.op], q.ver.Str())
+    return fmt.Sprintf("%s%s", queryInv[q.op], q.ver.String())
 }
 
-func (q *dualBound) Matches(ver *Version) bool {
+func (q *dualBound) Matches(ver *semver.Version) bool {
     return q.lower.Matches(ver) && q.upper.Matches(ver)
 }
 
-func (q *dualBound) FindBest(list List) *Version {
+func (q *dualBound) FindBest(list List) *semver.Version {
     // assumes list is sorted
     if len(list) <= 0 {
         return nil
@@ -122,7 +124,7 @@ func (q *dualBound) Str() string {
     return fmt.Sprintf("%s %s", q.lower.Str(), q.upper.Str())
 }
 
-func (ql queryList) Matches(ver *Version) bool {
+func (ql queryList) Matches(ver *semver.Version) bool {
     for _, q := range ql {
         if q.Matches(ver) {
             return true
@@ -131,7 +133,7 @@ func (ql queryList) Matches(ver *Version) bool {
     return false
 }
 
-func (ql queryList) FindBest(list List) *Version {
+func (ql queryList) FindBest(list List) *semver.Version {
     res := make(List, 0, len(ql))
     for _, q := range ql {
         if ver := q.FindBest(list); ver != nil {
@@ -198,7 +200,7 @@ var queryMap = map[string]queryOp{
 
 var queryInv = [...]string{"=", "<", ">", "<=", ">="}
 
-func parseIncompl(str string) *Version {
+func parseIncompl(str string) *semver.Version {
     str = trimX(str)
     if str == "" {
         str = "0"
@@ -223,14 +225,14 @@ func parseMisQuery(str string) Query {
         return &singleBound{op: queryGe, ver: lower}
 
     case len(ver) == 1:
-        upper := &Version{lower.Major + 1, 0, 0}
+        upper := &semver.Version{Major: lower.Major + 1}
         return &dualBound{
             lower: &singleBound{op: queryGe, ver: lower},
             upper: &singleBound{op: queryLt, ver: upper},
         }
 
     case len(ver) == 2:
-        upper := &Version{lower.Major, lower.Minor + 1, 0}
+        upper := &semver.Version{Major: lower.Major, Minor: lower.Minor + 1}
         return &dualBound{
             lower: &singleBound{op: queryGe, ver: lower},
             upper: &singleBound{op: queryLt, ver: upper},
@@ -245,17 +247,17 @@ func parseMisQuery(str string) Query {
 }
 
 func parseTildeQuery(str string) Query {
-    switch {
-    case IsValid(str):
+
+    switch Parse(str) {
+    case nil:
+        return parseMisQuery(str)
+    default:
         lower := Parse(str)
-        upper := &Version{lower.Major, lower.Minor + 1, 0}
+        upper := &semver.Version{Major: lower.Major, Minor: lower.Minor + 1}
         return &dualBound{
             lower: &singleBound{op: queryGe, ver: lower},
             upper: &singleBound{op: queryLt, ver: upper},
         }
-
-    default:
-        return parseMisQuery(str)
     }
 }
 
@@ -268,14 +270,14 @@ func parseCaretQuery(str string) Query {
         return parseMisQuery(str)
 
     case len(ver) == 1:
-        upper := &Version{lower.Major + 1, 0, 0}
+        upper := &semver.Version{Major: lower.Major + 1}
         return &dualBound{
             lower: &singleBound{op: queryGe, ver: lower},
             upper: &singleBound{op: queryLt, ver: upper},
         }
 
     case len(ver) == 2:
-        upper := &Version{0, 0, 0}
+        upper := &semver.Version{}
         if lower.Major == 0 {
             upper.Minor = lower.Minor + 1
         } else {
@@ -287,7 +289,7 @@ func parseCaretQuery(str string) Query {
         }
 
     case len(ver) == 3:
-        upper := &Version{0, 0, 0}
+        upper := &semver.Version{}
         if lower.Major == 0 {
             if lower.Minor == 0 {
                 upper.Patch = lower.Patch + 1
@@ -311,7 +313,7 @@ func parseRangeQuery(str string) *dualBound {
     bounds := betMatch.Split(str, -1)
     lower := parseIncompl(bounds[0])
     upper := bounds[1]
-    if IsValid(upper) {
+    if Parse(upper) != nil {
         return &dualBound{
             lower: &singleBound{op: queryGe, ver: lower},
             upper: &singleBound{op: queryLe, ver: Parse(upper)},
@@ -354,7 +356,7 @@ func parseOrQuery(str string) queryList {
 
 func MakeQuery(str string) Query {
     // should never be called if valid Version passed
-    if IsValid(str) {
+    if Parse(str) != nil {
         return &singleBound{ver: Parse(str), op: queryEq}
     }
     switch {

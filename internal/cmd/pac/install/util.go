@@ -27,7 +27,7 @@ func (cmd Cmd) getArgs(info *resolve.Info) (name string, ver string, err error) 
     default:
         name = args[0]
         ver = args[1]
-        if semver.IsValid(ver) {
+        if semver.Parse(ver) != nil {
             exists := false
             exists, err = info.Exists(name, ver)
             if err == nil && !exists {

@@ -77,7 +77,7 @@ func resolveTree(i *resolve.Info, currNode *resolve.Node, parentTarget *Target, 
     librarySet *TargetSet, globalFlags, globalDefinitions []string, parentGiven *parentGivenInfo) error {
     var err error
 
-    pkg, err := i.GetPkg(currNode.Name, currNode.ResolvedVersion.Str())
+    pkg, err := i.GetPkg(currNode.Name, currNode.ResolvedVersion.String())
     if err != nil {
         return err
     } else if pkg == nil {
@@ -182,7 +182,7 @@ func resolveTree(i *resolve.Info, currNode *resolve.Node, parentTarget *Target, 
     for _, dep := range currNode.Dependencies {
         if configDependency, exists := pkg.Config.GetDependencies()[dep.Name]; !exists {
             return util.Error("%s@%s dependency's information is wrong in wio.yml", dep.Name,
-                dep.ResolvedVersion.Str())
+                dep.ResolvedVersion.String())
         } else {
             // resolve placeholders
             tDef := util.AppendIfMissing(currTarget.Definitions[types.Private], currTarget.Definitions[types.Public])

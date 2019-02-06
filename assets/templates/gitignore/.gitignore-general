@@ -38,3 +38,4 @@ ehthumbs_vista.db
 # Clion
 .idea/
 args.cmake
+CMakeLists.txt

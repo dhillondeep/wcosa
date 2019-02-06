@@ -1,10 +1,14 @@
 package semver
 
-import "sort"
+import (
+    "sort"
 
-type List []*Version
+    "github.com/blang/semver"
+)
 
-func (list List) Find(q Query) *Version {
+type List []*semver.Version
+
+func (list List) Find(q Query) *semver.Version {
     // assumes list is sorted
     for i := len(list) - 1; i >= 0; i-- {
         if q.Matches(list[i]) {
@@ -23,16 +27,16 @@ func (list List) Swap(i int, j int) {
 }
 
 func (list List) Less(i int, j int) bool {
-    return list[i].less(list[j])
+    return list[i].LT(*list[j])
 }
 
 func (list List) Sort() {
     sort.Sort(list)
 }
 
-func (list List) Insert(v *Version) List {
+func (list List) Insert(v *semver.Version) List {
     for _, el := range list {
-        if el.eq(v) {
+        if el.EQ(*v) {
             return list
         }
     }
@@ -41,7 +45,7 @@ func (list List) Insert(v *Version) List {
     return list
 }
 
-func (list List) Last() *Version {
+func (list List) Last() *semver.Version {
     if len(list) == 0 {
         return nil
     }

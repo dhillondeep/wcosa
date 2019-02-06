@@ -13,7 +13,7 @@ import (
 type NpmDownloader struct{}
 
 func traverseAndDelete(n *resolve.Node) error {
-    path := sys.Path(root.GetToolchainPath(), sys.WioFolder, sys.Modules, n.Name+"__"+n.ResolvedVersion.Str())
+    path := sys.Path(root.GetToolchainPath(), sys.WioFolder, sys.Modules, n.Name+"__"+n.ResolvedVersion.String())
 
     if err := os.RemoveAll(path); err != nil {
         return err
@@ -29,8 +29,8 @@ func traverseAndDelete(n *resolve.Node) error {
 }
 
 func traverseAndSymlink(n *resolve.Node) error {
-    oldPath := sys.Path(root.GetToolchainPath(), sys.WioFolder, sys.Modules, n.Name+"__"+n.ResolvedVersion.Str())
-    newFilePath := sys.Path(root.GetToolchainPath(), fmt.Sprintf("%s__%s", n.Name, n.ResolvedVersion.Str()))
+    oldPath := sys.Path(root.GetToolchainPath(), sys.WioFolder, sys.Modules, n.Name+"__"+n.ResolvedVersion.String())
+    newFilePath := sys.Path(root.GetToolchainPath(), fmt.Sprintf("%s__%s", n.Name, n.ResolvedVersion.String()))
 
     if sys.Exists(newFilePath) {
         if err := os.RemoveAll(newFilePath); err != nil {

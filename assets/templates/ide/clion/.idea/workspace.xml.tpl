@@ -158,7 +158,7 @@
             <envs />
             <method />
         </configuration>
-        <configuration default="false" name="WIO_BUILD" type="CMakeRunConfiguration" factoryName="Application" WORKING_DIR="" PASS_PARENT_ENVS="FALSE" PROJECT_NAME="{{PROJECT_NAME}}" TARGET_NAME="WIO_BUILD" CONFIG_NAME="Debug" RUN_TARGET_PROJECT_NAME="{{PROJECT_NAME}}" RUN_TARGET_NAME="{{TARGET_NAME}}">
+        <configuration default="false" name="WIO_BUILD" type="CMakeRunConfiguration" factoryName="Application" WORKING_DIR="" PASS_PARENT_ENVS="FALSE" PROJECT_NAME="{{PROJECT_NAME}}" TARGET_NAME="WIO_BUILD" CONFIG_NAME="Debug">
             <envs />
             <method />
         </configuration>

@@ -133,9 +133,9 @@ func ReadWioConfig(dir string, fulfill bool) (Config, error) {
     currVersion := semver.Parse(meta.Version)
     needVersion := semver.Parse(ret.Info.GetOptions().GetWioVersion())
 
-    if currVersion.Lt(needVersion) {
+    if currVersion.LT(*needVersion) {
         return nil, util.Error("%s: current wio version is %s but wio.yml needs it >= %s", dir,
-            currVersion.Str(), needVersion.Str())
+            currVersion.String(), needVersion.String())
     }
 
     return ret, err

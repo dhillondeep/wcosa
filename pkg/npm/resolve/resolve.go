@@ -5,6 +5,8 @@ import (
     "wio/internal/types"
     "wio/pkg/npm/semver"
     "wio/pkg/util"
+
+    s "github.com/blang/semver"
 )
 
 const (
@@ -23,7 +25,7 @@ func (i *Info) GetLatest(name string) (string, error) {
     if err != nil {
         return "", err
     }
-    return list.Last().Str(), nil
+    return list.Last().String(), nil
 }
 
 func (i *Info) Exists(name string, ver string) (bool, error) {
@@ -55,7 +57,7 @@ func (i *Info) ResolveRemote(config types.Config) error {
 
     // adds pkg config for the initial package
     if config.GetType() == constants.Pkg {
-        i.SetPkg(i.root.Name, i.root.ResolvedVersion.Str(), &Package{
+        i.SetPkg(i.root.Name, i.root.ResolvedVersion.String(), &Package{
             Vendor: false,
             Path:   i.dir,
             Config: config,
@@ -90,7 +92,7 @@ func (i *Info) ResolveTree(root *Node) error {
     }
     root.ResolvedVersion = ver
     i.SetRes(root.Name, root.ConfigVersion, ver)
-    data, err := i.GetVersion(root.Name, ver.Str())
+    data, err := i.GetVersion(root.Name, ver.String())
     if err != nil {
         return err
     }
@@ -106,11 +108,12 @@ func (i *Info) ResolveTree(root *Node) error {
     return nil
 }
 
-func (i *Info) resolveVer(name string, ver string) (*semver.Version, error) {
+func (i *Info) resolveVer(name string, ver string) (*s.Version, error) {
     if ret := semver.Parse(ver); ret != nil {
         i.StoreVer(name, ret)
         return ret, nil
     }
+
     query := semver.MakeQuery(ver)
     if query == nil {
         return nil, util.Error("invalid version expression %s", ver)

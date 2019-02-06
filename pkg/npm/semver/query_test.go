@@ -3,32 +3,34 @@ package semver
 import (
     "testing"
 
+    "github.com/blang/semver"
+
     "github.com/stretchr/testify/assert"
 )
 
 func TestParseIncompl(t *testing.T) {
-    values := map[string]*Version{
-        "":        {0, 0, 0},
-        "0":       {0, 0, 0},
-        "1":       {1, 0, 0},
-        "2":       {2, 0, 0},
-        "2.0":     {2, 0, 0},
-        "2.5":     {2, 5, 0},
-        "2.8":     {2, 8, 0},
-        "6.7":     {6, 7, 0},
-        "1.5.6":   {1, 5, 6},
-        "6.6.7":   {6, 6, 7},
-        "x":       {0, 0, 0},
-        "*":       {0, 0, 0},
-        "X":       {0, 0, 0},
-        "5.x":     {5, 0, 0},
-        "7.*":     {7, 0, 0},
-        "7.x.X":   {7, 0, 0},
-        "7.*.4":   {7, 0, 0},
-        "10.10.x": {10, 10, 0},
+    values := map[string]*semver.Version{
+        "":        {0, 0, 0, nil, nil},
+        "0":       {0, 0, 0, nil, nil},
+        "1":       {1, 0, 0, nil, nil},
+        "2":       {2, 0, 0, nil, nil},
+        "2.0":     {2, 0, 0, nil, nil},
+        "2.5":     {2, 5, 0, nil, nil},
+        "2.8":     {2, 8, 0, nil, nil},
+        "6.7":     {6, 7, 0, nil, nil},
+        "1.5.6":   {1, 5, 6, nil, nil},
+        "6.6.7":   {6, 6, 7, nil, nil},
+        "x":       {0, 0, 0, nil, nil},
+        "*":       {0, 0, 0, nil, nil},
+        "X":       {0, 0, 0, nil, nil},
+        "5.x":     {5, 0, 0, nil, nil},
+        "7.*":     {7, 0, 0, nil, nil},
+        "7.x.X":   {7, 0, 0, nil, nil},
+        "7.*.4":   {7, 0, 0, nil, nil},
+        "10.10.x": {10, 10, 0, nil, nil},
     }
     for arg, exp := range values {
-        assert.Equal(t, parseIncompl(arg), exp)
+        assert.Equal(t, parseIncompl(arg).String(), exp.String())
     }
 }
 
@@ -36,7 +38,7 @@ func TestMakeQuery(t *testing.T) {
     singleEq := func(b *singleBound, q Query) bool {
         switch val := q.(type) {
         case *singleBound:
-            return b.op == val.op && b.ver.eq(val.ver)
+            return b.op == val.op && b.ver.EQ(*val.ver)
         default:
             return false
         }
@@ -59,10 +61,10 @@ func TestMakeQuery(t *testing.T) {
             return false
         }
     }
-    single := func(op queryOp, major int, minor int, patch int) *singleBound {
-        return &singleBound{op: op, ver: &Version{major, minor, patch}}
+    single := func(op queryOp, major uint64, minor uint64, patch uint64) *singleBound {
+        return &singleBound{op: op, ver: &semver.Version{Major: major, Minor: minor, Patch: patch}}
     }
-    dual := func(a1 int, a2 int, a3 int, b1 int, b2 int, b3 int) *dualBound {
+    dual := func(a1 uint64, a2 uint64, a3 uint64, b1 uint64, b2 uint64, b3 uint64) *dualBound {
         return &dualBound{
             lower: single(queryGe, a1, a2, a3),
             upper: single(queryLt, b1, b2, b3),
