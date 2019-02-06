@@ -51,6 +51,12 @@ var extensionMapping = map[string]string{
     "darwin":  "",
 }
 
+const (
+    wioReleaseName = "wio_{{platform}}_{{arch}}{{format}}"
+    wioReleaseUrl = "https://github.com/wio/wio/releases/download/v{{version}}/wio_{{platform}}_{{arch}}.{{format}}"
+
+)
+
 // Runs the build command when cli build option is provided
 func (upgrade Upgrade) Execute() error {
     var version string
@@ -75,44 +81,23 @@ func (upgrade Upgrade) Execute() error {
 
     version = versionToUpgradeSem.String()
 
-    if _, err := info.GetVersion(constants.Wio, version); err != nil {
-        return util.Error("wio version %s does not exist", version)
-    }
+    releaseName := template.Replace(wioReleaseName, map[string]string{
+        "platform": strings.ToLower(env.GetOS()),
+        "arch": strings.ToLower(env.GetOS()),
+        "format": formatMapping[env.GetOS()],
+    })
 
-    log.Info(log.Cyan, "Downloading ")
-    log.Info(log.Green, "wio@%s ", version)
-    log.Infoln(log.Cyan, "package")
-
-    if err = info.InstallResolved(); err != nil {
-        return util.Error("wio@%s version could not be downloaded", version)
-    }
-
-    log.Info(log.Cyan, "Downloading ")
-    log.Info(log.Green, "wio@%s ", version)
-    log.Info(log.Cyan, "executable tar... ")
-
-    wioNpmFolder := sys.Path(root.GetUpdatePath(), sys.WioFolder, sys.Modules, constants.Wio+"__"+version)
-
-    type PackageJson struct {
-        Name   string            `json:"name"`
-        Binary map[string]string `json:"goBinary"`
-    }
-
-    packageData := &PackageJson{}
-    if err := sys.NormalIO.ParseJson(sys.Path(wioNpmFolder, "package.json"), packageData); err != nil {
-        log.WriteFailure()
-        return util.Error("wio@%s data is corrupted", version)
-    }
-
-    resp, err := http.Get(template.Replace(packageData.Binary["url"], map[string]string{
+    releaseUrl := template.Replace(wioReleaseUrl, map[string]string{
         "version":  version,
         "platform": strings.ToLower(env.GetOS()),
-        "arch":     archMapping[env.GetArch()],
+        "arch":     strings.ToLower(env.GetOS()),
         "format":   formatMapping[env.GetOS()],
-    }))
+    })
+
+    resp, err := http.Get(releaseUrl)
     if err != nil {
         log.WriteFailure()
-        return util.Error("wio@%s executable tar could not be downloaded", version)
+        return util.Error("wio@%s version does not exist", version)
     }
     defer resp.Body.Close()
 
@@ -154,8 +139,7 @@ func (upgrade Upgrade) Execute() error {
     log.Info(log.Green, "wio@%s", version)
     log.Info(log.Cyan, "... ")
 
-    newWioExec, err := os.Open(sys.Path(wioFolderPath, fmt.Sprintf("%s_%s_%s%s", constants.Wio, env.GetOS(),
-        archMapping[env.GetArch()], extensionMapping[env.GetOS()])))
+    newWioExec, err := os.Open(sys.Path(wioFolderPath, releaseName))
     if err != nil {
         log.WriteFailure()
         return util.Error("wio@%s executable data is corrupted ", version)
