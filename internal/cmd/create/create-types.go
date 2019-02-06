@@ -65,6 +65,10 @@ func (create Create) Execute() error {
         }
     }
 
+    if create.Update && info.configOnly {
+        return nil
+    }
+
     log.Writeln()
 
     // read config file

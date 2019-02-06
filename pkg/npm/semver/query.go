@@ -30,9 +30,9 @@ func (op queryOp) compare(a *semver.Version, b *semver.Version) bool {
     case queryGt:
         return b.GT(*a)
     case queryLe:
-        return !b.LE(*a)
+        return b.LE(*a)
     case queryGe:
-        return !a.GE(*b)
+        return a.GE(*b)
     default:
         return false
     }

@@ -98,6 +98,7 @@ type Config interface {
     GetType() string
     GetName() string
     GetVersion() string
+    SetVersion(version string)
 
     GetInfo() Info
     GetTargets() map[string]Target

@@ -393,6 +393,10 @@ func (c *ConfigImpl) GetVersion() string {
     return c.GetInfo().GetVersion()
 }
 
+func (c *ConfigImpl) SetVersion(version string) {
+    c.Info.Version = version
+}
+
 func (c *ConfigImpl) GetInfo() Info {
     return c.Info
 }

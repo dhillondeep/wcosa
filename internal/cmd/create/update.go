@@ -29,13 +29,15 @@ func (create Create) updatePackage(info *createInfo, directory string, config ty
 func (info *createInfo) update(config types.Config) error {
     queue := log.GetQueue()
 
-    if err := updateProjectFiles(queue, info); err != nil {
-        log.WriteFailure()
+    if !info.configOnly {
+        if err := updateProjectFiles(queue, info); err != nil {
+            log.WriteFailure()
+            log.PrintQueue(queue, log.TWO_SPACES)
+            return err
+        }
+        log.WriteSuccess()
         log.PrintQueue(queue, log.TWO_SPACES)
-        return err
     }
-    log.WriteSuccess()
-    log.PrintQueue(queue, log.TWO_SPACES)
 
     log.Info(log.Cyan, "updating wio.yml ... ")
     queue = log.GetQueue()
@@ -76,6 +78,12 @@ func (create Create) handleUpdate(directory string) (*createInfo, error) {
         ide:        create.Context.String("ide"),
         fullUpdate: create.Context.Bool("full"),
         updateOnly: create.Update,
+        configOnly: create.Context.Bool("only-config"),
+    }
+
+    newUpdateVer := create.Context.String("version")
+    if !util.IsEmptyString(newUpdateVer) {
+        cfg.SetVersion(newUpdateVer)
     }
 
     switch cfg.GetType() {

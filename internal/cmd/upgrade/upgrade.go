@@ -52,9 +52,8 @@ var extensionMapping = map[string]string{
 }
 
 const (
-    wioReleaseName = "wio_{{platform}}_{{arch}}{{format}}"
-    wioReleaseUrl = "https://github.com/wio/wio/releases/download/v{{version}}/wio_{{platform}}_{{arch}}.{{format}}"
-
+    wioReleaseName = "wio_{{platform}}_{{arch}}{{extension}}"
+    wioReleaseUrl  = "https://github.com/wio/wio/releases/download/v{{version}}/wio_{{platform}}_{{arch}}.{{format}}"
 )
 
 // Runs the build command when cli build option is provided
@@ -82,9 +81,9 @@ func (upgrade Upgrade) Execute() error {
     version = versionToUpgradeSem.String()
 
     releaseName := template.Replace(wioReleaseName, map[string]string{
-        "platform": strings.ToLower(env.GetOS()),
-        "arch": strings.ToLower(env.GetOS()),
-        "format": formatMapping[env.GetOS()],
+        "platform":  strings.ToLower(env.GetOS()),
+        "arch":      strings.ToLower(archMapping[env.GetArch()]),
+        "extension": extensionMapping[env.GetOS()],
     })
 
     releaseUrl := template.Replace(wioReleaseUrl, map[string]string{
@@ -142,7 +141,7 @@ func (upgrade Upgrade) Execute() error {
     newWioExec, err := os.Open(sys.Path(wioFolderPath, releaseName))
     if err != nil {
         log.WriteFailure()
-        return util.Error("wio@%s executable data is corrupted ", version)
+        return util.Error("wio@%s executable not downloaded or corrupted", version)
     }
 
     if err = update.Apply(newWioExec, update.Options{}); err != nil {

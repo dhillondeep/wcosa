@@ -17,3 +17,7 @@ func GetOS() string {
 func GetArch() string {
     return os.Getenv("WIOARCH")
 }
+
+func GetMinWioVersion() string {
+    return os.Getenv("CONFIG_MIN_WIO_VER")
+}

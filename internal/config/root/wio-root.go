@@ -3,6 +3,7 @@ package root
 import (
     "os"
     "os/user"
+    "wio/internal/config/meta"
     "wio/internal/constants"
     "wio/pkg/util/sys"
 
@@ -108,18 +109,22 @@ func CreateEnv(config *WioRootConfig) error {
         return nil
     }
 
+    updateEnvs := func(envs map[string]string) map[string]string {
+        envs["WIOROOT"] = wioRoot
+        envs["WIOOS"] = sys.GetOS()
+        envs["WIOARCH"] = sys.GetArch()
+        envs["WIOPATH"] = wioPath
+        envs["CONFIG_MIN_WIO_VER"] = meta.Version
+
+        return envs
+    }
+
     if !sys.Exists(wioInternalConfigPaths.EnvFilePath) {
         if err := readValues(); err != nil {
             return err
         }
 
-        envs := map[string]string{
-            "WIOROOT": wioRoot,
-            "WIOOS":   sys.GetOS(),
-            "WIOARCH": sys.GetArch(),
-            "WIOPATH": wioPath,
-        }
-
+        envs := updateEnvs(map[string]string{})
         return godotenv.Write(envs, wioInternalConfigPaths.EnvFilePath)
     } else {
         if err := readValues(); err != nil {
@@ -132,11 +137,7 @@ func CreateEnv(config *WioRootConfig) error {
                 return err
             }
 
-            envsRead["WIOROOT"] = wioRoot
-            envsRead["WIOOS"] = sys.GetOS()
-            envsRead["WIOARCH"] = sys.GetArch()
-            envsRead["WIOPATH"] = wioPath
-
+            envsRead = updateEnvs(envsRead)
             return godotenv.Write(envsRead, wioInternalConfigPaths.EnvFilePath)
         }
     }

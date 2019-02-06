@@ -1,6 +1,7 @@
 package resolve
 
 import (
+    "fmt"
     "wio/internal/constants"
     "wio/internal/types"
     "wio/pkg/npm/semver"
@@ -128,6 +129,8 @@ func (i *Info) resolveVer(name string, ver string) (*s.Version, error) {
     if ret := query.FindBest(list); ret != nil {
         i.StoreVer(name, ret)
         return ret, nil
+    } else {
+        fmt.Println("")
     }
     return nil, util.Error("unable to find suitable version for %s", ver)
 }

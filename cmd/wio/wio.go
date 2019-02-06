@@ -75,8 +75,16 @@ var createFlags = []cli.Flag{
 
 var updateFlags = []cli.Flag{
     cli.StringFlag{
+        Name:  "version",
+        Usage: "Change the version of current project.",
+    },
+    cli.BoolFlag{
+        Name:  "only-config",
+        Usage: "Updates only the configuration file (wio.yml).",
+    },
+    cli.StringFlag{
         Name:  "ide",
-        Usage: "[clion]",
+        Usage: "Ide support [clion]",
         Value: "none",
     },
     cli.BoolFlag{
