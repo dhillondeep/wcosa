@@ -3,13 +3,14 @@
     <component name="CMakeRunConfigurationManager" shouldGenerate="true" assignedExecutableTargets="true" buildAllGenerated="true">
         <generated>
             <config projectName="{{PROJECT_NAME}}" targetName="WIO_BUILD_RUN" />
-            <config projectName="{{PROJECT_NAME}}" targetName="WIO_BUILD" />
             <config projectName="{{PROJECT_NAME}}" targetName="WIO_RUN" />
+            {{WIO_NON_NATIVE_COMMENT_START}}
+            <config projectName="{{PROJECT_NAME}}" targetName="WIO_BUILD" />
             <config projectName="{{PROJECT_NAME}}" targetName="WIO_CLEAN" />
             <config projectName="{{PROJECT_NAME}}" targetName="WIO_CLEAN_HARD" />
+            {{WIO_NON_NATIVE_COMMENT_END}}
             <config projectName="{{PROJECT_NAME}}" targetName="WIO_INSTALL" />
             <config projectName="{{PROJECT_NAME}}" targetName="WIO_UPDATE" />
-            <config projectName="{{PROJECT_NAME}}" targetName="DEBUG" />
         </generated>
     </component>
     <component name="CMakeSettings" AUTO_RELOAD="true">
@@ -136,7 +137,7 @@
         <property name="restartRequiresConfirmation" value="true" />
         <property name="FullScreen" value="false" />
     </component>
-    <component name="RunManager" selected="Application.WIO_BUILD">
+    <component name="RunManager" selected="Application.WIO_BUILD_RUN">
         <configuration default="true" type="CMakeRunConfiguration" factoryName="Application" PASS_PARENT_ENVS="FALSE" PROJECT_NAME="{{PROJECT_NAME}}" TARGET_NAME="{{PROJECT_NAME}}" CONFIG_NAME="Debug">
             <envs />
             <method />
@@ -150,11 +151,26 @@
             <envs />
             <method />
         </configuration>
-        <configuration default="false" name="Build All" type="CMakeRunConfiguration" factoryName="Application" WORKING_DIR="" PASS_PARENT_ENVS="FALSE" CONFIG_NAME="Debug" EXPLICIT_BUILD_TARGET_NAME="all">
+
+        {{WIO_NON_NATIVE_COMMENT_START}}
+        <configuration name="WIO_BUILD_RUN" type="CMakeRunConfiguration" factoryName="Application" PASS_PARENT_ENVS_2="true" PROJECT_NAME="{{PROJECT_NAME}}" TARGET_NAME="{{TARGET_NAME}}" CONFIG_NAME="Debug" RUN_TARGET_PROJECT_NAME="{{PROJECT_NAME}}" RUN_TARGET_NAME="{{TARGET_NAME}}">
+          <method v="2">
+            <option name="com.jetbrains.cidr.execution.CidrBuildBeforeRunTaskProvider$BuildBeforeRunTask" enabled="true" />
+          </method>
+        </configuration>
+        <configuration name="WIO_RUN" type="CMakeRunConfiguration" factoryName="Application" PASS_PARENT_ENVS_2="true" PROJECT_NAME="{{PROJECT_NAME}}" TARGET_NAME="{{TARGET_NAME}}" CONFIG_NAME="Debug" RUN_TARGET_PROJECT_NAME="{{PROJECT_NAME}}" RUN_TARGET_NAME="{{TARGET_NAME}}">
+          <method v="2">
+            <option name="com.jetbrains.cidr.execution.CidrBuildBeforeRunTaskProvider$BuildBeforeRunTask" enabled="false" />
+          </method>
+        </configuration>
+        {{WIO_NON_NATIVE_COMMENT_END}}
+
+        {{WIO_NATIVE_COMMENT_START}}
+        <configuration default="false" name="WIO_BUILD_RUN" type="CMakeRunConfiguration" factoryName="Application" WORKING_DIR="" PASS_PARENT_ENVS="FALSE" PROJECT_NAME="{{PROJECT_NAME}}" TARGET_NAME="WIO_BUILD_RUN" CONFIG_NAME="Debug">
             <envs />
             <method />
         </configuration>
-        <configuration default="false" name="WIO_BUILD_RUN" type="CMakeRunConfiguration" factoryName="Application" WORKING_DIR="" PASS_PARENT_ENVS="FALSE" PROJECT_NAME="{{PROJECT_NAME}}" TARGET_NAME="WIO_BUILD_RUN" CONFIG_NAME="Debug" RUN_TARGET_PROJECT_NAME="{{PROJECT_NAME}}" RUN_TARGET_NAME="{{TARGET_NAME}}">
+        <configuration default="false" name="WIO_RUN" type="CMakeRunConfiguration" factoryName="Application" WORKING_DIR="" PASS_PARENT_ENVS="FALSE" PROJECT_NAME="{{PROJECT_NAME}}" TARGET_NAME="WIO_RUN" CONFIG_NAME="Debug">
             <envs />
             <method />
         </configuration>
@@ -170,10 +186,8 @@
             <envs />
             <method />
         </configuration>
-        <configuration default="false" name="WIO_RUN" type="CMakeRunConfiguration" factoryName="Application" WORKING_DIR="" PASS_PARENT_ENVS="FALSE" PROJECT_NAME="{{PROJECT_NAME}}" TARGET_NAME="WIO_RUN" CONFIG_NAME="Debug" RUN_TARGET_PROJECT_NAME="{{PROJECT_NAME}}" RUN_TARGET_NAME="{{TARGET_NAME}}">
-            <envs />
-            <method />
-        </configuration>
+        {{WIO_NATIVE_COMMENT_END}}
+
         <configuration default="false" name="WIO_INSTALL" type="CMakeRunConfiguration" factoryName="Application" WORKING_DIR="" PASS_PARENT_ENVS="FALSE" PROJECT_NAME="{{PROJECT_NAME}}" TARGET_NAME="WIO_INSTALL" CONFIG_NAME="Debug">
             <envs />
             <method />
@@ -182,15 +196,16 @@
             <envs />
             <method />
         </configuration>
-        <list size="8">
-            <item index="0" class="java.lang.String" itemvalue="Application.Build All" />
-            <item index="1" class="java.lang.String" itemvalue="Application.WIO_BUILD_RUN" />
+        <list size="7">
+            <item index="0" class="java.lang.String" itemvalue="Application.WIO_BUILD_RUN" />
+            <item index="1" class="java.lang.String" itemvalue="Application.WIO_RUN" />
+            {{WIO_NON_NATIVE_COMMENT_START}}
             <item index="2" class="java.lang.String" itemvalue="Application.WIO_BUILD" />
-            <item index="3" class="java.lang.String" itemvalue="Application.WIO_RUN" />
-            <item index="4" class="java.lang.String" itemvalue="Application.WIO_CLEAN" />
-            <item index="5" class="java.lang.String" itemvalue="Application.WIO_CLEAN_HARD" />
-            <item index="6" class="java.lang.String" itemvalue="Application.WIO_INSTALL" />
-            <item index="7" class="java.lang.String" itemvalue="Application.WIO_UPDATE" />
+            <item index="3" class="java.lang.String" itemvalue="Application.WIO_CLEAN" />
+            <item index="4" class="java.lang.String" itemvalue="Application.WIO_CLEAN_HARD" />
+            {{WIO_NON_NATIVE_COMMENT_END}}
+            <item index="5" class="java.lang.String" itemvalue="Application.WIO_INSTALL" />
+            <item index="6" class="java.lang.String" itemvalue="Application.WIO_UPDATE" />
         </list>
     </component>
     <component name="ShelveChangesManager" show_recycled="false" />
@@ -207,10 +222,27 @@
         <servers />
     </component>
     <component name="ToolWindowManager">
-        <frame x="181" y="23" width="1400" height="1000" extended-state="0" />
         <editor active="true" />
         <layout>
-            <window_info id="Project" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" show_stripe_button="true" weight="0.24945612" sideWeight="0.5" order="0" side_tool="false" content_ui="tabs" />
+          <window_info id="Favorites" side_tool="true" />
+          <window_info active="true" content_ui="combo" id="Project" order="0" visible="true" weight="0.24964234" />
+          <window_info id="Structure" order="1" side_tool="true" weight="0.25" />
+          <window_info anchor="bottom" id="Database Changes" show_stripe_button="false" />
+          <window_info anchor="bottom" id="Version Control" show_stripe_button="false" />
+          <window_info anchor="bottom" id="Messages" weight="0.32863188" />
+          <window_info anchor="bottom" id="Terminal" />
+          <window_info anchor="bottom" id="Event Log" side_tool="true" />
+          <window_info anchor="bottom" id="CMake" />
+          <window_info anchor="bottom" id="Message" order="0" />
+          <window_info anchor="bottom" id="Find" order="1" />
+          <window_info anchor="bottom" id="Run" order="2" weight="0.32863188" />
+          <window_info anchor="bottom" id="Debug" order="3" weight="0.4" />
+          <window_info anchor="bottom" id="Cvs" order="4" weight="0.25" />
+          <window_info anchor="bottom" id="Inspection" order="5" weight="0.4" />
+          <window_info anchor="bottom" id="TODO" order="6" />
+          <window_info anchor="right" id="Database" />
+          <window_info anchor="right" id="Commander" order="0" weight="0.4" />
+          <window_info anchor="right" content_ui="combo" id="Hierarchy" order="2" weight="0.25" />
         </layout>
     </component>
     <component name="Vcs.Log.UiProperties">

@@ -65,7 +65,8 @@ func FetchPackageData(name string) (*npm.Data, error) {
     if err != nil {
         return nil, err
     }
-    if status == http.StatusNotFound {
+
+    if data.Versions == nil || len(data.Versions) == 0 || status == http.StatusNotFound {
         return nil, util.Error("package not found: %s", name)
     }
     if status != http.StatusOK {

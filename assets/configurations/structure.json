@@ -6,13 +6,6 @@
         "entry": "/",
         "files": [
           {
-            "from": "templates/ide/clion/CMakeLists.txt.tpl",
-            "to": "CMakeLists.txt",
-            "override": true,
-            "update": true,
-            "allowFull": true
-          },
-          {
             "from": "templates/ide/clion/args.cmake.tpl",
             "to": "args.cmake",
             "override": false,

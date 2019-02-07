@@ -65,10 +65,33 @@ func dispatchIdeGenClion(directory string, target types.Target, config types.Con
         return nil, err
     }
 
+    commentNativeStartStr := "<!---->"
+    commentNativeEndStr := "<!---->"
+    commentNonNativeStartStr := "<!---->"
+    commentNonNativeEndStr := "<!---->"
+
+    templateCMakeListsPath := "templates/ide/clion/CMakeLists.txt.tpl"
+    if target.GetPlatform() == constants.Native {
+        templateCMakeListsPath = "templates/ide/clion/CMakeLists.txtNative.tpl"
+        commentNativeStartStr = "<!--"
+        commentNativeEndStr = "-->"
+    } else {
+        commentNonNativeStartStr = "<!--"
+        commentNonNativeEndStr = "-->"
+    }
+
+    if err := sys.AssetIO.CopyFile(templateCMakeListsPath, cmakeListsPath, true); err != nil {
+        return nil, err
+    }
+
     if err := template.IOReplace(workplacePath, map[string]string{
-        "PROJECT_NAME": config.GetName(),
-        "TARGET_NAME":  target.GetName(),
-        "TARGET_SRC":   target.GetSource(),
+        "PROJECT_NAME":                 config.GetName(),
+        "TARGET_NAME":                  target.GetName(),
+        "TARGET_SRC":                   target.GetSource(),
+        "WIO_NATIVE_COMMENT_START":     commentNativeStartStr,
+        "WIO_NATIVE_COMMENT_END":       commentNativeEndStr,
+        "WIO_NON_NATIVE_COMMENT_START": commentNonNativeStartStr,
+        "WIO_NON_NATIVE_COMMENT_END":   commentNonNativeEndStr,
     }); err != nil {
         return nil, err
     }
