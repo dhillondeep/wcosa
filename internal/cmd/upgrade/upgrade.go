@@ -107,6 +107,7 @@ func (upgrade Upgrade) Execute() error {
 
     if err := os.MkdirAll(sys.Path(root.GetUpdatePath(), sys.Download), os.ModePerm); err != nil {
         log.WriteFailure()
+        log.Write(err.Error())
         return util.Error("wio@%s executable tar could not extracted", version)
     }
 
@@ -114,12 +115,14 @@ func (upgrade Upgrade) Execute() error {
         out, err := os.Create(wioTarPath)
         if err != nil {
             log.WriteFailure()
+            log.Write(err.Error())
             return util.Error("wio@%s executable tar could not extracted", version)
         }
         defer out.Close()
 
         if _, err := io.Copy(out, resp.Body); err != nil {
             log.WriteFailure()
+            log.Write(err.Error())
             return util.Error("wio@%s executable tar could not extracted", version)
         }
     }
@@ -127,6 +130,7 @@ func (upgrade Upgrade) Execute() error {
     if !sys.Exists(wioFolderPath) {
         if err := archiver.Unarchive(wioTarPath, wioFolderPath); err != nil {
             log.WriteFailure()
+            log.Write(err.Error())
             return util.Error("wio@%s executable tar could not extracted", version)
         }
     }
@@ -141,19 +145,23 @@ func (upgrade Upgrade) Execute() error {
     newWioExec, err := os.Open(sys.Path(wioFolderPath, releaseName))
     if err != nil {
         log.WriteFailure()
+        log.Write(err.Error())
         return util.Error("wio@%s executable not downloaded or corrupted", version)
     }
 
     if err = update.Apply(newWioExec, update.Options{}); err != nil {
         log.WriteFailure()
+        log.Write(err.Error())
         return util.Error("failed to upgrade wio to version %s", version)
     } else {
         wioRootConfig := &root.WioRootConfig{}
         if err := sys.NormalIO.ParseJson(root.GetConfigFilePath(), wioRootConfig); err != nil {
+            log.Write(err.Error())
             return util.Error("wio upgraded to %s but an error occurred and it's not complete", version)
         }
         wioRootConfig.Updated = true
         if err := sys.NormalIO.WriteJson(root.GetConfigFilePath(), wioRootConfig); err != nil {
+            log.Write(err.Error())
             return util.Error("wio upgraded to %s but an error occurred and it's not complete", version)
         }
     }
