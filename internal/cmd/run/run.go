@@ -208,16 +208,24 @@ func configureTargetsBuildFiles(info *runInfo, targets []types.Target) ([]string
             return nil, err
         }
 
+        deleteWioTimeFile := func() {
+            wioTimeFile := sys.Path(targetPath(info, target), "wio.time")
+            os.RemoveAll(wioTimeFile)
+        }
+
         if info.retool || info.force || buildStatus {
             log.Infoln(log.Cyan, "Generating CMake build files for target %s", target.GetName())
 
             if err := generate.CMakeListsFile(infoGen, target); err != nil {
+                deleteWioTimeFile()
                 return nil, err
             }
             if err := generate.DependenciesFile(infoGen, target); err != nil {
+                deleteWioTimeFile()
                 return nil, err
             }
             if err := generate.HardwareFile(infoGen, target); err != nil {
+                deleteWioTimeFile()
                 return nil, err
             }
         } else {

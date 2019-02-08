@@ -65,9 +65,9 @@ func (i *Info) ResolveRemote(config types.Config) error {
         })
     }
 
-    deps := config.DependencyMap()
-    for name, ver := range deps {
-        node := &Node{Name: name, ConfigVersion: ver}
+    deps := config.GetDependencies()
+    for name, dep := range deps {
+        node := &Node{Name: name, ConfigVersion: dep.GetVersion(), Vendor: dep.IsVendor()}
         i.root.Dependencies = append(i.root.Dependencies, node)
     }
     for _, dep := range i.root.Dependencies {
@@ -93,12 +93,12 @@ func (i *Info) ResolveTree(root *Node) error {
     }
     root.ResolvedVersion = ver
     i.SetRes(root.Name, root.ConfigVersion, ver)
-    data, err := i.GetVersion(root.Name, ver.String())
+    data, err := i.GetVersion(root.Name, ver.String(), root.Vendor)
     if err != nil {
         return err
     }
     for name, ver := range data.Dependencies {
-        node := &Node{Name: name, ConfigVersion: ver}
+        node := &Node{Name: name, ConfigVersion: ver, Vendor: false}
         root.Dependencies = append(root.Dependencies, node)
     }
     for _, node := range root.Dependencies {

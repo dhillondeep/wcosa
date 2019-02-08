@@ -34,12 +34,12 @@ project(${PROJECT_NAME} C CXX ASM)
 # Dependencies
 set(DEPENDENCY_FILE "${PROJECT_PATH}/.wio/targets/${TARGET_NAME}/dependencies.cmake")
 
-file(GLOB_RECURSE ${TARGET_NAME}_files
+file(GLOB_RECURSE ${TARGET_NAME}_FILES
     ${PROJECT_PATH}/${ENTRY}/*.cpp
     ${PROJECT_PATH}/${ENTRY}/*.cc
     ${PROJECT_PATH}/${ENTRY}/*.c)
 
-add_executable(${TARGET_NAME} ${${TARGET_NAME}_files})
+add_executable(${TARGET_NAME} ${${TARGET_NAME}_FILES})
 
 target_compile_definitions(
     ${TARGET_NAME}
