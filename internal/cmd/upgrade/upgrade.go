@@ -17,7 +17,7 @@ import (
     "wio/pkg/util/sys"
     "wio/pkg/util/template"
 
-    update "github.com/inconshreveable/go-update"
+    "github.com/inconshreveable/go-update"
     "github.com/mholt/archiver"
     "github.com/urfave/cli"
 )
@@ -58,6 +58,8 @@ const (
 
 // Runs the build command when cli build option is provided
 func (upgrade Upgrade) Execute() error {
+    forceFlag := upgrade.Context.Bool("force")
+
     var version string
     var err error
     info := resolve.NewInfo(root.GetUpdatePath())
@@ -65,7 +67,7 @@ func (upgrade Upgrade) Execute() error {
         version = upgrade.Context.Args()[0]
     } else {
         if version, err = info.GetLatest(constants.Wio); err != nil {
-            return util.Error("no version found for wio")
+            return util.Error("no latest version found for wio")
         }
     }
 
@@ -74,7 +76,7 @@ func (upgrade Upgrade) Execute() error {
         return util.Error("wio version %s is invalid", version)
     }
 
-    if !upgrade.Context.Bool("force") && versionToUpgradeSem.LT(*semver.Parse("0.7.0")) {
+    if !forceFlag && versionToUpgradeSem.LT(*semver.Parse("0.7.0")) {
         return util.Error("wio can only be upgraded/downgraded to versions >= 0.7.0")
     }
 
@@ -89,53 +91,60 @@ func (upgrade Upgrade) Execute() error {
     releaseUrl := template.Replace(wioReleaseUrl, map[string]string{
         "version":  version,
         "platform": strings.ToLower(env.GetOS()),
-        "arch":     strings.ToLower(env.GetOS()),
+        "arch":     strings.ToLower(archMapping[env.GetArch()]),
         "format":   formatMapping[env.GetOS()],
     })
 
-    resp, err := http.Get(releaseUrl)
-    if err != nil {
-        log.WriteFailure()
-        return util.Error("wio@%s version does not exist", version)
+    if err := os.MkdirAll(sys.Path(root.GetUpdatePath(), sys.Download), os.ModePerm); err != nil {
+        return util.Error("wio@%s error creating cache folder", version)
     }
-    defer resp.Body.Close()
 
     wioTarPath := sys.Path(root.GetUpdatePath(), sys.Download, fmt.Sprintf("%s__%s.%s", constants.Wio, version,
         formatMapping[env.GetOS()]))
 
     wioFolderPath := sys.Path(root.GetUpdatePath(), fmt.Sprintf("%s_%s", constants.Wio, version))
 
-    if err := os.MkdirAll(sys.Path(root.GetUpdatePath(), sys.Download), os.ModePerm); err != nil {
-        log.WriteFailure()
-        log.Write(err.Error())
-        return util.Error("wio@%s executable tar could not extracted", version)
+    if sys.Exists(wioTarPath) && forceFlag {
+        os.RemoveAll(wioTarPath)
     }
 
+    if sys.Exists(wioFolderPath) && forceFlag {
+        os.RemoveAll(wioFolderPath)
+    }
+
+    log.Info(log.Cyan, "downloading wio version %s... ", version)
     if !sys.Exists(wioTarPath) {
         out, err := os.Create(wioTarPath)
         if err != nil {
             log.WriteFailure()
-            log.Write(err.Error())
-            return util.Error("wio@%s executable tar could not extracted", version)
+            return util.Error("wio@%s error creating %s file stream", version, formatMapping[env.GetOS()])
         }
         defer out.Close()
 
+        resp, err := http.Get(releaseUrl)
+        if err != nil || resp.StatusCode == 404 {
+            log.WriteFailure()
+            return util.Error("wio@%s version does not exist", version)
+        }
+        defer resp.Body.Close()
+
         if _, err := io.Copy(out, resp.Body); err != nil {
             log.WriteFailure()
-            log.Write(err.Error())
-            return util.Error("wio@%s executable tar could not extracted", version)
+            return util.Error("wio@%s error writing data to %s file", version, formatMapping[env.GetOS()])
         }
-    }
 
-    if !sys.Exists(wioFolderPath) {
+        log.WriteSuccess()
+        log.Info(log.Cyan, "extracting wio version %s %s file... ", version, formatMapping[env.GetOS()])
+
         if err := archiver.Unarchive(wioTarPath, wioFolderPath); err != nil {
             log.WriteFailure()
-            log.Write(err.Error())
-            return util.Error("wio@%s executable tar could not extracted", version)
+            return util.Error("wio@%s error while extracting %s file", version, formatMapping[env.GetOS()])
         }
+        log.WriteSuccess()
+    } else {
+        log.Infoln(log.Green, "already exists!")
     }
 
-    log.WriteSuccess()
     log.Info(log.Cyan, "Updating ")
     log.Info(log.Green, "wio@%s ", meta.Version)
     log.Info(log.Cyan, "-> ")
