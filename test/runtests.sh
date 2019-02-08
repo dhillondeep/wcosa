@@ -4,7 +4,7 @@ set -e
 
 test_folder="wio-test"
 base_folder=$(pwd)
-num_tests=24
+num_tests=25
 
 # Check that working directory contains script
 if [ ! -f $(pwd)/`basename "${0}"` ]; then
@@ -241,6 +241,13 @@ _test24() {
     wio build --all
     wio build --all --retool
     wio build
+}
+
+_test25() {
+    # update wio to 0.7.1
+    wio upgrade 0.7.1
+    wio -v
+    wmake build
 }
 
 # Source and build
