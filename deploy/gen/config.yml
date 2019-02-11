@@ -1,6 +1,6 @@
 project_name: "wio"
 src_folder: ./../../cmd/wio
-dest_folder: ./bin
+dest_folder: ./../bin
 targets :
   - darwin/*
   - linux/386

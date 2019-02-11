@@ -7,7 +7,7 @@
     "preinstall": "node deploy/npm/preinstall.js",
     "postinstall": "node deploy/npm/postinstall.js",
     "preuninstall": "node deploy/npm/preuninstall.js",
-    "release": "cd deploy/gen && go run cross-build.go && cd ../../ && release-it",
+    "release": "release-it",
     "changelog": "npx auto-changelog --stdout -u --template deploy/changelog-template.hbs",
     "beforeStage": "npx auto-changelog -u --template deploy/changelog-template.hbs"
   },
