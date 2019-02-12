@@ -39,6 +39,10 @@ func dispatchRunTarget(info *runInfo, target types.Target) error {
             return err
         }
 
+        if err := configTarget(binDir); err != nil {
+            return err
+        }
+
         return uploadTarget(binDir)
     case constants.Native:
         if err := genHardwareFile(info.port); err != nil {
