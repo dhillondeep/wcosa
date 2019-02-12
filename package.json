@@ -6,7 +6,10 @@
   "scripts": {
     "preinstall": "node deploy/npm/preinstall.js",
     "postinstall": "node deploy/npm/postinstall.js",
-    "preuninstall": "node deploy/npm/preuninstall.js"
+    "preuninstall": "node deploy/npm/preuninstall.js",
+    "release": "release-it",
+    "changelog": "npx auto-changelog --stdout -u --template deploy/changelog-template.hbs",
+    "beforeStage": "npx auto-changelog -u --template deploy/changelog-template.hbs"
   },
   "bin": "./bin/wio",
   "repository": {
@@ -43,5 +46,19 @@
     "request": "^2.87.0",
     "tar": "^2.2.1",
     "unzip": "^0.1.11"
+  },
+  "devDependencies": {
+    "release-it": "*"
+  },
+  "release-it": {
+    "use": "pkg.version",
+    "github": {
+      "release": true,
+      "assets": [
+        "deploy/gen/bin/*.zip",
+        "deploy/gen/bin/*.tar.gz",
+        "deploy/gen/bin/*.txt"
+      ]
+    }
   }
 }

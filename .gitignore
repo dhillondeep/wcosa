@@ -11,7 +11,14 @@ dist/
 node_modules/
 package-lock.json
 pkg/util/sys/bindata.go
-deploy/gen/bin
+deploy/*/**
+!deploy/brew/brew.go
+!deploy/brew/brew-template.tpl
+!deploy/scoop/scoop.go
+!deploy/scoop/scoop-template.tpl
+!deploy/npm/*
+!deploy/gen/*
+
 
 # Toolchain symlink
 bin/toolchain
