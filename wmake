@@ -24,7 +24,7 @@ HEREDOC
 
 _test() {
     cd test
-    #./symlinks.sh
+    ./symlinks.sh
     ./runtests.sh
 }
 

@@ -45,6 +45,8 @@ func init() {
 
 // Pull required tools
 func Setup() error {
+	os.Setenv("GO111MODULE", "off")
+
 	fmt.Println("Getting all the go tools needed...")
 
 	if runtime.GOOS == "windows" {
@@ -82,6 +84,9 @@ func Setup() error {
 
 // Build wio binary
 func Build() error {
+	// We want to use Go 1.11 modules even if the source lives inside GOPATH.
+	os.Setenv("GO111MODULE", "on")
+
 	currDir, err := os.Getwd()
 	if err != nil {
 		return err

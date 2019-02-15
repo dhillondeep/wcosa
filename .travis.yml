@@ -4,6 +4,9 @@ language: go
 go:
   - "1.11"
 
+env:
+  - GO111MODULE=on
+
 go_import_path: wio
 
 before_install:
@@ -18,5 +21,6 @@ install:
 script:
   - mage build
   - mage fmtLint
+  - go env
   - go test -v ./...
   - ./wmake test
