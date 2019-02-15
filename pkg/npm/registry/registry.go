@@ -1,5 +1,5 @@
 package registry
 
 const (
-    WioPackageRegistry = "https://registry.npmjs.org"
+	WioPackageRegistry = "https://registry.npmjs.org"
 )

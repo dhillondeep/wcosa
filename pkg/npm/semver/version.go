@@ -1,14 +1,14 @@
 package semver
 
 import (
-    s "github.com/blang/semver"
+	s "github.com/blang/semver"
 )
 
 func Parse(str string) *s.Version {
-    v, err := s.Parse(str)
-    if err != nil {
-        return nil
-    }
+	v, err := s.Parse(str)
+	if err != nil {
+		return nil
+	}
 
-    return &v
+	return &v
 }

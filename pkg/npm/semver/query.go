@@ -1,12 +1,12 @@
 package semver
 
 import (
-    "bytes"
-    "fmt"
-    "regexp"
-    "strings"
+	"bytes"
+	"fmt"
+	"regexp"
+	"strings"
 
-    "github.com/blang/semver"
+	"github.com/blang/semver"
 )
 
 type queryOp int
@@ -14,168 +14,168 @@ type queryOp int
 // An arithmetic operation requires a hard version query.
 // Placeholders are expanded to zero in these cases
 const (
-    queryEq queryOp = 0
-    queryLt queryOp = 1
-    queryGt queryOp = 2
-    queryLe queryOp = 3
-    queryGe queryOp = 4
+	queryEq queryOp = 0
+	queryLt queryOp = 1
+	queryGt queryOp = 2
+	queryLe queryOp = 3
+	queryGe queryOp = 4
 )
 
 func (op queryOp) compare(a *semver.Version, b *semver.Version) bool {
-    switch op {
-    case queryEq:
-        return a.EQ(*b)
-    case queryLt:
-        return a.LT(*b)
-    case queryGt:
-        return b.GT(*a)
-    case queryLe:
-        return b.LE(*a)
-    case queryGe:
-        return a.GE(*b)
-    default:
-        return false
-    }
+	switch op {
+	case queryEq:
+		return a.EQ(*b)
+	case queryLt:
+		return a.LT(*b)
+	case queryGt:
+		return b.GT(*a)
+	case queryLe:
+		return b.LE(*a)
+	case queryGe:
+		return a.GE(*b)
+	default:
+		return false
+	}
 }
 
 type Query interface {
-    Matches(ver *semver.Version) bool
-    FindBest(list List) *semver.Version
-    Str() string
+	Matches(ver *semver.Version) bool
+	FindBest(list List) *semver.Version
+	Str() string
 }
 
 type singleBound struct {
-    ver *semver.Version
-    op  queryOp
+	ver *semver.Version
+	op  queryOp
 }
 
 // lower.op always queryGe or queryGt
 // upper.op always queryLe or queryLt
 type dualBound struct {
-    lower *singleBound
-    upper *singleBound
+	lower *singleBound
+	upper *singleBound
 }
 
 type queryList []Query
 
 func (q *singleBound) Matches(ver *semver.Version) bool {
-    return q.op.compare(ver, q.ver)
+	return q.op.compare(ver, q.ver)
 }
 
 func (q *singleBound) FindBest(list List) *semver.Version {
-    // assumes list is sorted
-    if len(list) <= 0 {
-        return nil
-    }
+	// assumes list is sorted
+	if len(list) <= 0 {
+		return nil
+	}
 
-    switch q.op {
-    case queryEq:
-        for _, ver := range list {
-            if q.ver.EQ(*ver) {
-                return ver
-            }
-        }
-        return nil
+	switch q.op {
+	case queryEq:
+		for _, ver := range list {
+			if q.ver.EQ(*ver) {
+				return ver
+			}
+		}
+		return nil
 
-    case queryLt, queryLe:
-        // find the highest matching version
-        for i := len(list) - 1; i >= 0; i-- {
-            if q.Matches(list[i]) {
-                return list[i]
-            }
-        }
-        return nil
+	case queryLt, queryLe:
+		// find the highest matching version
+		for i := len(list) - 1; i >= 0; i-- {
+			if q.Matches(list[i]) {
+				return list[i]
+			}
+		}
+		return nil
 
-    case queryGt, queryGe:
-        // check if highest version matches
-        last := list[len(list)-1]
-        if q.Matches(last) {
-            return last
-        }
-        return nil
+	case queryGt, queryGe:
+		// check if highest version matches
+		last := list[len(list)-1]
+		if q.Matches(last) {
+			return last
+		}
+		return nil
 
-    default:
-        return nil
-    }
+	default:
+		return nil
+	}
 }
 
 func (q *singleBound) Str() string {
-    return fmt.Sprintf("%s%s", queryInv[q.op], q.ver.String())
+	return fmt.Sprintf("%s%s", queryInv[q.op], q.ver.String())
 }
 
 func (q *dualBound) Matches(ver *semver.Version) bool {
-    return q.lower.Matches(ver) && q.upper.Matches(ver)
+	return q.lower.Matches(ver) && q.upper.Matches(ver)
 }
 
 func (q *dualBound) FindBest(list List) *semver.Version {
-    // assumes list is sorted
-    if len(list) <= 0 {
-        return nil
-    }
-    // find highest allowable that meets lower bound
-    top := q.upper.FindBest(list)
-    if top != nil && q.lower.Matches(top) {
-        return top
-    }
-    return nil
+	// assumes list is sorted
+	if len(list) <= 0 {
+		return nil
+	}
+	// find highest allowable that meets lower bound
+	top := q.upper.FindBest(list)
+	if top != nil && q.lower.Matches(top) {
+		return top
+	}
+	return nil
 }
 
 func (q *dualBound) Str() string {
-    return fmt.Sprintf("%s %s", q.lower.Str(), q.upper.Str())
+	return fmt.Sprintf("%s %s", q.lower.Str(), q.upper.Str())
 }
 
 func (ql queryList) Matches(ver *semver.Version) bool {
-    for _, q := range ql {
-        if q.Matches(ver) {
-            return true
-        }
-    }
-    return false
+	for _, q := range ql {
+		if q.Matches(ver) {
+			return true
+		}
+	}
+	return false
 }
 
 func (ql queryList) FindBest(list List) *semver.Version {
-    res := make(List, 0, len(ql))
-    for _, q := range ql {
-        if ver := q.FindBest(list); ver != nil {
-            res = append(res, ver)
-        }
-    }
-    if len(res) == 0 {
-        return nil
-    }
-    res.Sort()
-    return res[len(res)-1]
+	res := make(List, 0, len(ql))
+	for _, q := range ql {
+		if ver := q.FindBest(list); ver != nil {
+			res = append(res, ver)
+		}
+	}
+	if len(res) == 0 {
+		return nil
+	}
+	res.Sort()
+	return res[len(res)-1]
 }
 
 func (ql queryList) Str() string {
-    var buf bytes.Buffer
-    for _, q := range ql {
-        buf.WriteString(q.Str())
-        buf.WriteString(" || ")
-    }
-    res := buf.String()
-    return res[:len(res)-4]
+	var buf bytes.Buffer
+	for _, q := range ql {
+		buf.WriteString(q.Str())
+		buf.WriteString(" || ")
+	}
+	res := buf.String()
+	return res[:len(res)-4]
 }
 
 func trimX(str string) string {
-    loc := anyMatch.FindStringIndex(str)
-    if loc != nil {
-        str = str[:loc[0]]
-    }
-    if len(str) > 0 && str[len(str)-1] == '.' {
-        str = str[:len(str)-1]
-    }
-    return str
+	loc := anyMatch.FindStringIndex(str)
+	if loc != nil {
+		str = str[:loc[0]]
+	}
+	if len(str) > 0 && str[len(str)-1] == '.' {
+		str = str[:len(str)-1]
+	}
+	return str
 }
 
 func stripEqV(str string) string {
-    if len(str) > 0 && str[0] == '=' {
-        str = str[1:]
-    }
-    if len(str) > 0 && str[0] == 'v' {
-        str = str[1:]
-    }
-    return str
+	if len(str) > 0 && str[0] == '=' {
+		str = str[1:]
+	}
+	if len(str) > 0 && str[0] == 'v' {
+		str = str[1:]
+	}
+	return str
 }
 
 var cmpMatch = regexp.MustCompile(`^(>=|<=|>|<)v?([*xX]|[0-9]+)(\.([*xX]|[0-9]+)){0,2}(-[a-zA-Z0-9]+(\.[0-9]+)?)?$`)
@@ -191,190 +191,190 @@ var spaceMatch = regexp.MustCompile(`\s+<`)
 var orMatch = regexp.MustCompile(`\s+\|\|\s+`)
 
 var queryMap = map[string]queryOp{
-    "=":  queryEq,
-    "<":  queryLt,
-    ">":  queryGt,
-    "<=": queryLe,
-    ">=": queryGe,
+	"=":  queryEq,
+	"<":  queryLt,
+	">":  queryGt,
+	"<=": queryLe,
+	">=": queryGe,
 }
 
 var queryInv = [...]string{"=", "<", ">", "<=", ">="}
 
 func parseIncompl(str string) *semver.Version {
-    str = trimX(str)
-    if str == "" {
-        str = "0"
-    }
-    str += strings.Repeat(".0", 2-strings.Count(str, "."))
-    return Parse(str)
+	str = trimX(str)
+	if str == "" {
+		str = "0"
+	}
+	str += strings.Repeat(".0", 2-strings.Count(str, "."))
+	return Parse(str)
 }
 
 func parseCmpQuery(str string) *singleBound {
-    loc := opMatch.FindStringIndex(str)
-    opStr := str[loc[0]:loc[1]]
-    verStr := strings.Trim(str[loc[1]:], " ")
-    return &singleBound{op: queryMap[opStr], ver: parseIncompl(verStr)}
+	loc := opMatch.FindStringIndex(str)
+	opStr := str[loc[0]:loc[1]]
+	verStr := strings.Trim(str[loc[1]:], " ")
+	return &singleBound{op: queryMap[opStr], ver: parseIncompl(verStr)}
 }
 
 func parseMisQuery(str string) Query {
-    lower := parseIncompl(str)
-    str = trimX(str)
-    ver := strings.Split(str, ".")
-    switch {
-    case len(str) == 0:
-        return &singleBound{op: queryGe, ver: lower}
+	lower := parseIncompl(str)
+	str = trimX(str)
+	ver := strings.Split(str, ".")
+	switch {
+	case len(str) == 0:
+		return &singleBound{op: queryGe, ver: lower}
 
-    case len(ver) == 1:
-        upper := &semver.Version{Major: lower.Major + 1}
-        return &dualBound{
-            lower: &singleBound{op: queryGe, ver: lower},
-            upper: &singleBound{op: queryLt, ver: upper},
-        }
+	case len(ver) == 1:
+		upper := &semver.Version{Major: lower.Major + 1}
+		return &dualBound{
+			lower: &singleBound{op: queryGe, ver: lower},
+			upper: &singleBound{op: queryLt, ver: upper},
+		}
 
-    case len(ver) == 2:
-        upper := &semver.Version{Major: lower.Major, Minor: lower.Minor + 1}
-        return &dualBound{
-            lower: &singleBound{op: queryGe, ver: lower},
-            upper: &singleBound{op: queryLt, ver: upper},
-        }
+	case len(ver) == 2:
+		upper := &semver.Version{Major: lower.Major, Minor: lower.Minor + 1}
+		return &dualBound{
+			lower: &singleBound{op: queryGe, ver: lower},
+			upper: &singleBound{op: queryLt, ver: upper},
+		}
 
-    case len(ver) == 3:
-        return &singleBound{op: queryEq, ver: lower}
+	case len(ver) == 3:
+		return &singleBound{op: queryEq, ver: lower}
 
-    default:
-        return nil
-    }
+	default:
+		return nil
+	}
 }
 
 func parseTildeQuery(str string) Query {
 
-    switch Parse(str) {
-    case nil:
-        return parseMisQuery(str)
-    default:
-        lower := Parse(str)
-        upper := &semver.Version{Major: lower.Major, Minor: lower.Minor + 1}
-        return &dualBound{
-            lower: &singleBound{op: queryGe, ver: lower},
-            upper: &singleBound{op: queryLt, ver: upper},
-        }
-    }
+	switch Parse(str) {
+	case nil:
+		return parseMisQuery(str)
+	default:
+		lower := Parse(str)
+		upper := &semver.Version{Major: lower.Major, Minor: lower.Minor + 1}
+		return &dualBound{
+			lower: &singleBound{op: queryGe, ver: lower},
+			upper: &singleBound{op: queryLt, ver: upper},
+		}
+	}
 }
 
 func parseCaretQuery(str string) Query {
-    lower := parseIncompl(str)
-    str = trimX(str)
-    ver := strings.Split(str, ".")
-    switch {
-    case len(str) == 0:
-        return parseMisQuery(str)
+	lower := parseIncompl(str)
+	str = trimX(str)
+	ver := strings.Split(str, ".")
+	switch {
+	case len(str) == 0:
+		return parseMisQuery(str)
 
-    case len(ver) == 1:
-        upper := &semver.Version{Major: lower.Major + 1}
-        return &dualBound{
-            lower: &singleBound{op: queryGe, ver: lower},
-            upper: &singleBound{op: queryLt, ver: upper},
-        }
+	case len(ver) == 1:
+		upper := &semver.Version{Major: lower.Major + 1}
+		return &dualBound{
+			lower: &singleBound{op: queryGe, ver: lower},
+			upper: &singleBound{op: queryLt, ver: upper},
+		}
 
-    case len(ver) == 2:
-        upper := &semver.Version{}
-        if lower.Major == 0 {
-            upper.Minor = lower.Minor + 1
-        } else {
-            upper.Major = lower.Major + 1
-        }
-        return &dualBound{
-            lower: &singleBound{op: queryGe, ver: lower},
-            upper: &singleBound{op: queryLt, ver: upper},
-        }
+	case len(ver) == 2:
+		upper := &semver.Version{}
+		if lower.Major == 0 {
+			upper.Minor = lower.Minor + 1
+		} else {
+			upper.Major = lower.Major + 1
+		}
+		return &dualBound{
+			lower: &singleBound{op: queryGe, ver: lower},
+			upper: &singleBound{op: queryLt, ver: upper},
+		}
 
-    case len(ver) == 3:
-        upper := &semver.Version{}
-        if lower.Major == 0 {
-            if lower.Minor == 0 {
-                upper.Patch = lower.Patch + 1
-            } else {
-                upper.Minor = lower.Minor + 1
-            }
-        } else {
-            upper.Major = lower.Major + 1
-        }
-        return &dualBound{
-            lower: &singleBound{op: queryGe, ver: lower},
-            upper: &singleBound{op: queryLt, ver: upper},
-        }
+	case len(ver) == 3:
+		upper := &semver.Version{}
+		if lower.Major == 0 {
+			if lower.Minor == 0 {
+				upper.Patch = lower.Patch + 1
+			} else {
+				upper.Minor = lower.Minor + 1
+			}
+		} else {
+			upper.Major = lower.Major + 1
+		}
+		return &dualBound{
+			lower: &singleBound{op: queryGe, ver: lower},
+			upper: &singleBound{op: queryLt, ver: upper},
+		}
 
-    default:
-        return nil
-    }
+	default:
+		return nil
+	}
 }
 
 func parseRangeQuery(str string) *dualBound {
-    bounds := betMatch.Split(str, -1)
-    lower := parseIncompl(bounds[0])
-    upper := bounds[1]
-    if Parse(upper) != nil {
-        return &dualBound{
-            lower: &singleBound{op: queryGe, ver: lower},
-            upper: &singleBound{op: queryLe, ver: Parse(upper)},
-        }
-    }
-    upper = trimX(upper)
-    ver := parseIncompl(upper)
-    switch strings.Count(upper, ".") {
-    case 0:
-        ver.Major++
-    case 1:
-        ver.Minor++
-    }
-    return &dualBound{
-        lower: &singleBound{op: queryGe, ver: lower},
-        upper: &singleBound{op: queryLt, ver: ver},
-    }
+	bounds := betMatch.Split(str, -1)
+	lower := parseIncompl(bounds[0])
+	upper := bounds[1]
+	if Parse(upper) != nil {
+		return &dualBound{
+			lower: &singleBound{op: queryGe, ver: lower},
+			upper: &singleBound{op: queryLe, ver: Parse(upper)},
+		}
+	}
+	upper = trimX(upper)
+	ver := parseIncompl(upper)
+	switch strings.Count(upper, ".") {
+	case 0:
+		ver.Major++
+	case 1:
+		ver.Minor++
+	}
+	return &dualBound{
+		lower: &singleBound{op: queryGe, ver: lower},
+		upper: &singleBound{op: queryLt, ver: ver},
+	}
 }
 
 func parseAndQuery(str string) *dualBound {
-    bounds := spaceMatch.Split(str, -1)
-    return &dualBound{
-        lower: parseCmpQuery(bounds[0]),
-        upper: parseCmpQuery("<" + bounds[1]),
-    }
+	bounds := spaceMatch.Split(str, -1)
+	return &dualBound{
+		lower: parseCmpQuery(bounds[0]),
+		upper: parseCmpQuery("<" + bounds[1]),
+	}
 }
 
 func parseOrQuery(str string) queryList {
-    queries := orMatch.Split(str, -1)
-    ql := make(queryList, 0, len(queries))
-    for _, query := range queries {
-        if q := MakeQuery(query); q != nil {
-            ql = append(ql, q)
-        } else {
-            return nil
-        }
-    }
-    return ql
+	queries := orMatch.Split(str, -1)
+	ql := make(queryList, 0, len(queries))
+	for _, query := range queries {
+		if q := MakeQuery(query); q != nil {
+			ql = append(ql, q)
+		} else {
+			return nil
+		}
+	}
+	return ql
 }
 
 func MakeQuery(str string) Query {
-    // should never be called if valid Version passed
-    if Parse(str) != nil {
-        return &singleBound{ver: Parse(str), op: queryEq}
-    }
-    switch {
-    case cmpMatch.MatchString(str):
-        return parseCmpQuery(str)
-    case misMatch.MatchString(str):
-        return parseMisQuery(stripEqV(str))
-    case tildeMatch.MatchString(str):
-        return parseTildeQuery(stripEqV(str[1:]))
-    case caretMatch.MatchString(str):
-        return parseCaretQuery(stripEqV(str[1:]))
-    case rangeMatch.MatchString(str):
-        return parseRangeQuery(str)
-    case andMatch.MatchString(str):
-        return parseAndQuery(str)
-    case orMatch.MatchString(str):
-        return parseOrQuery(str)
-    default:
-        return nil
-    }
+	// should never be called if valid Version passed
+	if Parse(str) != nil {
+		return &singleBound{ver: Parse(str), op: queryEq}
+	}
+	switch {
+	case cmpMatch.MatchString(str):
+		return parseCmpQuery(str)
+	case misMatch.MatchString(str):
+		return parseMisQuery(stripEqV(str))
+	case tildeMatch.MatchString(str):
+		return parseTildeQuery(stripEqV(str[1:]))
+	case caretMatch.MatchString(str):
+		return parseCaretQuery(stripEqV(str[1:]))
+	case rangeMatch.MatchString(str):
+		return parseRangeQuery(str)
+	case andMatch.MatchString(str):
+		return parseAndQuery(str)
+	case orMatch.MatchString(str):
+		return parseOrQuery(str)
+	default:
+		return nil
+	}
 }

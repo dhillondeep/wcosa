@@ -1,127 +1,127 @@
 package resolve
 
 import (
-    "io"
-    "io/ioutil"
-    "net/http"
-    "os"
-    "path/filepath"
-    "strconv"
-    "wio/pkg/npm"
-    "wio/pkg/npm/publish"
-    "wio/pkg/util"
-    "wio/pkg/util/sys"
+	"io"
+	"io/ioutil"
+	"net/http"
+	"os"
+	"path/filepath"
+	"strconv"
+	"wio/pkg/npm"
+	"wio/pkg/npm/publish"
+	"wio/pkg/util"
+	"wio/pkg/util/sys"
 
-    "github.com/mholt/archiver"
+	"github.com/mholt/archiver"
 )
 
 func (i *Info) InstallResolved() error {
-    logInstallStart()
+	logInstallStart()
 
-    for name, cache := range i.ver {
-        for ver, data := range cache {
-            if err := i.install(name, ver, data); err != nil {
-                return err
-            }
-        }
-    }
+	for name, cache := range i.ver {
+		for ver, data := range cache {
+			if err := i.install(name, ver, data); err != nil {
+				return err
+			}
+		}
+	}
 
-    logInstallDone()
-    return nil
+	logInstallDone()
+	return nil
 }
 
 func (i *Info) install(name, ver string, data *npm.Version) error {
-    local, err := i.GetPkg(name, ver)
-    if err != nil {
-        return err
-    }
-    if local != nil {
-        return nil
-    }
+	local, err := i.GetPkg(name, ver)
+	if err != nil {
+		return err
+	}
+	if local != nil {
+		return nil
+	}
 
-    file := name + "__" + ver
-    tar := sys.Path(i.dir, sys.WioFolder, sys.Download, file+".tgz")
-    if !sys.Exists(tar) {
-        url := data.Dist.Tarball
-        total, err := contentSize(url)
-        if err != nil {
-            return err
-        }
-        cb := &counter{total: total, cb: installCallback(name, ver)}
-        if err := download(url, tar, cb); err != nil {
-            return err
-        }
-    }
+	file := name + "__" + ver
+	tar := sys.Path(i.dir, sys.WioFolder, sys.Download, file+".tgz")
+	if !sys.Exists(tar) {
+		url := data.Dist.Tarball
+		total, err := contentSize(url)
+		if err != nil {
+			return err
+		}
+		cb := &counter{total: total, cb: installCallback(name, ver)}
+		if err := download(url, tar, cb); err != nil {
+			return err
+		}
+	}
 
-    // check shashum
-    tarData, err := ioutil.ReadFile(tar)
-    if err != nil {
-        return err
-    }
-    if sha := publish.Shasum(tarData); sha != data.Dist.Shasum {
-        if err := os.RemoveAll(tar); err != nil {
-            return err
-        }
-        return util.Error("expected tar checksum %s", data.Dist.Shasum)
-    }
+	// check shashum
+	tarData, err := ioutil.ReadFile(tar)
+	if err != nil {
+		return err
+	}
+	if sha := publish.Shasum(tarData); sha != data.Dist.Shasum {
+		if err := os.RemoveAll(tar); err != nil {
+			return err
+		}
+		return util.Error("expected tar checksum %s", data.Dist.Shasum)
+	}
 
-    modules := sys.Path(i.dir, sys.WioFolder, sys.Modules)
+	modules := sys.Path(i.dir, sys.WioFolder, sys.Modules)
 
-    if !sys.Exists(sys.Path(modules, file)) {
-        pkg := sys.Path(modules, "package")
-        if err := os.RemoveAll(pkg); err != nil {
-            return err
-        }
-        if err := untar(tar, modules); err != nil {
-            return err
-        }
+	if !sys.Exists(sys.Path(modules, file)) {
+		pkg := sys.Path(modules, "package")
+		if err := os.RemoveAll(pkg); err != nil {
+			return err
+		}
+		if err := untar(tar, modules); err != nil {
+			return err
+		}
 
-        return os.Rename(pkg, sys.Path(modules, file))
-    }
+		return os.Rename(pkg, sys.Path(modules, file))
+	}
 
-    return nil
+	return nil
 }
 
 func download(url string, dst string, cb io.Writer) error {
-    if err := os.MkdirAll(filepath.Dir(dst), os.ModePerm); err != nil {
-        return err
-    }
-    out, err := os.Create(dst + sys.TempFolder)
-    if err != nil {
-        return err
-    }
-    defer out.Close()
-    resp, err := http.Get(url)
-    if err != nil {
-        return err
-    }
-    defer resp.Body.Close()
-    if _, err := io.Copy(out, io.TeeReader(resp.Body, cb)); err != nil {
-        return err
-    }
-    out.Close()
-    resp.Body.Close()
-    return os.Rename(dst+sys.TempFolder, dst)
+	if err := os.MkdirAll(filepath.Dir(dst), os.ModePerm); err != nil {
+		return err
+	}
+	out, err := os.Create(dst + sys.TempFolder)
+	if err != nil {
+		return err
+	}
+	defer out.Close()
+	resp, err := http.Get(url)
+	if err != nil {
+		return err
+	}
+	defer resp.Body.Close()
+	if _, err := io.Copy(out, io.TeeReader(resp.Body, cb)); err != nil {
+		return err
+	}
+	out.Close()
+	resp.Body.Close()
+	return os.Rename(dst+sys.TempFolder, dst)
 }
 
 func untar(src string, dest string) error {
-    return archiver.Unarchive(src, dest)
+	return archiver.Unarchive(src, dest)
 }
 
 func installCallback(name string, ver string) callback {
-    return func(curr uint64, total uint64) {
-        logInstall(name, ver, curr, total)
-    }
+	return func(curr uint64, total uint64) {
+		logInstall(name, ver, curr, total)
+	}
 }
 
 func contentSize(url string) (uint64, error) {
-    resp, err := http.Head(url)
-    if err != nil {
-        return 0, err
-    }
-    if resp.StatusCode != http.StatusOK {
-        return 0, util.Error("GET %s returned %d", url, resp.StatusCode)
-    }
-    str := resp.Header.Get("Content-Length")
-    return strconv.ParseUint(str, 10, 64)
+	resp, err := http.Head(url)
+	if err != nil {
+		return 0, err
+	}
+	if resp.StatusCode != http.StatusOK {
+		return 0, util.Error("GET %s returned %d", url, resp.StatusCode)
+	}
+	str := resp.Header.Get("Content-Length")
+	return strconv.ParseUint(str, 10, 64)
 }

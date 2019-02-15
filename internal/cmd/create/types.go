@@ -8,26 +8,26 @@ package create
 
 // #################################### projectType for project structure json ##################################
 type StructureFilesData struct {
-    Constraints []string
-    From        string
-    To          string
-    Override    bool
-    Update      bool
-    AllowFull   bool `json:"allowFull"`
+	Constraints []string
+	From        string
+	To          string
+	Override    bool
+	Update      bool
+	AllowFull   bool `json:"allowFull"`
 }
 
 type StructurePathData struct {
-    Constraints []string
-    Entry       string
-    Files       []StructureFilesData
+	Constraints []string
+	Entry       string
+	Files       []StructureFilesData
 }
 
 type StructureTypeData struct {
-    Paths []StructurePathData
+	Paths []StructurePathData
 }
 
 type StructureConfigData struct {
-    Shared StructureTypeData
-    App    StructureTypeData
-    Pkg    StructureTypeData
+	Shared StructureTypeData
+	App    StructureTypeData
+	Pkg    StructureTypeData
 }

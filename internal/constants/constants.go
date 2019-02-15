@@ -1,25 +1,25 @@
 package constants
 
 const (
-    Avr    = "avr"
-    Native = "native"
+	Avr    = "avr"
+	Native = "native"
 )
 
 const (
-    Clion = "clion"
+	Clion = "clion"
 )
 
 const (
-    Wio = "wio"
-    App = "app"
-    Pkg = "pkg"
+	Wio = "wio"
+	App = "app"
+	Pkg = "pkg"
 )
 
 const (
-    WioRoot       = ".wio-root"
-    RootToolchain = "toolchain"
-    Security      = "security"
-    RootUpdate    = "update"
-    RootEnv       = "wio.env"
-    RootConfig    = "config.json"
+	WioRoot       = ".wio-root"
+	RootToolchain = "toolchain"
+	Security      = "security"
+	RootUpdate    = "update"
+	RootEnv       = "wio.env"
+	RootConfig    = "config.json"
 )

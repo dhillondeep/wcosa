@@ -1,38 +1,38 @@
 package util
 
 import (
-    "fmt"
-    "io"
-    "io/ioutil"
-    "os"
-    "path/filepath"
-    "wio/pkg/util/sys"
+	"fmt"
+	"io"
+	"io/ioutil"
+	"os"
+	"path/filepath"
+	"wio/pkg/util/sys"
 )
 
 // Checks if the give path is a director and based on the returns
 // true or false. If path does not exist, it throws an error
 func IsDir(path string) (bool, error) {
-    fi, err := os.Stat(path)
-    if err != nil {
-        return false, err
-    }
+	fi, err := os.Stat(path)
+	if err != nil {
+		return false, err
+	}
 
-    return fi.IsDir(), nil
+	return fi.IsDir(), nil
 }
 
 // This checks if the directory is empty or not
 func IsEmpty(name string) (bool, error) {
-    f, err := os.Open(name)
-    if err != nil {
-        return false, err
-    }
-    defer f.Close()
+	f, err := os.Open(name)
+	if err != nil {
+		return false, err
+	}
+	defer f.Close()
 
-    _, err = f.Readdirnames(1) // Or f.Readdir(1)
-    if err == io.EOF {
-        return true, nil
-    }
-    return false, err // Either not empty or error, suits both cases
+	_, err = f.Readdirnames(1) // Or f.Readdir(1)
+	if err == io.EOF {
+		return true, nil
+	}
+	return false, err // Either not empty or error, suits both cases
 }
 
 // CopyFile copies the contents of the file named src to the file named
@@ -41,122 +41,122 @@ func IsEmpty(name string) (bool, error) {
 // of the source file. The file mode will be copied from the source and
 // the copied data is synced/flushed to stable storage.
 func CopyFile(src, dst string) error {
-    if !sys.Exists(src) {
-        msg := fmt.Sprintf("Path [%s] does not exist", src)
-        return Error(msg)
-    }
+	if !sys.Exists(src) {
+		msg := fmt.Sprintf("Path [%s] does not exist", src)
+		return Error(msg)
+	}
 
-    in, err := os.Open(src)
-    if err != nil {
-        return err
-    }
-    defer in.Close()
+	in, err := os.Open(src)
+	if err != nil {
+		return err
+	}
+	defer in.Close()
 
-    out, err := os.Create(dst)
-    if err != nil {
-        return err
-    }
-    defer func() {
-        if e := out.Close(); e != nil {
-            err = e
-        }
-    }()
+	out, err := os.Create(dst)
+	if err != nil {
+		return err
+	}
+	defer func() {
+		if e := out.Close(); e != nil {
+			err = e
+		}
+	}()
 
-    _, err = io.Copy(out, in)
-    if err != nil {
-        return err
-    }
+	_, err = io.Copy(out, in)
+	if err != nil {
+		return err
+	}
 
-    err = out.Sync()
-    if err != nil {
-        return err
-    }
+	err = out.Sync()
+	if err != nil {
+		return err
+	}
 
-    si, err := os.Stat(src)
-    if err != nil {
-        return err
-    }
-    err = os.Chmod(dst, si.Mode())
-    if err != nil {
-        return err
-    }
+	si, err := os.Stat(src)
+	if err != nil {
+		return err
+	}
+	err = os.Chmod(dst, si.Mode())
+	if err != nil {
+		return err
+	}
 
-    return nil
+	return nil
 }
 
 func Copy(src string, dst string) error {
-    src = filepath.Clean(src)
-    dst = filepath.Clean(dst)
+	src = filepath.Clean(src)
+	dst = filepath.Clean(dst)
 
-    si, err := os.Stat(src)
-    if err != nil {
-        return err
-    }
-    if si.IsDir() {
-        return CopyDir(src, dst)
-    } else {
-        return CopyFile(src, dst)
-    }
+	si, err := os.Stat(src)
+	if err != nil {
+		return err
+	}
+	if si.IsDir() {
+		return CopyDir(src, dst)
+	} else {
+		return CopyFile(src, dst)
+	}
 }
 
 // CopyDir recursively copies a directory tree, attempting to preserve permissions.
 // Source directory must exist, destination directory must *not* exist.
 // Symlinks are ignored and skipped.
 func CopyDir(src string, dst string) (err error) {
-    if !sys.Exists(src) {
-        return
-    }
+	if !sys.Exists(src) {
+		return
+	}
 
-    src = filepath.Clean(src)
-    dst = filepath.Clean(dst)
+	src = filepath.Clean(src)
+	dst = filepath.Clean(dst)
 
-    si, err := os.Stat(src)
-    if err != nil {
-        return err
-    }
-    if !si.IsDir() {
-        return fmt.Errorf("source is not a directory")
-    }
+	si, err := os.Stat(src)
+	if err != nil {
+		return err
+	}
+	if !si.IsDir() {
+		return fmt.Errorf("source is not a directory")
+	}
 
-    _, err = os.Stat(dst)
-    if err != nil && !os.IsNotExist(err) {
-        return
-    }
-    if err == nil {
-        return fmt.Errorf("destination already exists")
-    }
+	_, err = os.Stat(dst)
+	if err != nil && !os.IsNotExist(err) {
+		return
+	}
+	if err == nil {
+		return fmt.Errorf("destination already exists")
+	}
 
-    err = os.MkdirAll(dst, si.Mode())
-    if err != nil {
-        return
-    }
+	err = os.MkdirAll(dst, si.Mode())
+	if err != nil {
+		return
+	}
 
-    entries, err := ioutil.ReadDir(src)
-    if err != nil {
-        return
-    }
+	entries, err := ioutil.ReadDir(src)
+	if err != nil {
+		return
+	}
 
-    for _, entry := range entries {
-        srcPath := filepath.Join(src, entry.Name())
-        dstPath := filepath.Join(dst, entry.Name())
+	for _, entry := range entries {
+		srcPath := filepath.Join(src, entry.Name())
+		dstPath := filepath.Join(dst, entry.Name())
 
-        if entry.IsDir() {
-            err = CopyDir(srcPath, dstPath)
-            if err != nil {
-                return
-            }
-        } else {
-            // Skip symlinks.
-            if entry.Mode()&os.ModeSymlink != 0 {
-                continue
-            }
+		if entry.IsDir() {
+			err = CopyDir(srcPath, dstPath)
+			if err != nil {
+				return
+			}
+		} else {
+			// Skip symlinks.
+			if entry.Mode()&os.ModeSymlink != 0 {
+				continue
+			}
 
-            err = CopyFile(srcPath, dstPath)
-            if err != nil {
-                return
-            }
-        }
-    }
+			err = CopyFile(srcPath, dstPath)
+			if err != nil {
+				return
+			}
+		}
+	}
 
-    return
+	return
 }

@@ -1,19 +1,19 @@
 package cmd
 
 import (
-    "github.com/urfave/cli"
+	"github.com/urfave/cli"
 )
 
 type Command interface {
-    GetContext() *cli.Context
-    Execute() error
+	GetContext() *cli.Context
+	Execute() error
 }
 
 type ExitError struct {
-    code int
-    error
+	code int
+	error
 }
 
 func (exitError ExitError) ExitCode() int {
-    return exitError.code
+	return exitError.code
 }
