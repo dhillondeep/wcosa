@@ -21,5 +21,6 @@ install:
 script:
   - mage build
   - mage fmtLint
+  - go env
   - go test -v ./...
   - ./wmake test
