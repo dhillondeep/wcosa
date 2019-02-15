@@ -11,11 +11,12 @@ before_install:
   - sudo apt-get update
   - sudo apt-get install gcc-avr avr-libc avrdude
   - sudo apt-get install libboost-system-dev libboost-thread-dev libboost-coroutine-dev
+  - go get github.com/magefile/mage
 install:
-  - wmake travis-setup
+  - mage setup
 
 script:
-  - wmake build
+  - mage build
+  - mage fmtLint
   - go test -v ./...
-  - cd test
-  - ./runtests.sh
+  - ./wmake test

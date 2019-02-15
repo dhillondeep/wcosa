@@ -22,88 +22,9 @@ Waterloop code base builder
 HEREDOC
 }
 
-#### Variables ####
-GO_VERSION=1.1[1-9]
-TRAVIS=false
-
-_build() {
-    make build
-}
-
-_clean() {
-    make clean
-}
-
-_get() {
-    make get
-}
-
-_linux_setup() {
-    # Check go version
-    command -v go > /dev/null 2>&1 || {
-        echo 'go is not installed';
-        exit 1;
-    }
-    go version | grep ${GO_VERSION} &> /dev/null
-    if [ $? != 0 ] ; then
-        echo 'go version 1.1x is required where x is >= 1';
-        exit 1;
-    fi
-
-    printf "Initiating submodules...\n"
-    git submodule update --init --recursive
-
-    printf "Retrieving dependencies...\n"
-    make get
-
-    printf "Installing system library... "
-    go get -u golang.org/x/sys/unix
-    printf "Done!\n"
-
-    printf "Getting dep dependencies... "
-    dep ensure
-    printf "Done!\n"
-
-    printf "Linking test vendor packages... "
-    cd test
-    ./symlinks.sh
-    cd ..
-    printf "Done!\n"
-
-    printf "Installing gotools..."
-    if [ "$TRAVIS" = false ] ; then
-        go get -u golang.org/x/tools/...
-    fi
-
-    printf "Done!\n"
-}
-
-_avr_setup() {
-    apt-get update
-    apt-get install gcc-avr avr-libc avrdude
-}
-
-_format() {
-    command -v goimports > /dev/null 2>&1 || {
-        echo 'goimports is not installed';
-        exit 1;
-    }
-    command -v vim > /dev/null 2>&1 || {
-        echo 'vim is not installed';
-        exit 1;
-    }
-
-    printf "Running gofmt... "
-    find cmd pkg internal -type f -name "*.go" -exec \
-        goimports -w {} \;
-    printf "Done!\nRunning retab... "
-    find cmd pkg internal -type f -name "*.go" -exec \
-        vim -e -s +"set tabstop=4 shiftwidth=4 expandtab | retab | %s/\s\+$//e | wq" {} \;
-    printf "Done!\n"
-}
-
 _test() {
     cd test
+    #./symlinks.sh
     ./runtests.sh
 }
 
@@ -148,32 +69,7 @@ _simple() {
     root_dir_name=$(basename "$root_dir")
     cd "$root_dir"
 
-    if [ "$1" == 'build' ] ; then
-        echo "Building project"
-        _build
-    elif [ "$1" == 'clean' ] ; then
-        echo "Cleaning project"
-        _clean
-    elif [ "$1" == 'get' ] ; then
-        echo "Getting packages"
-        _get
-    elif [ "$1" == 'linux-setup' ] ; then
-        echo "Setting up environment for Linux"
-        _linux_setup
-    elif [ "$1" == 'mac-setup' ]; then
-        echo "Setting up environment for Mac OS"
-        _linux_setup
-    elif [ "$1" == 'travis-setup' ] ; then
-        echo "Setting up environment for Travis CI"
-        TRAVIS=true
-        _linux_setup
-    elif [ "$1" == 'avr-setup' ] ; then
-        echo "Installing AVR development dependencies"
-        _avr_setup
-    elif [ "$1" == 'format' ] ; then
-        echo "Formatting wio codebase"
-        _format
-    elif [ "$1" == 'test' ] ; then
+    if [ "$1" == 'test' ] ; then
         _test
     elif [ "$1" == 'release' ] ; then
          if [ $# -le 3 ] ; then

@@ -1,5 +1,6 @@
 #!/bin/bash
 
+
 set -e
 
 test_folder="wio-test"
@@ -247,14 +248,15 @@ _test25() {
     # update wio to 0.7.1
     wio upgrade 0.7.1
     wio -v
-    wmake build
+    cd ${base_folder}/../
+    mage build
 }
 
 # Source and build
 cd ./../
 source ./wenv
-./wmake clean
-./wmake build
+mage clean
+mage build
 cd ./test
 
 # Remove all build folders

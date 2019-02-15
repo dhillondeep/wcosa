@@ -1,21 +1,48 @@
 # Development Setup
 
-Clone the repository into your `GOPATH` as `$(GOPATH)/src/wio` with `--recursive` or `git submodule update --init`
-to retrieve some of the CMake toolchain modules.
+## Building Wio with Your Changes
 
-Run `make get` to retrieve development dependencies and make sure to install your OS-specific go library.
-For linux users `wmake linux-setup` should handle most things. You will need to symlink `bin/toolchain` to
-the `toolchain` folder in order to use `wio build` and `wio run`.
+Wio uses [mage](https://github.com/magefile/mage) to sync vendor dependencies, build Wio, and other things. You must run mage from the Wio directory.
 
-The repo includes some scripts like `wmake` that shorthand some common development commands. And running
-`source wenv` will allow the local `wio` executable to take precedence over an installed version. It also
-adds `wmake` to your path for easier development
+Install mage
+```bash
+go get github.com/magefile/mage
+```
+
+To build wio
+```bash
+mage build
+```
+
+Wio binary is created inside the `bin` fodler of your root directory. You can source `wenv` for unix based systems and `env.bat` or `env.ps1` for windows.
+This will add the binary to the path.
+
+To build wio
+```bash
+mage build
+```
+
+To clean build files
+```bash
+mage clean
+```
+
+To install dependencies
+```bash
+mage install
+```
+
+Currently the script only runs tests on `bash` based systems. To run the tests:
+```bash
+wmake test
+```
+
+To list all available commands along with descriptions:
+```bash
+mage -l
+```
+
 
 ### Installing Go
 
-Wio development should be done on Go version 1.10.2. On linux this can be installed with
-
-```bash
-curl -o golang.tar https://storage.googleapis.com/golang/go1.10.2.linux-amd64.tar.gz
-tar -xzvf golang.tar
-```
+Wio development should be done on Go version 1.11
