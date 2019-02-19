@@ -46,3 +46,4 @@ mage -l
 ### Installing Go
 
 Wio development should be done on Go version 1.11
+
