@@ -2,7 +2,7 @@ package meta
 
 const (
 	Name       = "wio"
-	Version    = "0.8.0"
+	Version    = "0.8.1"
 	Completion = true
 	Copyright  = "Copyright (c) 2018 Waterloop"
 	UsageText  = "An Iot development environment"

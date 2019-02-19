@@ -145,18 +145,15 @@ func GenerateCMakeDependencies(cmakePath string, platform string, dependencies *
 			finalString = cmake.LibraryLink
 		}
 
-		libIncludeVisibility := types.Private
-
 		if libraryLink.From.HeaderOnly {
 			libraryLink.LinkInfo.Visibility = types.Interface
-			libIncludeVisibility = types.Interface
 		} else if strings.Trim(libraryLink.LinkInfo.Visibility, " ") == "" {
 			libraryLink.LinkInfo.Visibility = types.Private
 		}
 
 		finalString = template.Replace(finalString, map[string]string{
 			"LINK_FROM":          libraryLink.From.Name,
-			"INCLUDE_VISIBILITY": libIncludeVisibility,
+			"INCLUDE_VISIBILITY": libraryLink.LinkInfo.Visibility,
 			"LIB_INCLUDE_PATHS": func() string {
 				if configLibrary.IsCmakePackage() {
 					if strings.Trim(configLibrary.GetIncludesTag(), " ") != "" {
