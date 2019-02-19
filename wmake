@@ -31,14 +31,15 @@ _test() {
 _release() {
     # create build files
     cd ./deploy/gen
-    go run cross-build.go
+    go build
+    ./build
 
     # create a tag
     printf "Creating release tag $1...\n"
     git tag -a "$1" -m "$2"
     git push "$3" "$1"
 
-    # download relaser library and create release tag
+    # download releaser library and create release tag
     printf "Creating Github Release...\n" 
     go get -u github.com/aktau/github-release
     github-release release \
