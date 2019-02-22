@@ -32,11 +32,16 @@ func (upgrade Upgrade) GetContext() *cli.Context {
 }
 
 var archMapping = map[string]string{
-	"386":   "i386",
-	"amd64": "x86_64",
-	"arm-5": "arm5",
-	"arm-6": "arm6",
-	"arm-7": "arm7",
+	"386":   "32bit",
+	"amd64": "64bit",
+	"arm":   "arm",
+	"arm64": "arm64",
+}
+
+var osMapping = map[string]string{
+	"darwin":  "macOS",
+	"windows": "windows",
+	"linux":   "linux",
 }
 
 var formatMapping = map[string]string{
@@ -52,8 +57,8 @@ var extensionMapping = map[string]string{
 }
 
 const (
-	wioReleaseName = "wio_{{platform}}_{{arch}}{{extension}}"
-	wioReleaseUrl  = "https://github.com/wio/wio/releases/download/v{{version}}/wio_{{platform}}_{{arch}}.{{format}}"
+	wioReleaseName = "wio{{extension}}"
+	wioReleaseUrl  = "https://github.com/wio/wio/releases/download/v{{version}}/wio_{{version}}_{{platform}}_{{arch}}.{{format}}"
 )
 
 // Runs the build command when cli build option is provided
@@ -83,16 +88,14 @@ func (upgrade Upgrade) Execute() error {
 	version = versionToUpgradeSem.String()
 
 	releaseName := template.Replace(wioReleaseName, map[string]string{
-		"platform":  strings.ToLower(env.GetOS()),
-		"arch":      strings.ToLower(archMapping[env.GetArch()]),
 		"extension": extensionMapping[env.GetOS()],
 	})
 
 	releaseUrl := template.Replace(wioReleaseUrl, map[string]string{
 		"version":  version,
-		"platform": strings.ToLower(env.GetOS()),
+		"platform": strings.ToLower(osMapping[env.GetOS()]),
 		"arch":     strings.ToLower(archMapping[env.GetArch()]),
-		"format":   formatMapping[env.GetOS()],
+		"format":   strings.ToLower(formatMapping[env.GetOS()]),
 	})
 
 	if err := os.MkdirAll(sys.Path(root.GetUpdatePath(), sys.Download), os.ModePerm); err != nil {

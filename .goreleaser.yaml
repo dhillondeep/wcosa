@@ -23,7 +23,7 @@ nfpm:
   maintainer: "Deep Dhillon <deep@deepdhillon.ca>"
   description: "An IOT Development Environment"
   license: "MIT"
-  name_template: "{{.ProjectName}}_{{.Os}}_{{.Version}}_{{.Arch}}"
+  name_template: "{{.ProjectName}}_{{.Version}}_{{.Os}}_{{.Arch}}"
   replacements:
     amd64: 64bit
     386: 32bit
@@ -40,7 +40,7 @@ archive:
   format_overrides:
   - goos: windows
     format: zip
-  name_template: "{{.ProjectName}}_{{.Os}}_{{.Version}}_{{.Arch}}"
+  name_template: "{{.ProjectName}}_{{.Version}}_{{.Os}}_{{.Arch}}"
   replacements:
     amd64: 64bit
     386: 32bit
@@ -52,8 +52,6 @@ archive:
   files:
   - README.md
   - LICENSE
-release:
-  draft: true
 brew:
   name: wio
   github:

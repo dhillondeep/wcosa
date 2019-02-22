@@ -2,25 +2,25 @@
 
 "use strict"
 
-const request = require('request')
-const path = require('path')
-const tar = require('tar')
-const zlib = require('zlib')
-const mkdirp = require('mkdirp')
-const fs = require('fs')
+const request = require('request');
+const path = require('path');
+const tar = require('tar');
+const zlib = require('zlib');
+const mkdirp = require('mkdirp');
+const fs = require('fs');
+const os = require('os');
 
 // Mapping from Node's `process.arch` to Golang's `$GOARCH`
 const ARCH_MAPPING = {
-    "ia32": "i386",
-    "x64": "x86_64",
-    "arm5": "arm6",
-    "arm6": "arm6",
-    "arm7": "arm64"
+    "x32": "32bit",
+    "x64": "64bit",
+    "arm": "arm",
+    "arm64": "arm64",
 };
 
 // Mapping between Node's `process.platform` to Golang's
 const PLATFORM_MAPPING = {
-    "darwin": "darwin",
+    "darwin": "macOS",
     "linux": "linux",
     "win32": "windows",
 };
@@ -48,12 +48,12 @@ function validateConfiguration(packageJson) {
 }
 
 function parsePackageJson() {
-    if (!(process.arch in ARCH_MAPPING)) {
+    if (!(os.arch() in ARCH_MAPPING)) {
         console.error("Installation is not supported for this architecture: " + process.arch);
         return;
     }
 
-    if (!(process.platform in PLATFORM_MAPPING)) {
+    if (!(os.platform() in PLATFORM_MAPPING)) {
         console.error("Installation is not supported for this platform: " + process.platform);
         return
     }
@@ -73,21 +73,11 @@ function parsePackageJson() {
     }
 
     // We have validated the config. It exists in all its glory
-    var binName = packageJson.goBinary.name;
     var binPath = packageJson.goBinary.path;
     var url = packageJson.goBinary.url;
     var wioName = packageJson.goBinary.wioName;
     var version = packageJson.version;
     if (version[0] === 'v') version = version.substr(1);  // strip the 'v' if necessary v0.0.1 => 0.0.1
-
-    // Binary name on Windows has .exe suffix
-    if (process.platform === "win32") {
-        binName += ".exe"
-    }
-
-    // Interpolate variables in wioName
-    wioName = wioName.replace(/{{arch}}/g, ARCH_MAPPING[process.arch]);
-    wioName = wioName.replace(/{{platform}}/g, PLATFORM_MAPPING[process.platform]);
 
     if (process.platform === "win32") {
         wioName = wioName.replace(/{{format}}/g, ".exe");
@@ -96,8 +86,8 @@ function parsePackageJson() {
     }
 
     // Interpolate variables in URL, if necessary
-    url = url.replace(/{{arch}}/g, ARCH_MAPPING[process.arch]);
-    url = url.replace(/{{platform}}/g, PLATFORM_MAPPING[process.platform]);
+    url = url.replace(/{{arch}}/g, ARCH_MAPPING[os.arch()]);
+    url = url.replace(/{{platform}}/g, PLATFORM_MAPPING[os.platform()]);
     url = url.replace(/{{version}}/g, version);
 
     if (process.platform === "win32") {
@@ -107,7 +97,6 @@ function parsePackageJson() {
     }
 
     return {
-        binName: binName,
         binPath: binPath,
         wioName: wioName,
         url: url,
@@ -158,16 +147,12 @@ function install(callback) {
     } else {
         mkdirp.sync(opts.binPath);
 
-        console.log("Downloading and extracting build files")
+        console.log("Downloading and extracting build files");
 
         var ungz = zlib.createGunzip();
         var untar = tar.Extract({ path: opts.binPath });
 
         untar.on('end', function () {
-            fs.rename(opts.binPath + "/" + opts.wioName, opts.binPath + '/wio', function(err) {
-                if ( err ) console.log('ERROR: ' + err);
-            });
-
             console.log("Wio binary successfuly downloaded and extracted")
         });
 
@@ -185,4 +170,4 @@ var myCallback = function (data) {
 };
 
 // call the install
-install(myCallback)
+install(myCallback);
