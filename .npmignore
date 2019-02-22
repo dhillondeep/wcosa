@@ -24,3 +24,4 @@ env.ps1
 wenv
 wmake
 wmake.bat
+local-test-env/

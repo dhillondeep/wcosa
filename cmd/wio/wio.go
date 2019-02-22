@@ -135,18 +135,8 @@ var monitorFlags = []cli.Flag{
 	cli.IntFlag{Name: "baud",
 		Usage: "Baud rate for the Serial port.",
 		Value: defaults.Baud},
-	cli.StringFlag{Name: "port",
-		Usage: "Serial Port to open.",
-		Value: defaults.Port},
 	cli.BoolFlag{Name: "gui",
 		Usage: "Runs the GUI version of the serial monitor tool."},
-}
-
-var devicesListFlags = []cli.Flag{
-	cli.BoolFlag{Name: "basic",
-		Usage: "Shows only the name of the ports."},
-	cli.BoolFlag{Name: "show-all",
-		Usage: "Shows all the ports, closed or open (Default: only open devices)."},
 }
 
 var envFlags = []cli.Flag{
@@ -291,7 +281,7 @@ var commands = []cli.Command{
 			cli.Command{
 				Name:      "monitor",
 				Usage:     "Opens a Serial monitor.",
-				UsageText: "wio devices monitor [command options]",
+				UsageText: "wio devices monitor <port> [command options]",
 				Flags:     append(monitorFlags, appWideFlags...),
 				Action: func(c *cli.Context) {
 					command = devices.Devices{Context: c, Type: devices.MONITOR}
@@ -299,9 +289,9 @@ var commands = []cli.Command{
 			},
 			cli.Command{
 				Name:      "list",
-				Usage:     "Lists all the connected devices/ports and provides information about them.",
+				Usage:     "Lists all the serial devices.",
 				UsageText: "wio devices list [command options]",
-				Flags:     append(devicesListFlags, appWideFlags...),
+				Flags:     appWideFlags,
 				Action: func(c *cli.Context) {
 					command = devices.Devices{Context: c, Type: devices.LIST}
 				},
@@ -311,7 +301,7 @@ var commands = []cli.Command{
 	{
 		Name:      "monitor",
 		Usage:     "Opens a Serial monitor.",
-		UsageText: "wio monitor [command options]",
+		UsageText: "wio monitor <port> [command options]",
 		Flags:     append(monitorFlags, appWideFlags...),
 		Action: func(c *cli.Context) {
 			command = devices.Devices{Context: c, Type: devices.MONITOR}

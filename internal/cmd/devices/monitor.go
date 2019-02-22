@@ -15,9 +15,8 @@ import (
 	"wio/pkg/log"
 	"wio/pkg/util"
 
-	serial "github.com/dhillondeep/go-serial"
 	"github.com/urfave/cli"
-	bserial "go.bug.st/serial.v1"
+	"go.bug.st/serial.v1"
 )
 
 type Devices struct {
@@ -39,16 +38,19 @@ const (
 func (devices Devices) Execute() error {
 	switch devices.Type {
 	case MONITOR:
-		return HandleMonitor(devices.Context.Int("baud"), devices.Context.IsSet("port"), devices.Context.String("port"))
+		if devices.Context.NArg() == 0 {
+			return util.Error("please provide a serial port")
+		}
+		return HandleMonitor(devices.Context.Int("baud"), devices.Context.Args().Get(0))
 	case LIST:
-		return handlePorts(devices.Context.Bool("basic"), devices.Context.Bool("show-all"))
+		return handlePorts()
 	default:
 		return util.Error("invalid device command")
 	}
 }
 
 // Provides information abouts ports
-func handlePorts(basic bool, showAll bool) error {
+func handlePorts() error {
 	ports, err := GetPorts()
 	if err != nil {
 		return err
@@ -57,74 +59,24 @@ func handlePorts(basic bool, showAll bool) error {
 	log.Info(log.Cyan, "Num of ports: ")
 	log.Infoln("%d\n", len(ports))
 
-	numOpenPorts := 0
 	for _, port := range ports {
-		if port.USBProduct() != "" || port.USBManufacturer() != "" {
-			numOpenPorts++
-		}
-
-		if port.USBProduct() == "" && port.USBManufacturer() == "" && !showAll {
-			continue
-		}
-
-		log.Infoln(log.Yellow, port.Name())
-
-		if !basic {
-			log.Info(log.Cyan, "Description:        ")
-			log.Infoln(port.Description())
-			log.Info(log.Cyan, "Manufacturer:       ")
-			log.Infoln(port.USBManufacturer())
-			log.Info(log.Cyan, "Serial Number:      ")
-			log.Infoln(port.USBSerialNumber())
-			log.Info(log.Cyan, "Product:            ")
-			log.Infoln(port.USBProduct())
-
-			if bus, addr, err := port.USBBusAddress(); err != nil {
-				log.Infoln(log.Cyan, "Bus: %d    Addr: %d", bus, addr)
-			}
-
-			if vid, pid, err := port.USBVIDPID(); err != nil {
-				log.Infoln(log.Cyan, "Vid: %d    Addr: %d", vid, pid)
-			}
-		}
-
-		log.Infoln()
+		log.Infoln(port)
 	}
 
-	log.Info(log.Cyan, "Num of open ports: ")
-	log.Infoln("%d", numOpenPorts)
 	return nil
 }
 
 // Opens monitor to see serial data
-func HandleMonitor(baud int, portDefined bool, portProvided string) error {
-	var port *serial.Info
-
-	ports, err := GetPorts()
-	if err != nil {
-		port = nil
-	} else {
-		port = GetArduinoPort(ports)
-	}
-
-	portToUse := portProvided
-
-	if !portDefined {
-		if port == nil {
-			return util.Error("failed to automatically detect Serial Port")
-		} else {
-			portToUse = port.Name()
-		}
-	}
+func HandleMonitor(baud int, portProvided string) error {
 
 	// Open the first serial port detected at 9600bps N81
-	mode := &bserial.Mode{
+	mode := &serial.Mode{
 		BaudRate: baud,
-		Parity:   bserial.NoParity,
+		Parity:   serial.NoParity,
 		DataBits: 8,
-		StopBits: bserial.OneStopBit,
+		StopBits: serial.OneStopBit,
 	}
-	serialPort, err := bserial.Open(portToUse, mode)
+	serialPort, err := serial.Open(portProvided, mode)
 	if err != nil {
 		if strings.Contains(err.Error(), "Invalid serial port") {
 			return util.Error("invalid baud rate")
@@ -135,7 +87,7 @@ func HandleMonitor(baud int, portDefined bool, portProvided string) error {
 
 	log.Info(log.Cyan, "Wio Serial Monitor")
 	log.Info(log.Yellow, "  @  ")
-	log.Info(log.Cyan, portToUse)
+	log.Info(log.Cyan, portProvided)
 	log.Info(log.Yellow, "  @  ")
 	log.Infoln(log.Cyan, "%d", baud)
 	log.Infoln(log.Cyan, "--- Quit: Ctrl+C ---")
@@ -151,7 +103,7 @@ func HandleMonitor(baud int, portDefined bool, portProvided string) error {
 	// When invalid port is read, serial library panics and hence that panic needs to be caught
 	defer func() {
 		if recover() != nil {
-			log.Errln("%s port is not valid or cannot be used", portToUse)
+			log.Errln("%s port is not valid or cannot be used", portProvided)
 			os.Exit(1)
 		}
 	}()

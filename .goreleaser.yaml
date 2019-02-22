@@ -1,0 +1,81 @@
+project_name: wio
+build:
+  main: cmd/wio/wio.go
+  binary: wio
+  env:
+  - CGO_ENABLED=0
+  goos:
+  - darwin
+  - linux
+  - windows
+  goarch:
+  - amd64
+  - 386
+  - arm
+  - arm64
+  goarm:
+  - 7
+nfpm:
+  formats:
+  - deb
+  vendor: "wio"
+  homepage: "https:github.com/wio/wio"
+  maintainer: "Deep Dhillon <deep@deepdhillon.ca>"
+  description: "An IOT Development Environment"
+  license: "MIT"
+  name_template: "{{.ProjectName}}_{{.Os}}_{{.Version}}_{{.Arch}}"
+  replacements:
+    amd64: 64bit
+    386: 32bit
+    arm: arm
+    arm64: arm64
+    darwin: macOS
+    linux: linux
+    windows: windows
+  dependencies:
+  - cmake
+  - make
+archive:
+  format: tar.gz
+  format_overrides:
+  - goos: windows
+    format: zip
+  name_template: "{{.ProjectName}}_{{.Os}}_{{.Version}}_{{.Arch}}"
+  replacements:
+    amd64: 64bit
+    386: 32bit
+    arm: arm
+    arm64: arm64
+    darwin: macOS
+    linux: linux
+    windows: windows
+  files:
+  - README.md
+  - LICENSE
+release:
+  draft: true
+brew:
+  name: wio
+  github:
+    owner: wio
+    name: homebrew-wio
+  commit_author:
+    name: dhillondeep
+    email: deep@deepdhillon.ca
+  folder: Formula
+  homepage: "https://github.com/wio/wio"
+  description: "An IOT Development Environment"
+  test: |
+    system "#{bin}/wio --version"
+  install: |
+    bin.install "wio"
+scoop:
+  bucket:
+    owner: wio
+    name: wio-bucket
+  commit_author:
+    name: Deep Dhillon
+    email: deep@deepdhillon.ca
+  homepage: "https://github.com/wio/wio"
+  description: "An IOT Development Environment"
+  license: MIT

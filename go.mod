@@ -2,6 +2,7 @@ module wio
 
 require (
 	github.com/blang/semver v3.5.1+incompatible
+	github.com/bugst/go-serial v0.0.0-20180827123349-5f7892a7bb45
 	github.com/creack/goselect v0.0.0-20180501195510-58854f77ee8d // indirect
 	github.com/dhillondeep/go-serial v0.0.0-20181005141105-9b3984ca8de0
 	github.com/dsnet/compress v0.0.0-20171208185109-cc9eb1d7ad76 // indirect

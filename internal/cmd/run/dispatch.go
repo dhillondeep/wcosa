@@ -30,12 +30,11 @@ func dispatchRunTarget(info *runInfo, target types.Target) error {
 
 	switch platform {
 	case constants.Avr:
-		// auto detect the port or use the provided one
-		port, err := generate.GetPort(info.port)
-		if err != nil {
-			return err
+		if info.port == "none" {
+			return util.Error("no serial port provided")
 		}
-		if err := genHardwareFile(port); err != nil {
+
+		if err := genHardwareFile(info.port); err != nil {
 			return err
 		}
 

@@ -28,43 +28,6 @@ _test() {
     ./runtests.sh
 }
 
-_release() {
-    # create build files
-    cd ./deploy/gen
-    go build
-    ./build
-
-    # create a tag
-    printf "Creating release tag $1...\n"
-    git tag -a "$1" -m "$2"
-    git push "$3" "$1"
-
-    # download releaser library and create release tag
-    printf "Creating Github Release...\n" 
-    go get -u github.com/aktau/github-release
-    github-release release \
-        --user wio \
-        --repo wio \
-        --tag "$1" \
-        --name "$1" \
-        --description "$2"
-    
-    # upload files
-    printf "Pushing binaries to the Release...\n"
-    cd ./bin
-    for file in *; do
-        printf "  Uploading $file...\n"
-        github-release upload \
-            --user wio \
-            --repo wio \
-            --tag "$1" \
-            --name "$file" \
-            --file "$file"
-    done
-
-    printf "Project $1 Successfully Released!\n"
-}
-
 _simple() {
     root_dir=$(cd -P -- "$(dirname -- "$0")" && pwd -P)
     root_dir_name=$(basename "$root_dir")
