@@ -31,14 +31,14 @@ func (upgrade Upgrade) GetContext() *cli.Context {
 	return upgrade.Context
 }
 
-var archMapping = map[string]string{
+var currArchMapping = map[string]string{
 	"386":   "32bit",
 	"amd64": "64bit",
 	"arm":   "arm",
 	"arm64": "arm64",
 }
 
-var osMapping = map[string]string{
+var currOsMapping = map[string]string{
 	"darwin":  "macOS",
 	"windows": "windows",
 	"linux":   "linux",
@@ -57,8 +57,26 @@ var extensionMapping = map[string]string{
 }
 
 const (
-	wioReleaseName = "wio{{extension}}"
-	wioReleaseUrl  = "https://github.com/wio/wio/releases/download/v{{version}}/wio_{{version}}_{{platform}}_{{arch}}.{{format}}"
+	currWioReleaseName = "wio{{extension}}"
+	currWioReleaseUrl  = "https://github.com/wio/wio/releases/download/v{{version}}/wio_{{version}}_{{platform}}_{{arch}}.{{format}}"
+)
+
+var preArchMapping = map[string]string{
+	"386":   "i386",
+	"amd64": "x86_64",
+	"arm":   "arm7",
+	"arm64": "arm64",
+}
+
+var preOsMapping = map[string]string{
+	"darwin":  "darwin",
+	"windows": "windows",
+	"linux":   "linux",
+}
+
+const (
+	preWioReleaseName = "wio_{{platform}}_{{arch}}{{extension}}"
+	preWioReleaseUrl  = "https://github.com/wio/wio/releases/download/v{{version}}/wio_{{platform}}_{{arch}}.{{format}}"
 )
 
 // Runs the build command when cli build option is provided
@@ -87,7 +105,21 @@ func (upgrade Upgrade) Execute() error {
 
 	version = versionToUpgradeSem.String()
 
+	wioReleaseName := currWioReleaseName
+	wioReleaseUrl := currWioReleaseUrl
+	osMapping := currOsMapping
+	archMapping := currArchMapping
+
+	if version < "0.9.0" {
+		wioReleaseName = preWioReleaseName
+		wioReleaseUrl = preWioReleaseUrl
+		osMapping = preOsMapping
+		archMapping = preArchMapping
+	}
+
 	releaseName := template.Replace(wioReleaseName, map[string]string{
+		"platform":  strings.ToLower(env.GetOS()),
+		"arch":      strings.ToLower(archMapping[env.GetArch()]),
 		"extension": extensionMapping[env.GetOS()],
 	})
 
