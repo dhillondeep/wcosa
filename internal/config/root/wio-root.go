@@ -1,8 +1,8 @@
 package root
 
 import (
+	"github.com/mitchellh/go-homedir"
 	"os"
-	"os/user"
 	"wio/internal/config/meta"
 	"wio/internal/constants"
 	"wio/pkg/util/sys"
@@ -15,12 +15,12 @@ type WioRootConfig struct {
 }
 
 func CreateWioRoot() error {
-	currUser, err := user.Current()
+	homeDir, err := homedir.Dir()
 	if err != nil {
 		return err
 	}
 
-	wioInternalConfigPaths.WioUserPath = sys.Path(currUser.HomeDir, constants.WioRoot)
+	wioInternalConfigPaths.WioUserPath = sys.Path(homeDir, constants.WioRoot)
 
 	// create root folder if it does not exist
 	if !sys.Exists(wioInternalConfigPaths.WioUserPath) {
