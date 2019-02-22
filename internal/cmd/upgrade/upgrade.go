@@ -2,6 +2,7 @@ package upgrade
 
 import (
 	"fmt"
+	"github.com/mholt/archiver"
 	"io"
 	"net/http"
 	"os"
@@ -18,7 +19,6 @@ import (
 	"wio/pkg/util/template"
 
 	"github.com/inconshreveable/go-update"
-	"github.com/mholt/archiver"
 	"github.com/urfave/cli"
 )
 
@@ -169,16 +169,21 @@ func (upgrade Upgrade) Execute() error {
 		}
 
 		log.WriteSuccess()
-		log.Info(log.Cyan, "extracting wio version %s %s file... ", version, formatMapping[env.GetOS()])
-
-		if err := archiver.Unarchive(wioTarPath, wioFolderPath); err != nil {
-			log.WriteFailure()
-			return util.Error("wio@%s error while extracting %s file", version, formatMapping[env.GetOS()])
-		}
-		log.WriteSuccess()
 	} else {
 		log.Infoln(log.Green, "already exists!")
 	}
+
+	log.Info(log.Cyan, "extracting wio version %s %s file... ", version, formatMapping[env.GetOS()])
+
+	if sys.Exists(wioFolderPath) {
+		os.RemoveAll(wioFolderPath)
+	}
+
+	if err := archiver.Unarchive(wioTarPath, wioFolderPath); err != nil {
+		log.WriteFailure()
+		return util.Error("wio@%s error while extracting %s file", version, formatMapping[env.GetOS()])
+	}
+	log.WriteSuccess()
 
 	log.Info(log.Cyan, "Updating ")
 	log.Info(log.Green, "wio@%s ", meta.Version)
@@ -189,23 +194,19 @@ func (upgrade Upgrade) Execute() error {
 	newWioExec, err := os.Open(sys.Path(wioFolderPath, releaseName))
 	if err != nil {
 		log.WriteFailure()
-		log.Write(err.Error())
 		return util.Error("wio@%s executable not downloaded or corrupted", version)
 	}
 
 	if err = update.Apply(newWioExec, update.Options{}); err != nil {
 		log.WriteFailure()
-		log.Write(err.Error())
 		return util.Error("failed to upgrade wio to version %s", version)
 	} else {
 		wioRootConfig := &root.WioRootConfig{}
 		if err := sys.NormalIO.ParseJson(root.GetConfigFilePath(), wioRootConfig); err != nil {
-			log.Write(err.Error())
 			return util.Error("wio upgraded to %s but an error occurred and it's not complete", version)
 		}
 		wioRootConfig.Updated = true
 		if err := sys.NormalIO.WriteJson(root.GetConfigFilePath(), wioRootConfig); err != nil {
-			log.Write(err.Error())
 			return util.Error("wio upgraded to %s but an error occurred and it's not complete", version)
 		}
 	}
