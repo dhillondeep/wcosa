@@ -65,7 +65,7 @@ var preArchMapping = map[string]string{
 	"386":   "i386",
 	"amd64": "x86_64",
 	"arm":   "arm7",
-	"arm64": "arm64",
+	"arm64": "arm7",
 }
 
 var preOsMapping = map[string]string{
