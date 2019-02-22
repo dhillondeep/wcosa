@@ -2,6 +2,8 @@ project_name: wio
 build:
   main: cmd/wio/wio.go
   binary: wio
+  flags:
+  - -tags osusergo
   env:
   - CGO_ENABLED=0
   goos:
