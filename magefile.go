@@ -118,6 +118,22 @@ func Clean() error {
 	return sh.RunWith(nil, goexe, "clean")
 }
 
+func Test() error {
+	if runtime.GOOS == "windows" {
+		return errors.New("running tests not supported on windows")
+	}
+
+	err := os.Chdir("test")
+	if err != nil {
+		return err
+	}
+
+	if err := sh.RunWith(nil, "bash", "./symlinks.sh"); err != nil {
+		return err
+	}
+	return sh.RunWith(nil, "bash", "./runtests.sh")
+}
+
 // Format code
 func Fmt() error {
 	return sh.RunWith(nil, goexe, "fmt", "./...")
