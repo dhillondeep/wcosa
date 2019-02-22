@@ -25,3 +25,8 @@ wenv
 wmake
 wmake.bat
 local-test-env/
+go.mod
+go.sum
+magefile.go
+.goreleaser.yaml
+changelogs/

@@ -1,12 +1,12 @@
 {
   "name": "wio",
-  "version": "0.8.1",
+  "version": "0.9.0",
   "description": "An IOT Development Environment",
   "main": "index.js",
   "scripts": {
     "preinstall": "node deploy/npm/preinstall.js",
     "postinstall": "node deploy/npm/postinstall.js",
-    "preuninstall": "node deploy/npm/preuninstall.js",
+    "preuninstall": "node deploy/npm/preuninstall.js"
   },
   "bin": "./bin/wio",
   "repository": {
