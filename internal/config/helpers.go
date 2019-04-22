@@ -7,24 +7,27 @@ import (
 )
 
 // applyHilGeneric applies Hil language parser on string and returns an interface
-func applyHilGeneric(val string, config *hil.EvalConfig, def interface{}) (interface{}, error) {
+func applyHilGeneric(val string, config *hil.EvalConfig, def interface{}) (*hil.EvaluationResult, error) {
 	tree, err := hil.Parse(val)
 	if err != nil {
-		return def, err
+		return nil, err
 	}
 
 	result, err := hil.Eval(tree, config)
 	if err != nil {
-		return def, err
+		return nil, err
 	}
 
-	return result, nil
+	return &result, nil
 }
 
 // applyHilString applies Hil language parser on string and returns a string
 func applyHilString(val string, config *hil.EvalConfig) (string, error) {
 	result, err := applyHilGeneric(val, config, "")
-	return result.(string), err
+	if err != nil {
+		return "", err
+	}
+	return result.Value.(string), err
 }
 
 // stringToStringSlice convert string reflect value to a slice of string based on the seperator

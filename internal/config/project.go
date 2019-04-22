@@ -156,6 +156,7 @@ type projectImpl struct {
 	Version        string              `mapstructure:"version"`
 	Author         string              `mapstructure:"author"`
 	Contributors   []string            `mapstructure:"contributors"`
+	Description    string              `mapstructure:"description"`
 	Homepage       string              `mapstructure:"homepage"`
 	Repository     []string            `mapstructure:"repository"`
 	CompileOptions compileOptionsImpl  `mapstructure:"compile_options"`
@@ -185,6 +186,10 @@ func (projectImpl projectImpl) GetContributors() Contributors {
 	}
 
 	return contributors
+}
+
+func (projectImpl projectImpl) GetDescription(config *hil.EvalConfig) (string, error) {
+	return applyHilString(projectImpl.Description, config)
 }
 
 func (projectImpl projectImpl) GetRepository(config *hil.EvalConfig) (string, error) {

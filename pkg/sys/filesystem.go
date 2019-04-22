@@ -114,7 +114,13 @@ func CopyMultipleFiles(sources []string, destinations []string, overrides []bool
 
 // ReadFile reads the file and provides it's content
 func ReadFile(fileName string) ([]byte, error) {
-	return ioutil.ReadFile(fileName)
+	file, err := fs.Open(fileName)
+	if err != nil {
+		return nil, err
+	}
+	defer file.Close()
+
+	return ioutil.ReadAll(file)
 }
 
 // WriteFile writes text to a file on normal filesystem

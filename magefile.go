@@ -59,26 +59,6 @@ func Setup() error {
 		}
 	}
 
-	// when TRAVIS is not running
-	if os.Getenv("TRAVIS") == "" {
-		if err := sh.RunWith(nil, goexe, "get", "-u", "golang.org/x/tools/..."); err != nil {
-			return err
-		}
-	}
-
-	if err := sh.RunWith(nil, goexe, "get", "-u", "github.com/davecgh/go-spew/spew"); err != nil {
-		return err
-	}
-	if err := sh.RunWith(nil, goexe, "get", "-u", "github.com/stretchr/testify"); err != nil {
-		return err
-	}
-	if err := sh.RunWith(nil, goexe, "get", "-u", "github.com/pmezard/go-difflib/difflib"); err != nil {
-		return err
-	}
-	if err := sh.RunWith(nil, goexe, "get", "-u", "github.com/kevinburke/go-bindata/..."); err != nil {
-		return err
-	}
-
 	return nil
 }
 
@@ -95,7 +75,15 @@ func TemplateGen() error {
 		return err
 	}
 
-	return sh.RunWith(nil, "qtc")
+	if err := sh.RunWith(nil, "qtc"); err != nil {
+		return err
+	}
+
+	if err := os.Chdir(currDir); err != nil {
+		return err
+	}
+
+	return nil
 }
 
 // Build wio binary
@@ -103,12 +91,12 @@ func Build() error {
 	// We want to use Go 1.11 modules even if the source lives inside GOPATH.
 	os.Setenv("GO111MODULE", "on")
 
-	TemplateGen()
-
 	currDir, err := os.Getwd()
 	if err != nil {
 		return err
 	}
+
+	TemplateGen()
 
 	if err := os.Chdir(currDir + "/cmd/" + execName); err != nil {
 		return err
@@ -127,30 +115,9 @@ func Clean() error {
 	return sh.RunWith(nil, goexe, "clean")
 }
 
-func Test() error {
-	if runtime.GOOS == "windows" {
-		return errors.New("running tests not supported on windows")
-	}
-
-	err := os.Chdir("test")
-	if err != nil {
-		return err
-	}
-
-	if err := sh.RunWith(nil, "bash", "./symlinks.sh"); err != nil {
-		return err
-	}
-	return sh.RunWith(nil, "bash", "./runtests.sh")
-}
-
 // Format code
 func Fmt() error {
 	return sh.RunWith(nil, goexe, "fmt", "./...")
-}
-
-// Install dependencies
-func Install() error {
-	return sh.RunWith(nil, goexe, "install")
 }
 
 var (
@@ -162,7 +129,7 @@ var (
 // Run gofmt linter
 func FmtLint() error {
 	if !isGoLatest() {
-		return errors.New("Go version must be 1.11")
+		return errors.New("Go version must be 1.12")
 	}
 	pkgs, err := wioPackages()
 	if err != nil {
@@ -217,5 +184,5 @@ func wioPackages() ([]string, error) {
 }
 
 func isGoLatest() bool {
-	return strings.Contains(runtime.Version(), "1.11")
+	return strings.Contains(runtime.Version(), "1.12")
 }

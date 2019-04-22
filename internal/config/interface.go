@@ -86,6 +86,7 @@ type Project interface {
 	GetName(config *hil.EvalConfig) (string, error)
 	GetVersion(config *hil.EvalConfig) (*version.Version, error)
 	GetAuthor(config *hil.EvalConfig) (string, error)
+	GetDescription(config *hil.EvalConfig) (string, error)
 	GetContributors() Contributors
 	GetHomepage(config *hil.EvalConfig) (string, error)
 	GetRepository(config *hil.EvalConfig) (string, error)
