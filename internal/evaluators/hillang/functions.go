@@ -110,9 +110,9 @@ var toString = ast.Function{
 }
 
 var appendFunc = ast.Function{
-	ArgTypes:   []ast.Type{ast.TypeString},
-	ReturnType: ast.TypeString,
-	Variadic:   true,
+	ArgTypes:     []ast.Type{ast.TypeString},
+	ReturnType:   ast.TypeString,
+	Variadic:     true,
 	VariadicType: ast.TypeString,
 	Callback: func(inputs []interface{}) (interface{}, error) {
 		var list []string

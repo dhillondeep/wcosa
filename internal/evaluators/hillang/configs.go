@@ -24,14 +24,14 @@ var evalConfig = &hil.EvalConfig{
 func copyEvalConfig(evalConfig *hil.EvalConfig) *hil.EvalConfig {
 	newVars := map[string]ast.Variable{}
 
-	for index,element := range evalConfig.GlobalScope.VarMap {
+	for index, element := range evalConfig.GlobalScope.VarMap {
 		newVars[index] = element
 	}
 
 	return &hil.EvalConfig{
 		GlobalScope: &ast.BasicScope{
 			FuncMap: evalConfig.GlobalScope.FuncMap,
-			VarMap: newVars,
+			VarMap:  newVars,
 		},
 		SemanticChecks: evalConfig.SemanticChecks,
 	}

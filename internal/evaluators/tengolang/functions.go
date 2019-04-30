@@ -8,15 +8,9 @@ import (
 
 // GetModelMap provides modules to be used inside tengo language
 func GetModuleMap(names ...string) *objects.ModuleMap {
-	modules := objects.NewModuleMap()
+	modules := stdlib.GetModuleMap(names...)
 
 	for _, name := range names {
-		if mod := stdlib.BuiltinModules[name]; mod != nil {
-			modules.AddBuiltinModule(name, mod)
-		}
-		if mod := stdlib.SourceModules[name]; mod != "" {
-			modules.AddSourceModule(name, []byte(mod))
-		}
 		if mod := moduleMap[name]; mod != nil {
 			modules.AddBuiltinModule(name, mod)
 		}
