@@ -79,7 +79,7 @@ type Argument interface {
 
 type Variable interface {
 	GetName() string
-	GetValue() string
+	GetValue(config *hil.EvalConfig) (string, error)
 }
 
 type Project interface {

@@ -24,8 +24,8 @@ func (variableImpl VariableImpl) GetName() string {
 	return variableImpl.Name
 }
 
-func (variableImpl VariableImpl) GetValue() string {
-	return variableImpl.Value
+func (variableImpl VariableImpl) GetValue(config *hil.EvalConfig) (string, error) {
+	return applyEvaluator(variableImpl.Value, config)
 }
 
 // //////////////////////

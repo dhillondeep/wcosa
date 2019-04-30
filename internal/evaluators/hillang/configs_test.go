@@ -25,7 +25,11 @@ func (suite *ConfigTestSuite) SetupTest() {
 		},
 		config.VariableImpl{
 			Name:  "variableTwo",
-			Value: "Two",
+			Value: "${2 + 2}",
+		},
+		config.VariableImpl{
+			Name:  "variableTwo",
+			Value: "${Random}",
 		},
 	}
 
@@ -54,11 +58,20 @@ func (suite *ConfigTestSuite) SetupTest() {
 	evalConfig = suite.DefaultEval
 }
 
-func assertVariables(t *testing.T, variables config.Variables, evalConfig *hil.EvalConfig) {
+func assertVariables(t *testing.T, variables config.Variables, evalConfig *hil.EvalConfig, isError bool) {
 	for _, variable := range variables {
 		key := "var." + variable.GetName()
 		assert.True(t, funk.Contains(funk.Keys(evalConfig.GlobalScope.VarMap), key))
-		assert.Equal(t, evalConfig.GlobalScope.VarMap[key].Value, variable.GetValue())
+
+		value, err := variable.GetValue(evalConfig)
+
+		if !isError {
+			assert.NoError(t, err)
+		} else {
+			assert.Error(t, err)
+		}
+
+		assert.Equal(t, evalConfig.GlobalScope.VarMap[key].Value, value)
 	}
 }
 
@@ -88,23 +101,30 @@ func (suite *ConfigTestSuite) TestInitialize() {
 	assert.NoError(suite.T(), err)
 	assert.NotEqual(suite.T(), evalConfig, nil)
 
-	assertVariables(suite.T(), varsToUse, evalConfig)
+	assertVariables(suite.T(), varsToUse, evalConfig, false)
 	assertArguments(suite.T(), argsToUse, evalConfig, false)
 
 	// happy path - hil eval arguments
-	varsToUse = append(config.Variables{}, suite.Variables[0])
+	varsToUse = append(config.Variables{}, suite.Variables[1])
 	argsToUse = append(config.Arguments{}, suite.Arguments[1])
 
 	err = Initialize(varsToUse, argsToUse)
 	assert.NoError(suite.T(), err)
 	assert.NotEqual(suite.T(), evalConfig, nil)
 
-	assertVariables(suite.T(), varsToUse, evalConfig)
+	assertVariables(suite.T(), varsToUse, evalConfig, false)
 	assertArguments(suite.T(), argsToUse, evalConfig, false)
 
-	// error - invalid hil
+	// error - invalid hil for variables
 	varsToUse = append(config.Variables{}, suite.Variables[0])
 	argsToUse = append(config.Arguments{}, suite.Arguments[2])
+
+	err = Initialize(varsToUse, argsToUse)
+	assert.Error(suite.T(), err)
+
+	// error - invalid hil for arguments
+	varsToUse = append(config.Variables{}, suite.Variables[2])
+	argsToUse = append(config.Arguments{}, suite.Arguments[0])
 
 	err = Initialize(varsToUse, argsToUse)
 	assert.Error(suite.T(), err)
@@ -137,7 +157,7 @@ func (suite *ConfigTestSuite) TestGetArgsEvalConfig() {
 	newConfig, err := GetArgsEvalConfig(moreArgs, evalConfig)
 	assert.NoError(suite.T(), err)
 
-	assertVariables(suite.T(), varsToUse, newConfig)
+	assertVariables(suite.T(), varsToUse, newConfig, false)
 	assertArguments(suite.T(), append(argsToUse, moreArgs...), newConfig, false)
 
 	// happy path - argument is overridden
@@ -149,7 +169,7 @@ func (suite *ConfigTestSuite) TestGetArgsEvalConfig() {
 	newConfig, err = GetArgsEvalConfig(moreArgs, evalConfig)
 	assert.NoError(suite.T(), err)
 
-	assertVariables(suite.T(), varsToUse, newConfig)
+	assertVariables(suite.T(), varsToUse, newConfig, false)
 	assertArguments(suite.T(), moreArgs, newConfig, false)
 
 	overriddenVal, err := moreArgs[0].GetValue(evalConfig)
