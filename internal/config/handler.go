@@ -23,7 +23,9 @@ func ReadConfig(projectPath string) (ProjectConfig, error) {
 
 	viper.SetConfigFile(sys.JoinPaths(projectPath, constants.WioConfigFile))
 	viper.SetFs(sys.GetFileSystem())
-	viper.ReadInConfig()
+	if err := viper.ReadInConfig(); err != nil {
+		return nil, err
+	}
 
 	// get project type
 	projectConfig.Type = viper.GetString("type")

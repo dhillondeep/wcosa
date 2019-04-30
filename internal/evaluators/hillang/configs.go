@@ -9,6 +9,7 @@ import (
 )
 
 var globalArguments config.Arguments
+var globalVariables config.Variables
 var variablesMap = map[string]*config.Variable{}
 var argsMap = map[string]*config.Argument{}
 
@@ -19,12 +20,32 @@ var evalConfig = &hil.EvalConfig{
 	},
 }
 
+// copyEvalConfig is a helper function to deep copy one config to another
+func copyEvalConfig(evalConfig *hil.EvalConfig) *hil.EvalConfig {
+	newVars := map[string]ast.Variable{}
+
+	for index,element := range evalConfig.GlobalScope.VarMap {
+		newVars[index] = element
+	}
+
+	return &hil.EvalConfig{
+		GlobalScope: &ast.BasicScope{
+			FuncMap: evalConfig.GlobalScope.FuncMap,
+			VarMap: newVars,
+		},
+		SemanticChecks: evalConfig.SemanticChecks,
+	}
+}
+
+// GetDefaultEvalConfig provides default config. The config must be initialized in order to have
+// proper variables and arguments
 func GetDefaultEvalConfig() *hil.EvalConfig {
 	return evalConfig
 }
 
-func GetArgsEvalConfig(arguments config.Arguments) (*hil.EvalConfig, error) {
-	newConfig := evalConfig
+// GetArgsEvalConfig provides evalConfig with scope specific arguments
+func GetArgsEvalConfig(arguments config.Arguments, evalConfig *hil.EvalConfig) (*hil.EvalConfig, error) {
+	newConfig := copyEvalConfig(evalConfig)
 	argsMap = map[string]*config.Argument{}
 
 	for _, globalArg := range globalArguments {
@@ -50,7 +71,9 @@ func GetArgsEvalConfig(arguments config.Arguments) (*hil.EvalConfig, error) {
 	return newConfig, nil
 }
 
+// Initialize initializes variables and arguments to be used for hil parsing
 func Initialize(variables config.Variables, arguments config.Arguments) error {
+	globalVariables = variables
 	for _, variable := range variables {
 		varName := variable.GetName()
 		variablesMap[varName] = &variable

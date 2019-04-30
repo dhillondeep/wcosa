@@ -146,29 +146,30 @@ var defined = ast.Function{
 		}
 
 		if split[0] == "var" {
-			return funk.Contains(variablesMap, originalInput), nil
+			return funk.Contains(variablesMap, split[1]), nil
 		} else if split[0] == "arg" {
-			return funk.Contains(argsMap, originalInput), nil
+			return funk.Contains(argsMap, split[1]), nil
 		}
 
 		return false, nil
 	},
 }
 
+// getFunctions provides all the functions available in Hil language
 func getFunctions() map[string]ast.Function {
 	return map[string]ast.Function{
-		"env": env,
-		"lower":  lowerCase,
-		"upper":  upperCase,
+		"env":       env,
+		"lower":     lowerCase,
+		"upper":     upperCase,
 		"snakeCase": snakeCase,
 		"camelCase": camelCase,
-		"reverse": reverse,
-		"shuffle": shuffle,
+		"reverse":   reverse,
+		"shuffle":   shuffle,
 		"wordCount": wordCount,
-		"length": length,
-		"string": toString,
-		"join": join,
-		"insert": insert,
-		"defined": defined,
+		"length":    length,
+		"string":    toString,
+		"join":      join,
+		"insert":    insert,
+		"defined":   defined,
 	}
 }

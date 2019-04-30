@@ -10,7 +10,7 @@ type hilString struct {
 }
 
 func (hilString hilString) Get(config *hil.EvalConfig) (string, error) {
-	return applyHilString(hilString.Value, config)
+	return applyEvaluator(hilString.Value, config)
 }
 
 // //////////////////////
@@ -40,7 +40,7 @@ func (argumentImpl argumentImpl) GetName() string {
 }
 
 func (argumentImpl argumentImpl) GetValue(config *hil.EvalConfig) (string, error) {
-	return applyHilString(argumentImpl.Value, config)
+	return applyEvaluator(argumentImpl.Value, config)
 }
 
 // //////////////////////
@@ -55,7 +55,7 @@ func (toolchainImpl toolchainImpl) GetName() string {
 }
 
 func (toolchainImpl toolchainImpl) GetRef(config *hil.EvalConfig) (string, error) {
-	return applyHilString(toolchainImpl.Name, config)
+	return applyEvaluator(toolchainImpl.Name, config)
 }
 
 // //////////////////////
@@ -74,7 +74,7 @@ func (linkerOptionsImpl linkerOptionsImpl) GetFlags() Flags {
 }
 
 func (linkerOptionsImpl linkerOptionsImpl) GetVisibility(config *hil.EvalConfig) (string, error) {
-	return applyHilString(linkerOptionsImpl.Visibility, config)
+	return applyEvaluator(linkerOptionsImpl.Visibility, config)
 }
 
 // //////////////////////
@@ -103,11 +103,11 @@ func (compileOptionsImpl compileOptionsImpl) GetDefinitions() Definitions {
 }
 
 func (compileOptionsImpl compileOptionsImpl) GetCXXStandard(config *hil.EvalConfig) (string, error) {
-	return applyHilString(compileOptionsImpl.CXXStandard, config)
+	return applyEvaluator(compileOptionsImpl.CXXStandard, config)
 }
 
 func (compileOptionsImpl compileOptionsImpl) GetCStandard(config *hil.EvalConfig) (string, error) {
-	return applyHilString(compileOptionsImpl.CXXStandard, config)
+	return applyEvaluator(compileOptionsImpl.CXXStandard, config)
 }
 
 // //////////////////////
@@ -119,7 +119,7 @@ type dependencyImpl struct {
 }
 
 func (dependencyImpl dependencyImpl) GetRef(config *hil.EvalConfig) (string, error) {
-	return applyHilString(dependencyImpl.Ref, config)
+	return applyEvaluator(dependencyImpl.Ref, config)
 }
 
 func (dependencyImpl dependencyImpl) GetArguments() Arguments {
@@ -146,7 +146,7 @@ func (packageOptionsImpl packageOptionsImpl) IsHeaderOnly() bool {
 }
 
 func (packageOptionsImpl packageOptionsImpl) GetPackageType(config *hil.EvalConfig) (string, error) {
-	return applyHilString(packageOptionsImpl.Type, config)
+	return applyEvaluator(packageOptionsImpl.Type, config)
 }
 
 // //////////////////////
@@ -164,11 +164,11 @@ type projectImpl struct {
 }
 
 func (projectImpl projectImpl) GetName(config *hil.EvalConfig) (string, error) {
-	return applyHilString(projectImpl.Name, config)
+	return applyEvaluator(projectImpl.Name, config)
 }
 
 func (projectImpl projectImpl) GetVersion(config *hil.EvalConfig) (*version.Version, error) {
-	ver, err := applyHilString(projectImpl.Version, config)
+	ver, err := applyEvaluator(projectImpl.Version, config)
 	if err != nil {
 		return nil, err
 	}
@@ -176,7 +176,7 @@ func (projectImpl projectImpl) GetVersion(config *hil.EvalConfig) (*version.Vers
 }
 
 func (projectImpl projectImpl) GetAuthor(config *hil.EvalConfig) (string, error) {
-	return applyHilString(projectImpl.Author, config)
+	return applyEvaluator(projectImpl.Author, config)
 }
 
 func (projectImpl projectImpl) GetContributors() Contributors {
@@ -189,15 +189,15 @@ func (projectImpl projectImpl) GetContributors() Contributors {
 }
 
 func (projectImpl projectImpl) GetDescription(config *hil.EvalConfig) (string, error) {
-	return applyHilString(projectImpl.Description, config)
+	return applyEvaluator(projectImpl.Description, config)
 }
 
 func (projectImpl projectImpl) GetRepository(config *hil.EvalConfig) (string, error) {
-	return applyHilString(projectImpl.Homepage, config)
+	return applyEvaluator(projectImpl.Homepage, config)
 }
 
 func (projectImpl projectImpl) GetHomepage(config *hil.EvalConfig) (string, error) {
-	return applyHilString(projectImpl.Homepage, config)
+	return applyEvaluator(projectImpl.Homepage, config)
 }
 
 func (projectImpl projectImpl) GetCompileOptions() CompileOptions {
@@ -227,11 +227,11 @@ func (executableOptionsImpl executableOptionsImpl) GetSource() Sources {
 }
 
 func (executableOptionsImpl executableOptionsImpl) GetMainFile(config *hil.EvalConfig) (string, error) {
-	return applyHilString(executableOptionsImpl.MainFile, config)
+	return applyEvaluator(executableOptionsImpl.MainFile, config)
 }
 
 func (executableOptionsImpl executableOptionsImpl) GetPlatform(config *hil.EvalConfig) (string, error) {
-	return applyHilString(executableOptionsImpl.Platform, config)
+	return applyEvaluator(executableOptionsImpl.Platform, config)
 }
 
 func (executableOptionsImpl executableOptionsImpl) GetToolchain() Toolchain {
@@ -296,7 +296,7 @@ func (testImpl testImpl) GetArguments() Arguments {
 }
 
 func (testImpl testImpl) GetTargetName(config *hil.EvalConfig) (string, error) {
-	return applyHilString(testImpl.TargetName, config)
+	return applyEvaluator(testImpl.TargetName, config)
 }
 
 func (testImpl testImpl) GetTargetArguments() Arguments {
