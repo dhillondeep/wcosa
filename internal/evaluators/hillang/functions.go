@@ -109,15 +109,19 @@ var toString = ast.Function{
 	},
 }
 
-var join = ast.Function{
-	ArgTypes:   []ast.Type{ast.TypeList, ast.TypeString},
+var appendFunc = ast.Function{
+	ArgTypes:   []ast.Type{ast.TypeString},
 	ReturnType: ast.TypeString,
-	Variadic:   false,
+	Variadic:   true,
+	VariadicType: ast.TypeString,
 	Callback: func(inputs []interface{}) (interface{}, error) {
-		list := inputs[0].([]string)
-		sep := inputs[1].(string)
+		var list []string
 
-		return strings.Join(list, sep), nil
+		for _, input := range inputs {
+			list = append(list, input.(string))
+		}
+
+		return strings.Join(list, ""), nil
 	},
 }
 
@@ -167,8 +171,8 @@ func getFunctions() map[string]ast.Function {
 		"shuffle":   shuffle,
 		"wordCount": wordCount,
 		"length":    length,
-		"string":    toString,
-		"join":      join,
+		"toString":  toString,
+		"append":    appendFunc,
 		"insert":    insert,
 		"defined":   defined,
 	}

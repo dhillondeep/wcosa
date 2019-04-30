@@ -12,6 +12,7 @@ require (
 	github.com/mitchellh/mapstructure v1.1.2
 	github.com/spf13/afero v1.2.2
 	github.com/spf13/viper v1.3.2
+	github.com/stretchr/testify v1.3.0
 	github.com/thoas/go-funk v0.4.0
 	github.com/valyala/quicktemplate v1.0.2
 	golang.org/x/sys v0.0.0-20190418153312-f0ce4c0180be // indirect
