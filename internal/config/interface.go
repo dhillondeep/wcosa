@@ -8,20 +8,21 @@ import (
 type Dependencies map[string]Dependency
 type Tests map[string]Test
 type Targets map[string]Target
-type Scripts []HilString
+type Scripts map[string]Expression
 type Arguments []Argument
 type Variables []Variable
-type Definitions []HilString
-type Flags []HilString
-type Contributors []HilString
-type Sources []HilString
+type Definitions []Expression
+type Flags []Expression
+type Repositories []Expression
+type Contributors []Expression
+type Sources []Expression
 
-type HilString interface {
-	Get(config *hil.EvalConfig) (string, error)
+type Expression interface {
+	Eval(config *hil.EvalConfig) (string, error)
 }
 
 type Toolchain interface {
-	GetName() string
+	GetName(config *hil.EvalConfig) (string, error)
 	GetRef(config *hil.EvalConfig) (string, error)
 }
 
@@ -45,7 +46,7 @@ type CompileOptions interface {
 }
 
 type PackageOptions interface {
-	IsHeaderOnly() bool
+	IsHeaderOnly(config *hil.EvalConfig) (bool, error)
 	GetPackageType(config *hil.EvalConfig) (string, error)
 }
 
@@ -89,7 +90,7 @@ type Project interface {
 	GetDescription(config *hil.EvalConfig) (string, error)
 	GetContributors() Contributors
 	GetHomepage(config *hil.EvalConfig) (string, error)
-	GetRepository(config *hil.EvalConfig) (string, error)
+	GetRepository() Repositories
 
 	GetCompileOptions() CompileOptions
 	GetPackageOptions() PackageOptions

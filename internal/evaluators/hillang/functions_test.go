@@ -138,55 +138,57 @@ func TestInsert(t *testing.T) {
 }
 
 func TestDefined(t *testing.T) {
-	// happy path - no defined
-	hilStatement := `${defined("var.RANDOM")}`
-	result, err := parseHil(hilStatement, evalConfig)
-	assert.NoError(t, err)
+	t.Run("happy path - none defined for variables and arguments", func(t *testing.T) {
+		hilStatement := `${defined("var.RANDOM")}`
+		result, err := parseHil(hilStatement, evalConfig)
+		assert.NoError(t, err)
 
-	assert.Equal(t, result, "false")
+		assert.Equal(t, result, "false")
 
-	hilStatement = `${defined("arg.RANDOM")}`
-	result, err = parseHil(hilStatement, evalConfig)
-	assert.NoError(t, err)
+		hilStatement = `${defined("arg.RANDOM")}`
+		result, err = parseHil(hilStatement, evalConfig)
+		assert.NoError(t, err)
 
-	assert.Equal(t, result, "false")
-
-	// happy path - defined
-	_ = Initialize(config.Variables{
-		config.VariableImpl{
-			Name:  "VARIABLE",
-			Value: "One",
-		},
-	}, config.Arguments{
-		config.ArgumentImpl{
-			Name:  "ARGUMENT",
-			Value: "One",
-		},
+		assert.Equal(t, result, "false")
 	})
 
-	hilStatement = `${defined("var.VARIABLE")}`
-	result, err = parseHil(hilStatement, evalConfig)
-	assert.NoError(t, err)
+	t.Run("happy path - variables and arguments defined", func(t *testing.T) {
+		_ = Initialize(config.Variables{
+			config.VariableImpl{
+				Name:  "VARIABLE",
+				Value: "One",
+			},
+		}, config.Arguments{
+			config.ArgumentImpl{
+				Name:  "ARGUMENT",
+				Value: "One",
+			},
+		})
 
-	assert.Equal(t, result, "true")
+		hilStatement := `${defined("var.VARIABLE")}`
+		result, err := parseHil(hilStatement, evalConfig)
+		assert.NoError(t, err)
 
-	hilStatement = `${defined("arg.ARGUMENT")}`
-	result, err = parseHil(hilStatement, evalConfig)
-	assert.NoError(t, err)
+		assert.Equal(t, result, "true")
 
-	assert.Equal(t, result, "true")
+		hilStatement = `${defined("arg.ARGUMENT")}`
+		result, err = parseHil(hilStatement, evalConfig)
+		assert.NoError(t, err)
 
-	// error - var and arg scope not provided
-	hilStatement = `${defined("VARIABLE")}`
-	result, err = parseHil(hilStatement, evalConfig)
-	assert.NoError(t, err)
+		assert.Equal(t, result, "true")
+	})
 
-	assert.Equal(t, result, "false")
+	t.Run("wrong path - variable and argument scope not provided", func(t *testing.T) {
+		hilStatement := `${defined("VARIABLE")}`
+		result, err := parseHil(hilStatement, evalConfig)
+		assert.NoError(t, err)
+		assert.Equal(t, result, "false")
+	})
 
-	// error - some other scope provided
-	hilStatement = `${defined("test.VARIABLE")}`
-	result, err = parseHil(hilStatement, evalConfig)
-	assert.NoError(t, err)
-
-	assert.Equal(t, result, "false")
+	t.Run("wrong path - some random scope is defined", func(t *testing.T) {
+		hilStatement := `${defined("test.VARIABLE")}`
+		result, err := parseHil(hilStatement, evalConfig)
+		assert.NoError(t, err)
+		assert.Equal(t, result, "false")
+	})
 }

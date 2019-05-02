@@ -93,98 +93,121 @@ func assertArguments(t *testing.T, arguments config.Arguments, evalConfig *hil.E
 }
 
 func (suite *ConfigTestSuite) TestInitialize() {
-	// happy path - basic
-	varsToUse := append(config.Variables{}, suite.Variables[0])
-	argsToUse := append(config.Arguments{}, suite.Arguments[0])
+	suite.T().Run("happy path - raw text values", func(t *testing.T) {
+		varsToUse := append(config.Variables{}, suite.Variables[0])
+		argsToUse := append(config.Arguments{}, suite.Arguments[0])
 
-	err := Initialize(varsToUse, argsToUse)
-	assert.NoError(suite.T(), err)
-	assert.NotEqual(suite.T(), evalConfig, nil)
+		err := Initialize(varsToUse, argsToUse)
+		assert.NoError(suite.T(), err)
+		assert.NotEqual(suite.T(), evalConfig, nil)
 
-	assertVariables(suite.T(), varsToUse, evalConfig, false)
-	assertArguments(suite.T(), argsToUse, evalConfig, false)
+		assertVariables(suite.T(), varsToUse, evalConfig, false)
+		assertArguments(suite.T(), argsToUse, evalConfig, false)
+	})
 
-	// happy path - hil eval arguments
-	varsToUse = append(config.Variables{}, suite.Variables[1])
-	argsToUse = append(config.Arguments{}, suite.Arguments[1])
+	suite.T().Run("happy path - hil eval variables and arguments", func(t *testing.T) {
+		varsToUse := append(config.Variables{}, suite.Variables[1])
+		argsToUse := append(config.Arguments{}, suite.Arguments[1])
 
-	err = Initialize(varsToUse, argsToUse)
-	assert.NoError(suite.T(), err)
-	assert.NotEqual(suite.T(), evalConfig, nil)
+		err := Initialize(varsToUse, argsToUse)
+		assert.NoError(suite.T(), err)
+		assert.NotEqual(suite.T(), evalConfig, nil)
 
-	assertVariables(suite.T(), varsToUse, evalConfig, false)
-	assertArguments(suite.T(), argsToUse, evalConfig, false)
+		assertVariables(suite.T(), varsToUse, evalConfig, false)
+		assertArguments(suite.T(), argsToUse, evalConfig, false)
+	})
 
-	// error - invalid hil for variables
-	varsToUse = append(config.Variables{}, suite.Variables[0])
-	argsToUse = append(config.Arguments{}, suite.Arguments[2])
+	suite.T().Run("wrong path - invalid hil for variables", func(t *testing.T) {
+		varsToUse := append(config.Variables{}, suite.Variables[2])
+		argsToUse := append(config.Arguments{}, suite.Arguments[0])
 
-	err = Initialize(varsToUse, argsToUse)
-	assert.Error(suite.T(), err)
+		err := Initialize(varsToUse, argsToUse)
+		assert.Error(suite.T(), err)
 
-	// error - invalid hil for arguments
-	varsToUse = append(config.Variables{}, suite.Variables[2])
-	argsToUse = append(config.Arguments{}, suite.Arguments[0])
+	})
 
-	err = Initialize(varsToUse, argsToUse)
-	assert.Error(suite.T(), err)
+	suite.T().Run("wrong path - invalid hil for arguments", func(t *testing.T) {
+		varsToUse := append(config.Variables{}, suite.Variables[0])
+		argsToUse := append(config.Arguments{}, suite.Arguments[2])
+
+		err := Initialize(varsToUse, argsToUse)
+		assert.Error(suite.T(), err)
+	})
 }
 
 func (suite *ConfigTestSuite) TestGetDefaultEvalConfig() {
-	// happy path - default eval config
-	returned := GetDefaultEvalConfig()
-	assert.Equal(suite.T(), evalConfig, returned)
+	suite.T().Run("happy path - default config", func(t *testing.T) {
+		returned := GetDefaultEvalConfig()
+		assert.Equal(suite.T(), evalConfig, returned)
+	})
 
-	// happy path - basic
-	evalConfig = &hil.EvalConfig{
-		GlobalScope:    nil,
-		SemanticChecks: nil,
-	}
+	suite.T().Run("happy path - basic config", func(t *testing.T) {
+		evalConfig = &hil.EvalConfig{
+			GlobalScope:    nil,
+			SemanticChecks: nil,
+		}
 
-	returned = GetDefaultEvalConfig()
-	assert.Equal(suite.T(), evalConfig, returned)
+		returned := GetDefaultEvalConfig()
+		assert.Equal(suite.T(), evalConfig, returned)
+	})
 }
 
 func (suite *ConfigTestSuite) TestGetArgsEvalConfig() {
 	varsToUse := append(config.Variables{}, suite.Variables[0])
 	argsToUse := append(config.Arguments{}, suite.Arguments[0])
 
-	// happy path - arguments are appended
-	moreArgs := append(config.Arguments{}, suite.Arguments[1])
+	suite.T().Run("happy path - new arguments are appended", func(t *testing.T) {
+		moreArgs := append(config.Arguments{}, suite.Arguments[1])
 
-	_ = Initialize(varsToUse, argsToUse)
+		_ = Initialize(varsToUse, argsToUse)
 
-	newConfig, err := GetArgsEvalConfig(moreArgs, evalConfig)
-	assert.NoError(suite.T(), err)
+		newConfig, err := GetArgsEvalConfig(moreArgs, evalConfig)
+		assert.NoError(t, err)
 
-	assertVariables(suite.T(), varsToUse, newConfig, false)
-	assertArguments(suite.T(), append(argsToUse, moreArgs...), newConfig, false)
+		assertVariables(t, varsToUse, newConfig, false)
+		assertArguments(t, append(argsToUse, moreArgs...), newConfig, false)
 
-	// happy path - argument is overridden
-	moreArgs = append(config.Arguments{}, config.ArgumentImpl{
-		Name:  suite.Arguments[0].GetName(),
-		Value: "NewTwo",
 	})
 
-	newConfig, err = GetArgsEvalConfig(moreArgs, evalConfig)
-	assert.NoError(suite.T(), err)
+	suite.T().Run("happy path - argument is overridden", func(t *testing.T) {
+		moreArgs := append(config.Arguments{}, config.ArgumentImpl{
+			Name:  suite.Arguments[0].GetName(),
+			Value: "NewTwo",
+		})
 
-	assertVariables(suite.T(), varsToUse, newConfig, false)
-	assertArguments(suite.T(), moreArgs, newConfig, false)
+		newConfig, err := GetArgsEvalConfig(moreArgs, evalConfig)
+		assert.NoError(suite.T(), err)
 
-	overriddenVal, err := moreArgs[0].GetValue(evalConfig)
-	assert.NoError(suite.T(), err)
+		assertVariables(t, varsToUse, newConfig, false)
+		assertArguments(t, moreArgs, newConfig, false)
 
-	assert.Equal(suite.T(), overriddenVal, newConfig.GlobalScope.VarMap["arg."+moreArgs[0].GetName()].Value)
+		overriddenVal, err := moreArgs[0].GetValue(evalConfig)
+		assert.NoError(t, err)
 
-	// happy path - two evalConfigs are different
-	assert.NotEqual(suite.T(), newConfig, evalConfig)
-	assert.NotEqual(suite.T(), newConfig.GlobalScope.VarMap, evalConfig.GlobalScope.VarMap)
+		assert.Equal(t, overriddenVal, newConfig.GlobalScope.VarMap["arg."+moreArgs[0].GetName()].Value)
 
-	// error - hil eval fails
-	moreArgs = append(config.Arguments{}, suite.Arguments[2])
-	newConfig, err = GetArgsEvalConfig(moreArgs, evalConfig)
-	assert.Error(suite.T(), err)
+	})
+
+	suite.T().Run("happy path - two evalConfigs are different", func(t *testing.T) {
+		moreArgs := append(config.Arguments{}, config.ArgumentImpl{
+			Name:  suite.Arguments[0].GetName(),
+			Value: "NewTwo",
+		})
+
+		newConfig, err := GetArgsEvalConfig(moreArgs, evalConfig)
+		assert.NoError(t, err)
+
+		// happy path - two evalConfigs are different
+		assert.NotEqual(t, newConfig, evalConfig)
+		assert.NotEqual(t, newConfig.GlobalScope.VarMap, evalConfig.GlobalScope.VarMap)
+
+	})
+
+	suite.T().Run("wrong path - hil eval fails for argument", func(t *testing.T) {
+		moreArgs := append(config.Arguments{}, suite.Arguments[2])
+		_, err := GetArgsEvalConfig(moreArgs, evalConfig)
+		assert.Error(t, err)
+	})
 }
 
 func TestConfigTestSuite(t *testing.T) {

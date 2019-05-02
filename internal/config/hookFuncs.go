@@ -59,6 +59,25 @@ func warningHookFunc(projectType string, provideWarning func(warning string)) ma
 	}
 }
 
+func dependencyShortFunc() mapstructure.DecodeHookFunc {
+	return func(
+		f reflect.Type,
+		t reflect.Type,
+		data interface{}) (interface{}, error) {
+		val := reflect.ValueOf(data)
+
+		if t.ConvertibleTo(reflect.TypeOf(DependencyImpl{})) {
+			if val.Kind() == reflect.String {
+				return reflect.ValueOf(DependencyImpl{
+					Ref: val.String(),
+				}).Interface(), nil
+			}
+		}
+
+		return data, nil
+	}
+}
+
 // splitKeyValToMapFunc is a decode hook function to convert a string to key value pair
 func splitKeyValToMapFunc() mapstructure.DecodeHookFunc {
 	return func(

@@ -2,18 +2,16 @@ package config
 
 import (
 	"bytes"
-	"fmt"
+	"github.com/dhillondeep/viper"
 	"github.com/mitchellh/mapstructure"
-	"github.com/spf13/viper"
-	"strconv"
-	"strings"
 	"wio/internal/constants"
 	"wio/pkg/sys"
+	"wio/pkg/utils"
 	"wio/templates"
 )
 
 // ReadConfig parses config file from project path and provides ProjectConfig
-func ReadConfig(projectPath string) (ProjectConfig, error) {
+func ReadConfig(projectPath string) (ProjectConfig, []string, error) {
 	projectConfig := projectConfigImpl{}
 
 	var warnings []string
@@ -22,9 +20,10 @@ func ReadConfig(projectPath string) (ProjectConfig, error) {
 	}
 
 	viper.SetConfigFile(sys.JoinPaths(projectPath, constants.WioConfigFile))
+	viper.SetKeyDelim(":")
 	viper.SetFs(sys.GetFileSystem())
 	if err := viper.ReadInConfig(); err != nil {
-		return nil, err
+		return nil, nil, err
 	}
 
 	// get project type
@@ -34,21 +33,68 @@ func ReadConfig(projectPath string) (ProjectConfig, error) {
 		config.ErrorUnused = true
 		config.DecodeHook = mapstructure.ComposeDecodeHookFunc(
 			config.DecodeHook,
-			mapstructure.StringToSliceHookFunc(" "),
+			dependencyShortFunc(),
 			splitKeyValToMapFunc(),
 			warningHookFunc(projectConfig.Type, updateWarnings),
 		)
 	}); err != nil {
-		return nil, err
+		return nil, nil, err
 	}
 
-	if len(warnings) > 0 {
-		fmt.Println(strconv.Itoa(len(warnings)) + " warning(s) decoding:\n")
-		fmt.Println(strings.Join(warnings, "\n"))
-	}
+	useGlobalValues(projectConfig)
 
 	var g interface{} = &projectConfig
-	return g.(ProjectConfig), nil
+	return g.(ProjectConfig), warnings, nil
+}
+
+// useGlobalValues overrides scope specific values with global if not provided
+func useGlobalValues(projectConfig projectConfigImpl) {
+	for _, target := range projectConfig.Targets {
+		// override if not provided
+		if target.CompileOptions == nil {
+			target.CompileOptions = projectConfig.Project.CompileOptions
+		} else if projectConfig.Project.CompileOptions != nil {
+			// override if not provided otherwise append
+			if target.CompileOptions.Flags == nil {
+				target.CompileOptions.Flags = projectConfig.Project.CompileOptions.Flags
+			} else if projectConfig.Project.CompileOptions.Flags != nil {
+				target.CompileOptions.Flags = append(target.CompileOptions.Flags,
+					projectConfig.Project.CompileOptions.Flags...)
+			}
+
+			// override if not provided otherwise append
+			if target.CompileOptions.Definitions == nil {
+				target.CompileOptions.Definitions = projectConfig.Project.CompileOptions.Definitions
+			} else if projectConfig.Project.CompileOptions.Definitions != nil {
+				target.CompileOptions.Definitions = append(target.CompileOptions.Definitions,
+					projectConfig.Project.CompileOptions.Definitions...)
+			}
+
+			// override if not provided
+			if utils.IsStringEmpty(target.CompileOptions.CXXStandard) {
+				target.CompileOptions.CXXStandard = projectConfig.Project.CompileOptions.CXXStandard
+			}
+
+			// override if not provided
+			if utils.IsStringEmpty(target.CompileOptions.CStandard) {
+				target.CompileOptions.CStandard = projectConfig.Project.CompileOptions.CStandard
+			}
+		}
+
+		// override if not provided
+		if projectConfig.Type == constants.PKG && target.PackageOptions == nil {
+			target.PackageOptions = projectConfig.Project.PackageOptions
+		} else if projectConfig.Type == constants.PKG && projectConfig.Project.PackageOptions != nil {
+			// override if not provided
+			if utils.IsStringEmpty(target.PackageOptions.Type) {
+				target.PackageOptions.Type = projectConfig.Project.PackageOptions.Type
+			}
+			// override if not provided
+			if utils.IsStringEmpty(target.PackageOptions.HeaderOnly) {
+				target.PackageOptions.HeaderOnly = projectConfig.Project.PackageOptions.HeaderOnly
+			}
+		}
+	}
 }
 
 // CreateConfig creates initial config file

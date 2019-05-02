@@ -27,21 +27,20 @@ targets:
       source: src
       main_file: {%s= creation.MainFile %}
       platform: {%s= creation.Platform %}
-      {% if strings.TrimSpace(creation.Toolchain) != "" %}{% stripspace %}
-        toolchain: {% space %} {%s= creation.Toolchain %} {% newline %}
-      {% endif %} {% endstripspace %}
+{% if strings.TrimSpace(creation.Toolchain) != "" %}{% stripspace %}
+{% space %}{% space %}{% space %}{% space %}{% space %}{% space %}
+      toolchain: {% space %} {%s= creation.Toolchain %} {% newline %}
+{% endif %} {% endstripspace %}
 tests:
   main:
     executable_options:
       source: test
       platform: {%s= creation.Platform %}
-      {% if strings.TrimSpace(creation.Toolchain) != "" %}{% stripspace %}
+{% if strings.TrimSpace(creation.Toolchain) != "" %}{% stripspace %}
+{% space %}{% space %}{% space %}{% space %}{% space %}{% space %}
         toolchain: {% space %} {%s= creation.Toolchain %} {% newline %}
-      {% endif %} {% endstripspace %}
+{% endif %} {% endstripspace %}
     target_name: main
-
-test_dependencies:
-  github.com/wio-pm/simple-tests:
 {% endfunc %}
 
 
@@ -54,9 +53,10 @@ project:
 
   package_options:
     type: {%s creation.PkgType %}
-    {% if creation.HeaderOnly %}{% stripspace %}
-        header_only: {% space %} {%v creation.HeaderOnly %} {% newline %}
-    {% endif %} {% endstripspace %}
+{% if creation.HeaderOnly %}{% stripspace %}
+{% space %}{% space %}{% space %}{% space %}
+    header_only: {% space %} {%v creation.HeaderOnly %} {% newline %}
+{% endif %} {% endstripspace %}
 targets:
   {%s= creation.ProjectName %}:
 
@@ -65,11 +65,9 @@ tests:
     executable_options:
       source: test
       platform: {%s= creation.Platform %}
-      {% if strings.TrimSpace(creation.Toolchain) != "" %}{% stripspace %}
-        toolchain: {% space %} {%s= creation.Toolchain %} {% newline %}
-      {% endif %} {% endstripspace %}
+{% if strings.TrimSpace(creation.Toolchain) != "" %}{% stripspace %}
+{% space %}{% space %}{% space %}{% space %}{% space %}{% space %}
+      toolchain: {% space %} {%s= creation.Toolchain %} {% newline %}
+{% endif %} {% endstripspace %}
     target_name: {%s= creation.ProjectName %}
-
-test_dependencies:
-  github.com/wio-pm/simple-tests:
 {% endfunc %}

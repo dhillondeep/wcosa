@@ -3,14 +3,16 @@ package config
 import (
 	"github.com/hashicorp/go-version"
 	"github.com/hashicorp/hil"
+	"strconv"
+	"strings"
 )
 
-type HilStringImpl struct {
+type ExpressionImpl struct {
 	Value string
 }
 
-func (hilString HilStringImpl) Get(config *hil.EvalConfig) (string, error) {
-	return applyEvaluator(hilString.Value, config)
+func (expressionImpl ExpressionImpl) Eval(config *hil.EvalConfig) (string, error) {
+	return applyEvaluator(expressionImpl.Value, config)
 }
 
 // //////////////////////
@@ -50,12 +52,12 @@ type ToolchainImpl struct {
 	Ref  string `mapstructure:"ref"`
 }
 
-func (toolchainImpl ToolchainImpl) GetName() string {
-	return toolchainImpl.Name
+func (toolchainImpl ToolchainImpl) GetName(config *hil.EvalConfig) (string, error) {
+	return applyEvaluator(toolchainImpl.Name, config)
 }
 
 func (toolchainImpl ToolchainImpl) GetRef(config *hil.EvalConfig) (string, error) {
-	return applyEvaluator(toolchainImpl.Name, config)
+	return applyEvaluator(toolchainImpl.Ref, config)
 }
 
 // //////////////////////
@@ -68,7 +70,7 @@ type LinkerOptionsImpl struct {
 func (linkerOptionsImpl LinkerOptionsImpl) GetFlags() Flags {
 	var flags Flags
 	for _, flag := range linkerOptionsImpl.Flags {
-		flags = append(flags, HilStringImpl{Value: flag})
+		flags = append(flags, ExpressionImpl{Value: strings.TrimSpace(flag)})
 	}
 	return flags
 }
@@ -89,7 +91,7 @@ type CompileOptionsImpl struct {
 func (compileOptionsImpl CompileOptionsImpl) GetFlags() Flags {
 	var flags Flags
 	for _, flag := range compileOptionsImpl.Flags {
-		flags = append(flags, HilStringImpl{Value: flag})
+		flags = append(flags, ExpressionImpl{Value: strings.TrimSpace(flag)})
 	}
 	return flags
 }
@@ -97,7 +99,7 @@ func (compileOptionsImpl CompileOptionsImpl) GetFlags() Flags {
 func (compileOptionsImpl CompileOptionsImpl) GetDefinitions() Definitions {
 	var definitions Definitions
 	for _, definition := range compileOptionsImpl.Definitions {
-		definitions = append(definitions, HilStringImpl{Value: definition})
+		definitions = append(definitions, ExpressionImpl{Value: strings.TrimSpace(definition)})
 	}
 	return definitions
 }
@@ -107,7 +109,7 @@ func (compileOptionsImpl CompileOptionsImpl) GetCXXStandard(config *hil.EvalConf
 }
 
 func (compileOptionsImpl CompileOptionsImpl) GetCStandard(config *hil.EvalConfig) (string, error) {
-	return applyEvaluator(compileOptionsImpl.CXXStandard, config)
+	return applyEvaluator(compileOptionsImpl.CStandard, config)
 }
 
 // //////////////////////
@@ -137,12 +139,17 @@ func (dependencyImpl DependencyImpl) GetLinkerOptions() LinkerOptions {
 // //////////////////////
 
 type PackageOptionsImpl struct {
-	HeaderOnly bool   `mapstructure:"header_only"`
+	HeaderOnly string `mapstructure:"header_only"`
 	Type       string `mapstructure:"type"`
 }
 
-func (packageOptionsImpl PackageOptionsImpl) IsHeaderOnly() bool {
-	return packageOptionsImpl.HeaderOnly
+func (packageOptionsImpl PackageOptionsImpl) IsHeaderOnly(config *hil.EvalConfig) (bool, error) {
+	result, err := applyEvaluator(packageOptionsImpl.HeaderOnly, config)
+	if err != nil {
+		return false, err
+	}
+
+	return strconv.ParseBool(result)
 }
 
 func (packageOptionsImpl PackageOptionsImpl) GetPackageType(config *hil.EvalConfig) (string, error) {
@@ -159,7 +166,7 @@ type ProjectImpl struct {
 	Description    string              `mapstructure:"description"`
 	Homepage       string              `mapstructure:"homepage"`
 	Repository     []string            `mapstructure:"repository"`
-	CompileOptions CompileOptionsImpl  `mapstructure:"compile_options"`
+	CompileOptions *CompileOptionsImpl `mapstructure:"compile_options"`
 	PackageOptions *PackageOptionsImpl `mapstructure:"package_options"` // pkg only
 }
 
@@ -182,7 +189,7 @@ func (projectImpl ProjectImpl) GetAuthor(config *hil.EvalConfig) (string, error)
 func (projectImpl ProjectImpl) GetContributors() Contributors {
 	var contributors Contributors
 	for _, contributor := range projectImpl.Contributors {
-		contributors = append(contributors, HilStringImpl{Value: contributor})
+		contributors = append(contributors, ExpressionImpl{Value: strings.TrimSpace(contributor)})
 	}
 
 	return contributors
@@ -192,8 +199,13 @@ func (projectImpl ProjectImpl) GetDescription(config *hil.EvalConfig) (string, e
 	return applyEvaluator(projectImpl.Description, config)
 }
 
-func (projectImpl ProjectImpl) GetRepository(config *hil.EvalConfig) (string, error) {
-	return applyEvaluator(projectImpl.Homepage, config)
+func (projectImpl ProjectImpl) GetRepository() Repositories {
+	var repositories Repositories
+	for _, repository := range projectImpl.Repository {
+		repositories = append(repositories, ExpressionImpl{Value: strings.TrimSpace(repository)})
+	}
+
+	return repositories
 }
 
 func (projectImpl ProjectImpl) GetHomepage(config *hil.EvalConfig) (string, error) {
@@ -201,10 +213,16 @@ func (projectImpl ProjectImpl) GetHomepage(config *hil.EvalConfig) (string, erro
 }
 
 func (projectImpl ProjectImpl) GetCompileOptions() CompileOptions {
+	if projectImpl.CompileOptions == nil {
+		return nil
+	}
 	return projectImpl.CompileOptions
 }
 
 func (projectImpl ProjectImpl) GetPackageOptions() PackageOptions {
+	if projectImpl.PackageOptions == nil {
+		return nil
+	}
 	return projectImpl.PackageOptions
 }
 
@@ -220,7 +238,7 @@ type ExecutableOptionsImpl struct {
 func (executableOptionsImpl ExecutableOptionsImpl) GetSource() Sources {
 	var sources Sources
 	for _, source := range executableOptionsImpl.Source {
-		sources = append(sources, HilStringImpl{Value: source})
+		sources = append(sources, ExpressionImpl{Value: strings.TrimSpace(source)})
 	}
 
 	return sources
@@ -244,15 +262,21 @@ type TargetImpl struct {
 	ExecutableOptions *ExecutableOptionsImpl `mapstructure:"executable_options"` // app only
 	PackageOptions    *PackageOptionsImpl    `mapstructure:"package_options"`    // pkg only
 	Arguments         []ArgumentImpl         `mapstructure:"arguments"`
-	CompileOptions    CompileOptionsImpl     `mapstructure:"compile_options"`
+	CompileOptions    *CompileOptionsImpl    `mapstructure:"compile_options"`
 	LinkerOptions     LinkerOptionsImpl      `mapstructure:"linker_options"`
 }
 
 func (targetImpl TargetImpl) GetExecutableOptions() ExecutableOptions {
+	if targetImpl.ExecutableOptions == nil {
+		return nil
+	}
 	return targetImpl.ExecutableOptions
 }
 
 func (targetImpl TargetImpl) GetPackageOptions() PackageOptions {
+	if targetImpl.PackageOptions == nil {
+		return nil
+	}
 	return targetImpl.PackageOptions
 }
 
@@ -265,6 +289,9 @@ func (targetImpl TargetImpl) GetArguments() Arguments {
 }
 
 func (targetImpl TargetImpl) GetCompileOptions() CompileOptions {
+	if targetImpl.CompileOptions == nil {
+		return nil
+	}
 	return targetImpl.CompileOptions
 }
 
@@ -322,7 +349,7 @@ type projectConfigImpl struct {
 	Project          ProjectImpl                `mapstructure:"project"`
 	Variables        []VariableImpl             `mapstructure:"variables"`
 	Arguments        []ArgumentImpl             `mapstructure:"arguments"`
-	Scripts          []string                   `mapstructure:"scripts"`
+	Scripts          map[string]string          `mapstructure:"scripts"`
 	Targets          map[string]*TargetImpl     `mapstructure:"targets"`
 	Tests            map[string]*TestImpl       `mapstructure:"tests"`
 	Dependencies     map[string]*DependencyImpl `mapstructure:"dependencies"`
@@ -340,6 +367,9 @@ func (projectConfigImpl *projectConfigImpl) GetProject() Project {
 func (projectConfigImpl *projectConfigImpl) GetVariables() Variables {
 	var variables Variables
 	for _, variableImpl := range projectConfigImpl.Variables {
+		variableImpl.Name = strings.TrimSpace(variableImpl.Name)
+		variableImpl.Value = strings.TrimSpace(variableImpl.Value)
+
 		variables = append(variables, variableImpl)
 	}
 	return variables
@@ -348,15 +378,18 @@ func (projectConfigImpl *projectConfigImpl) GetVariables() Variables {
 func (projectConfigImpl *projectConfigImpl) GetArguments() Arguments {
 	var arguments Arguments
 	for _, argumentImpl := range projectConfigImpl.Arguments {
+		argumentImpl.Name = strings.TrimSpace(argumentImpl.Name)
+		argumentImpl.Value = strings.TrimSpace(argumentImpl.Value)
+
 		arguments = append(arguments, argumentImpl)
 	}
 	return arguments
 }
 
 func (projectConfigImpl *projectConfigImpl) GetScripts() Scripts {
-	var scripts Scripts
-	for _, script := range projectConfigImpl.Scripts {
-		scripts = append(scripts, HilStringImpl{Value: script})
+	scripts := Scripts{}
+	for name, script := range projectConfigImpl.Scripts {
+		scripts[name] = ExpressionImpl{Value: strings.TrimSpace(script)}
 	}
 	return scripts
 }

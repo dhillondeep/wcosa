@@ -51,9 +51,7 @@ func applyEvaluator(val string, config *hil.EvalConfig) (string, error) {
 		s := script.New([]byte(result))
 		s.SetImports(tengolang.GetModuleMap("os", "text", "math", "times", "rand", "json", "enum", "wstrings"))
 
-		if err := s.Add("out", ""); err != nil {
-			return "", err
-		}
+		_ = s.Add("out", "")
 
 		if c, err := s.Run(); err != nil {
 			return "", err
@@ -69,7 +67,7 @@ func applyEvaluator(val string, config *hil.EvalConfig) (string, error) {
 	}
 }
 
-// stringToStringSlice convert string reflect value to a slice of string based on the seperator
+// stringToStringSlice convert string reflect value to a slice of string based on the separator
 func stringToStringSlice(val reflect.Value, sep string) []string {
 	newSlice := strings.Split(val.String(), sep)
 	if len(newSlice) < 2 {
