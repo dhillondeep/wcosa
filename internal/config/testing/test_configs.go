@@ -135,7 +135,6 @@ var stringToSliceFields = `
 type: app
 
 project:
-  name: stringToSliceFields
   contributors: Jordan
   repository: repo
   compile_options:
@@ -148,7 +147,6 @@ arguments: Debug
 targets:
   - name: main
     executable_options:
-      toolchain: github.com/wio-pm/someToolchain@develop
       source: src
     arguments: NOP
     compile_options:
@@ -157,12 +155,9 @@ targets:
     linker_options:
       flags: link1
 
-  - bru
-
 tests:
   - name: main
     executable_options:
-      toolchain: github.com/wio-pm/someToolchain
       source: test
     arguments: NOP
     compile_options:
@@ -170,12 +165,6 @@ tests:
       definitions: def2
     linker_options:
       flags: link1
-
-dependencies:
-  - github.com/random/dep
-
-test_dependencies:
-  - github.com/random/test_dep@develop
 `
 
 // case 7: convert a string to string array if separated by ,
@@ -196,7 +185,6 @@ arguments: Debug, Holy=5
 targets:
   - name: main
     executable_options:
-      toolchain: someToolchain@default
       source: src, common, utils
     arguments: NOP, MOP
     compile_options:
@@ -208,7 +196,6 @@ targets:
 tests:
   - name: main
     executable_options:
-      toolchain: someToolchain@default
       source: test, utils
     arguments: NOP, MOP
     compile_options:
@@ -300,7 +287,7 @@ tests:
       visibility: '${arg.VISIBILITY_CHECK == true ? var.TEST_MAIN_VISIBILITY : "SHARED"}'
 
 dependencies:
-  - name: gitlab.com/user/dependency1
+  - name: ${append("gitlab.com/user/dependency1", "34")}
     ref: ${var.DEP_ONE_REF}
     arguments:
       - DEBUG=true
@@ -308,7 +295,7 @@ dependencies:
       visibility: ${var.DEP_ONE_VISIBILITY}
 
 test_dependencies:
-  - name: gitlab.com/user/dependency1
+  - name: ${append("gitlab.com/user/dependency1", "34")}
     ref: ${var.DEP_ONE_REF}
     arguments:
       - DEBUG=true
@@ -388,6 +375,39 @@ tests:
         
         out = text.to_lower(src)
       }'
+`
+
+// case 15: short hand notation to full struct
+var configShortHandToFull = `
+type: app
+
+variables:
+  - VARIABLE1=One
+
+arguments:
+  - ARGUMENT1
+
+targets:
+  - name: main
+    executable_options:
+      toolchain: github.com/wio-pm/toolchainOne
+
+  - main2
+
+tests:
+  - name: main
+    executable_options:
+      toolchain: github.com/wio-pm/toolchainOne@test
+
+  - main2
+
+dependencies:
+  - github.com/wio-pm/dependency1
+  - github.com/wio-pm/dependency2@develop
+
+test_dependencies:
+  - github.com/wio-pm/dependency1
+  - github.com/wio-pm/dependency2@test
 `
 
 var createConfigAppWithToolchain = `type: app

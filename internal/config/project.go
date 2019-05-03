@@ -115,10 +115,10 @@ func (compileOptionsImpl CompileOptionsImpl) GetCStandard(config *hil.EvalConfig
 // //////////////////////
 
 type DependencyImpl struct {
-	Name          string            `mapstructure:"name"`
-	Ref           string            `mapstructure:"ref"`
-	Arguments     []ArgumentImpl    `mapstructure:"arguments"`
-	LinkerOptions LinkerOptionsImpl `mapstructure:"linker_options"`
+	Name          string             `mapstructure:"name"`
+	Ref           string             `mapstructure:"ref"`
+	Arguments     []ArgumentImpl     `mapstructure:"arguments"`
+	LinkerOptions *LinkerOptionsImpl `mapstructure:"linker_options"`
 }
 
 func (dependencyImpl DependencyImpl) GetName(config *hil.EvalConfig) (string, error) {
@@ -138,6 +138,9 @@ func (dependencyImpl DependencyImpl) GetArguments() Arguments {
 }
 
 func (dependencyImpl DependencyImpl) GetLinkerOptions() LinkerOptions {
+	if dependencyImpl.LinkerOptions == nil {
+		return nil
+	}
 	return dependencyImpl.LinkerOptions
 }
 
@@ -269,7 +272,7 @@ type TargetImpl struct {
 	PackageOptions    *PackageOptionsImpl    `mapstructure:"package_options"`    // pkg only
 	Arguments         []ArgumentImpl         `mapstructure:"arguments"`
 	CompileOptions    *CompileOptionsImpl    `mapstructure:"compile_options"`
-	LinkerOptions     LinkerOptionsImpl      `mapstructure:"linker_options"`
+	LinkerOptions     *LinkerOptionsImpl     `mapstructure:"linker_options"`
 }
 
 func (targetImpl TargetImpl) GetName(config *hil.EvalConfig) (string, error) {
@@ -306,19 +309,22 @@ func (targetImpl TargetImpl) GetCompileOptions() CompileOptions {
 }
 
 func (targetImpl TargetImpl) GetLinkerOptions() LinkerOptions {
+	if targetImpl.LinkerOptions == nil {
+		return nil
+	}
 	return targetImpl.LinkerOptions
 }
 
 // //////////////////////
 
 type TestImpl struct {
-	Name              string                `mastructure:"name"`
-	ExecutableOptions ExecutableOptionsImpl `mapstructure:"executable_options"`
-	Arguments         []ArgumentImpl        `mapstructure:"arguments"`
-	TargetName        string                `mapstructure:"target_name"`
-	TargetArguments   []ArgumentImpl        `mapstructure:"target_arguments"`
-	CompileOptions    CompileOptionsImpl    `mapstructure:"compile_options"`
-	LinkerOptions     LinkerOptionsImpl     `mapstructure:"linker_options"`
+	Name              string                 `mastructure:"name"`
+	ExecutableOptions *ExecutableOptionsImpl `mapstructure:"executable_options"`
+	Arguments         []ArgumentImpl         `mapstructure:"arguments"`
+	TargetName        string                 `mapstructure:"target_name"`
+	TargetArguments   []ArgumentImpl         `mapstructure:"target_arguments"`
+	CompileOptions    *CompileOptionsImpl    `mapstructure:"compile_options"`
+	LinkerOptions     *LinkerOptionsImpl     `mapstructure:"linker_options"`
 }
 
 func (testImpl TestImpl) GetName(config *hil.EvalConfig) (string, error) {
@@ -326,6 +332,9 @@ func (testImpl TestImpl) GetName(config *hil.EvalConfig) (string, error) {
 }
 
 func (testImpl TestImpl) GetExecutableOptions() ExecutableOptions {
+	if testImpl.ExecutableOptions == nil {
+		return nil
+	}
 	return testImpl.ExecutableOptions
 }
 
@@ -350,10 +359,16 @@ func (testImpl TestImpl) GetTargetArguments() Arguments {
 }
 
 func (testImpl TestImpl) GetCompileOptions() CompileOptions {
+	if testImpl.CompileOptions == nil {
+		return nil
+	}
 	return testImpl.CompileOptions
 }
 
 func (testImpl TestImpl) GetLinkerOptions() LinkerOptions {
+	if testImpl.LinkerOptions == nil {
+		return nil
+	}
 	return testImpl.LinkerOptions
 }
 

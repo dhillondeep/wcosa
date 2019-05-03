@@ -30,6 +30,7 @@ const (
 	invalidHilUsageDir           = "/invalidHilUsage"
 	configScriptExecDir          = "/configScriptEval"
 	configScriptExecInvalidDir   = "/configScriptExecInvalid"
+	configShortHandToFullDir     = "/configShortHandToFull"
 )
 
 type ConfigTestSuite struct {
@@ -85,6 +86,10 @@ func (suite *ConfigTestSuite) SetupTest() {
 
 	err = sys.WriteFile(configScriptExecInvalidDir+sys.GetSeparator()+constants.WioConfigFile,
 		[]byte(configScriptExecInvalid))
+	require.NoError(suite.T(), err)
+
+	err = sys.WriteFile(configShortHandToFullDir+sys.GetSeparator()+constants.WioConfigFile,
+		[]byte(configShortHandToFull))
 	require.NoError(suite.T(), err)
 }
 
@@ -245,11 +250,6 @@ func (suite *ConfigTestSuite) TestReadConfig() {
 		require.NoError(suite.T(), err)
 		require.Equal(suite.T(), "main", targetName)
 
-		targetMain2 := project.GetTargets()[1]
-		targetName, err = targetMain2.GetName(suite.config)
-		require.NoError(suite.T(), err)
-		require.Equal(suite.T(), "bru", targetName)
-
 		testMain := project.GetTests()[0]
 		testName, err := testMain.GetName(suite.config)
 		require.NoError(suite.T(), err)
@@ -281,10 +281,6 @@ func (suite *ConfigTestSuite) TestReadConfig() {
 		require.Equal(t, config.Sources{config.ExpressionImpl{Value: "src"}},
 			targetMain.GetExecutableOptions().GetSource())
 
-		require.IsType(t, config.ToolchainImpl{}, targetMain.GetExecutableOptions().GetToolchain())
-		require.Equal(t, config.ToolchainImpl{Name: "github.com/wio-pm/someToolchain", Ref: "develop"},
-			targetMain.GetExecutableOptions().GetToolchain())
-
 		require.IsType(t, config.Flags{}, targetMain.GetCompileOptions().GetFlags())
 		require.Equal(t, config.Flags{config.ExpressionImpl{Value: "flag2"}, config.ExpressionImpl{Value: "flag1"}},
 			targetMain.GetCompileOptions().GetFlags())
@@ -300,10 +296,6 @@ func (suite *ConfigTestSuite) TestReadConfig() {
 		require.Equal(t, config.Sources{config.ExpressionImpl{Value: "test"}},
 			testMain.GetExecutableOptions().GetSource())
 
-		require.IsType(t, config.ToolchainImpl{}, testMain.GetExecutableOptions().GetToolchain())
-		require.Equal(t, config.ToolchainImpl{Name: "github.com/wio-pm/someToolchain", Ref: ""},
-			testMain.GetExecutableOptions().GetToolchain())
-
 		require.IsType(t, config.Flags{}, testMain.GetCompileOptions().GetFlags())
 		require.Equal(t, config.Flags{config.ExpressionImpl{Value: "flag2"}},
 			testMain.GetCompileOptions().GetFlags())
@@ -314,22 +306,6 @@ func (suite *ConfigTestSuite) TestReadConfig() {
 
 		require.IsType(t, config.Flags{}, testMain.GetLinkerOptions().GetFlags())
 		require.Equal(t, config.Flags{config.ExpressionImpl{Value: "link1"}}, testMain.GetLinkerOptions().GetFlags())
-
-		dependency := project.GetDependencies()[0]
-		dependencyName, err := dependency.GetName(suite.config)
-		require.NoError(suite.T(), err)
-		require.Equal(suite.T(), "github.com/random/dep", dependencyName)
-
-		testDependency := project.GetTestDependencies()[0]
-		testDependencyName, err := testDependency.GetName(suite.config)
-		require.NoError(suite.T(), err)
-		require.Equal(suite.T(), "github.com/random/test_dep", testDependencyName)
-
-		require.IsType(t, config.Dependencies{}, project.GetDependencies())
-		require.Equal(t, &config.DependencyImpl{Name: dependencyName, Ref: ""}, dependency)
-
-		require.IsType(t, config.Dependencies{}, project.GetTestDependencies())
-		require.Equal(t, &config.DependencyImpl{Name: testDependencyName, Ref: "develop"}, testDependency)
 	})
 
 	suite.T().Run("Happy path - convert a string to string array if separated by ,", func(t *testing.T) {
@@ -377,10 +353,6 @@ func (suite *ConfigTestSuite) TestReadConfig() {
 			config.ExpressionImpl{Value: "common"}, config.ExpressionImpl{Value: "utils"}},
 			targetMain.GetExecutableOptions().GetSource())
 
-		require.IsType(t, config.ToolchainImpl{}, targetMain.GetExecutableOptions().GetToolchain())
-		require.Equal(t, config.ToolchainImpl{Name: "someToolchain", Ref: "default"},
-			targetMain.GetExecutableOptions().GetToolchain())
-
 		require.IsType(t, config.Flags{}, targetMain.GetCompileOptions().GetFlags())
 		require.Equal(t, config.Flags{config.ExpressionImpl{Value: "flag2"}, config.ExpressionImpl{Value: "flag4"},
 			config.ExpressionImpl{Value: "flag1"}, config.ExpressionImpl{Value: "flag2"}},
@@ -398,10 +370,6 @@ func (suite *ConfigTestSuite) TestReadConfig() {
 		require.IsType(t, config.Sources{}, testMain.GetExecutableOptions().GetSource())
 		require.Equal(t, config.Sources{config.ExpressionImpl{Value: "test"}, config.ExpressionImpl{Value: "utils"}},
 			testMain.GetExecutableOptions().GetSource())
-
-		require.IsType(t, config.ToolchainImpl{}, testMain.GetExecutableOptions().GetToolchain())
-		require.Equal(t, config.ToolchainImpl{Name: "someToolchain", Ref: "default"},
-			testMain.GetExecutableOptions().GetToolchain())
 
 		require.IsType(t, config.Flags{}, testMain.GetCompileOptions().GetFlags())
 		require.Equal(t, config.Flags{config.ExpressionImpl{Value: "flag2"}, config.ExpressionImpl{Value: "flag4"}},
@@ -553,12 +521,12 @@ func (suite *ConfigTestSuite) TestReadConfig() {
 		dependency := project.GetDependencies()[0]
 		dependencyName, err := dependency.GetName(suite.config)
 		require.NoError(suite.T(), err)
-		require.Equal(suite.T(), "gitlab.com/user/dependency1", dependencyName)
+		require.Equal(suite.T(), "gitlab.com/user/dependency134", dependencyName)
 
 		testDependency := project.GetTestDependencies()[0]
 		testDependencyName, err := testDependency.GetName(suite.config)
 		require.NoError(suite.T(), err)
-		require.Equal(suite.T(), "gitlab.com/user/dependency1", testDependencyName)
+		require.Equal(suite.T(), "gitlab.com/user/dependency134", testDependencyName)
 
 		dep1Ref, err := dependency.GetRef(suite.config)
 		require.NoError(t, err)
@@ -677,6 +645,102 @@ func (suite *ConfigTestSuite) TestReadConfig() {
 		// invalid boolean
 		_, err = project.GetProject().GetPackageOptions().IsHeaderOnly(suite.config)
 		require.Error(t, err)
+	})
+
+	suite.T().Run("Happy path - short hand notation to full struct", func(t *testing.T) {
+		project, warnings, err := config.ReadConfig(configShortHandToFullDir)
+		require.NoError(t, err)
+		require.Equal(t, 0, len(warnings))
+
+		variable1Name := project.GetVariables()[0].GetName()
+		require.Equal(t, "VARIABLE1", variable1Name)
+		variable1Value, err := project.GetVariables()[0].GetValue(suite.config)
+		require.NoError(t, err)
+		require.Equal(t, "One", variable1Value)
+
+		argument1Name := project.GetArguments()[0].GetName()
+		require.Equal(t, "ARGUMENT1", argument1Name)
+		argument1Value, err := project.GetArguments()[0].GetValue(suite.config)
+		require.NoError(t, err)
+		require.Equal(t, "", argument1Value)
+
+		targetMainToolchainName, err := project.GetTargets()[0].GetExecutableOptions().
+			GetToolchain().GetName(suite.config)
+		require.NoError(t, err)
+		require.Equal(t, "github.com/wio-pm/toolchainOne", targetMainToolchainName)
+		targetMainToolchainRef, err := project.GetTargets()[0].GetExecutableOptions().
+			GetToolchain().GetRef(suite.config)
+		require.NoError(t, err)
+		require.Equal(t, "", targetMainToolchainRef)
+
+		targetMain2 := project.GetTargets()[1]
+		targetMain2Name, err := targetMain2.GetName(suite.config)
+		require.NoError(t, err)
+		require.Equal(t, "main2", targetMain2Name)
+		require.Equal(t, nil, targetMain2.GetExecutableOptions())
+		require.Equal(t, 0, len(targetMain2.GetArguments()))
+		require.Equal(t, nil, targetMain2.GetCompileOptions())
+		require.Equal(t, nil, targetMain2.GetLinkerOptions())
+
+		testMainToolchainName, err := project.GetTests()[0].GetExecutableOptions().
+			GetToolchain().GetName(suite.config)
+		require.Equal(t, "github.com/wio-pm/toolchainOne", testMainToolchainName)
+		testMainToolchainRef, err := project.GetTests()[0].GetExecutableOptions().
+			GetToolchain().GetRef(suite.config)
+		require.Equal(t, "test", testMainToolchainRef)
+
+		testMain2 := project.GetTests()[1]
+		testMain2Name, err := testMain2.GetName(suite.config)
+		require.NoError(t, err)
+		require.Equal(t, "main2", testMain2Name)
+		require.Equal(t, 0, len(testMain2.GetTargetArguments()))
+		require.Equal(t, nil, testMain2.GetLinkerOptions())
+		require.Equal(t, nil, testMain2.GetCompileOptions())
+		require.Equal(t, 0, len(testMain2.GetArguments()))
+		require.Equal(t, nil, testMain2.GetExecutableOptions())
+		testMain2TargetName, err := testMain2.GetTargetName(suite.config)
+		require.NoError(t, err)
+		require.Equal(t, "", testMain2TargetName)
+
+		dependency1 := project.GetDependencies()[0]
+		dependency1Name, err := dependency1.GetName(suite.config)
+		require.NoError(t, err)
+		require.Equal(t, "github.com/wio-pm/dependency1", dependency1Name)
+		dependency1Ref, err := dependency1.GetRef(suite.config)
+		require.NoError(t, err)
+		require.Equal(t, "", dependency1Ref)
+		require.Equal(t, nil, dependency1.GetLinkerOptions())
+		require.Equal(t, 0, len(dependency1.GetArguments()))
+
+		dependency2 := project.GetDependencies()[1]
+		dependency2Name, err := dependency2.GetName(suite.config)
+		require.NoError(t, err)
+		require.Equal(t, "github.com/wio-pm/dependency2", dependency2Name)
+		dependency2Ref, err := dependency2.GetRef(suite.config)
+		require.NoError(t, err)
+		require.Equal(t, "develop", dependency2Ref)
+		require.Equal(t, nil, dependency2.GetLinkerOptions())
+		require.Equal(t, 0, len(dependency2.GetArguments()))
+
+		testDependency1 := project.GetTestDependencies()[0]
+		testDependency1Name, err := testDependency1.GetName(suite.config)
+		require.NoError(t, err)
+		require.Equal(t, "github.com/wio-pm/dependency1", testDependency1Name)
+		testDependency1Ref, err := testDependency1.GetRef(suite.config)
+		require.NoError(t, err)
+		require.Equal(t, "", testDependency1Ref)
+		require.Equal(t, nil, testDependency1.GetLinkerOptions())
+		require.Equal(t, 0, len(testDependency1.GetArguments()))
+
+		testDependency2 := project.GetTestDependencies()[1]
+		testDependency2Name, err := testDependency2.GetName(suite.config)
+		require.NoError(t, err)
+		require.Equal(t, "github.com/wio-pm/dependency2", testDependency2Name)
+		testDependency2Ref, err := testDependency2.GetRef(suite.config)
+		require.NoError(t, err)
+		require.Equal(t, "test", testDependency2Ref)
+		require.Equal(t, nil, testDependency2.GetLinkerOptions())
+		require.Equal(t, 0, len(testDependency2.GetArguments()))
 	})
 }
 
@@ -852,8 +916,6 @@ func (suite *ConfigTestSuite) TestCreateConfig() {
 
 		require.Equal(t, constants.PKG, parsedConfig.GetType())
 	})
-
-	// happy path pkg
 }
 
 func TestConfigTestSuite(t *testing.T) {
