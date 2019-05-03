@@ -16,7 +16,7 @@ project:
     type: STATIC
 
 targets:
-  main:
+  - name: main
     arguments: [arg1, arg2]
 `
 
@@ -36,14 +36,14 @@ project:
     type: STATIC
 
 targets:
-  main:
+  - name: main
     arguments: [arg1, arg2]
     compile_options:
       cxx_standard: c++17
       c_standard: c01
     package_options:
       type: SHARED
-  main2:
+  - name: main2
     package_options:
       header_only: false
 `
@@ -61,7 +61,7 @@ project:
     c_standard: c11
 
 targets:
-  main:
+  - name: main
     arguments: [arg1, arg2]
     compile_options:
       flags: [flag3]
@@ -83,7 +83,7 @@ project:
     header_only: false
 
 targets:
-  main:
+  - name: main
     executable_options:
       main_file: src/hello.cpp
     arguments: [arg1, arg2]
@@ -94,7 +94,7 @@ targets:
       type: SHARED
 
 tests:
-  main:
+  - name: main
     executable_options:
       main_file: src/hello
 `
@@ -114,7 +114,7 @@ project:
     header_only: false
 
 targets:
-  main:
+  - name: main
     executable_options:
       main_file: src/hello.cpp
     arguments: [arg1, arg2]
@@ -125,7 +125,7 @@ targets:
       type: SHARED
 
 tests:
-  main:
+  - name: main
     executable_options:
       main_file: src/hello.cpp
 `
@@ -146,9 +146,9 @@ variables: var1=10
 arguments: Debug
 
 targets:
-  main:
+  - name: main
     executable_options:
-      toolchain: someToolchain::default
+      toolchain: github.com/wio-pm/someToolchain@develop
       source: src
     arguments: NOP
     compile_options:
@@ -157,10 +157,12 @@ targets:
     linker_options:
       flags: link1
 
+  - bru
+
 tests:
-  main:
+  - name: main
     executable_options:
-      toolchain: someToolchain::default
+      toolchain: github.com/wio-pm/someToolchain
       source: test
     arguments: NOP
     compile_options:
@@ -170,10 +172,10 @@ tests:
       flags: link1
 
 dependencies:
-  someDep: default
+  - github.com/random/dep
 
 test_dependencies:
-  someDep: default
+  - github.com/random/test_dep@develop
 `
 
 // case 7: convert a string to string array if separated by ,
@@ -192,9 +194,9 @@ variables: var1=10 , var2=20
 arguments: Debug, Holy=5
 
 targets:
-  main:
+  - name: main
     executable_options:
-      toolchain: someToolchain::default
+      toolchain: someToolchain@default
       source: src, common, utils
     arguments: NOP, MOP
     compile_options:
@@ -204,9 +206,9 @@ targets:
       flags: link1, link2
 
 tests:
-  main:
+  - name: main
     executable_options:
-      toolchain: someToolchain::default
+      toolchain: someToolchain@default
       source: test, utils
     arguments: NOP, MOP
     compile_options:
@@ -214,12 +216,6 @@ tests:
       definitions: def2, def4
     linker_options:
       flags: link1, link2
-
-dependencies:
-  someDep: default
-
-test_dependencies:
-  someDep: default
 `
 
 // case 8: random file content
@@ -282,17 +278,17 @@ project:
   description: ${append(var.PROJECT_NAME, " project description")}
 
 targets:
-  main:
+  - name: main
     executable_options:
       source: ${lower("SRC")}
       platform: '${var.PROJECT_NAME == "HilUsage" ? "native" : "windows"}'
-      toolchain: '${arg.DEBUG == false ? "prod" : "debug"}::${arg.DEBUG == false ? "default" : "main"}'
+      toolchain: '${arg.DEBUG == false ? "prod" : "debug"}@${arg.DEBUG == false ? "default" : "main"}'
 
     arguments:
       - DEBUG=false
 
 tests:
-  main:
+  - name: main
     target_name: main
     target_arguments:
       - DEBUG=${lower("TRUE")}
@@ -304,7 +300,7 @@ tests:
       visibility: '${arg.VISIBILITY_CHECK == true ? var.TEST_MAIN_VISIBILITY : "SHARED"}'
 
 dependencies:
-  dependency1:
+  - name: gitlab.com/user/dependency1
     ref: ${var.DEP_ONE_REF}
     arguments:
       - DEBUG=true
@@ -312,7 +308,7 @@ dependencies:
       visibility: ${var.DEP_ONE_VISIBILITY}
 
 test_dependencies:
-  dependency1:
+  - name: gitlab.com/user/dependency1
     ref: ${var.DEP_ONE_REF}
     arguments:
       - DEBUG=true
@@ -351,7 +347,7 @@ project:
   }'
 
 targets:
-  main:
+  - name: main
     executable_options:
       source: '$exec {
         text := import("text")
@@ -385,7 +381,7 @@ project:
     header_only: $exec{out = ${var.PROJECT_NAME}}
 
 tests:
-  main:
+  - name: main
     executable_options:
       source: '$exec {
         text := import("text")
@@ -401,7 +397,7 @@ project:
   version: 0.0.1
 
 targets:
-  main:
+  - name: main
     executable_options:
       source: src
       main_file: %s
@@ -409,7 +405,7 @@ targets:
       toolchain: %s
 
 tests:
-  main:
+  - name: main
     executable_options:
       source: test
       platform: %s
@@ -425,17 +421,100 @@ project:
   version: 0.0.1
 
 targets:
-  main:
+  - name: main
     executable_options:
       source: src
       main_file: %s
       platform: %s
 
 tests:
-  main:
+  - name: main
     executable_options:
       source: test
       platform: %s
 
     target_name: main
+`
+
+var createConfigPkgHeaderOnlyToolchain = `type: pkg
+
+project:
+  name: %s
+  version: 0.0.1
+
+  package_options:
+    header_only: true
+
+targets:
+  - %s
+
+tests:
+  - name: %s
+    executable_options:
+      source: test
+      platform: %s
+      toolchain: %s
+
+    target_name: %s
+`
+
+var createConfigPkgWithoutToolchain = `type: pkg
+
+project:
+  name: %s
+  version: 0.0.1
+
+targets:
+  - %s
+
+tests:
+  - name: %s
+    executable_options:
+      source: test
+      platform: %s
+
+    target_name: %s
+`
+
+var createConfigPkgHeaderOnlyShared = `type: pkg
+
+project:
+  name: %s
+  version: 0.0.1
+
+  package_options:
+    type: SHARED
+    header_only: true
+
+targets:
+  - %s
+
+tests:
+  - name: %s
+    executable_options:
+      source: test
+      platform: %s
+
+    target_name: %s
+`
+
+var createConfigPkgShared = `type: pkg
+
+project:
+  name: %s
+  version: 0.0.1
+
+  package_options:
+    type: SHARED
+
+targets:
+  - %s
+
+tests:
+  - name: %s
+    executable_options:
+      source: test
+      platform: %s
+
+    target_name: %s
 `

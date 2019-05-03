@@ -5,9 +5,9 @@ import (
 	"github.com/hashicorp/hil"
 )
 
-type Dependencies map[string]Dependency
-type Tests map[string]Test
-type Targets map[string]Target
+type Dependencies []Dependency
+type Tests []Test
+type Targets []Target
 type Scripts map[string]Expression
 type Arguments []Argument
 type Variables []Variable
@@ -51,12 +51,14 @@ type PackageOptions interface {
 }
 
 type Dependency interface {
+	GetName(config *hil.EvalConfig) (string, error)
 	GetRef(config *hil.EvalConfig) (string, error)
 	GetArguments() Arguments
 	GetLinkerOptions() LinkerOptions
 }
 
 type Test interface {
+	GetName(config *hil.EvalConfig) (string, error)
 	GetExecutableOptions() ExecutableOptions
 	GetArguments() Arguments
 	GetTargetName(config *hil.EvalConfig) (string, error)
@@ -66,6 +68,7 @@ type Test interface {
 }
 
 type Target interface {
+	GetName(config *hil.EvalConfig) (string, error)
 	GetExecutableOptions() ExecutableOptions
 	GetPackageOptions() PackageOptions
 	GetArguments() Arguments

@@ -33,8 +33,7 @@ func ReadConfig(projectPath string) (ProjectConfig, []string, error) {
 		config.ErrorUnused = true
 		config.DecodeHook = mapstructure.ComposeDecodeHookFunc(
 			config.DecodeHook,
-			dependencyShortFunc(),
-			splitKeyValToMapFunc(),
+			oneLineExpandFunc(),
 			warningHookFunc(projectConfig.Type, updateWarnings),
 		)
 	}); err != nil {

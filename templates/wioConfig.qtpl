@@ -22,7 +22,7 @@ project:
   version: 0.0.1
 
 targets:
-  main:
+  - name: main
     executable_options:
       source: src
       main_file: {%s= creation.MainFile %}
@@ -32,7 +32,7 @@ targets:
       toolchain: {% space %} {%s= creation.Toolchain %} {% newline %}
 {% endif %} {% endstripspace %}
 tests:
-  main:
+  - name: main
     executable_options:
       source: test
       platform: {%s= creation.Platform %}
@@ -50,18 +50,22 @@ type: pkg {% endstripspace %}
 project:
   name: {%s= creation.ProjectName %}
   version: 0.0.1
-
+{% if strings.TrimSpace(creation.PkgType) != "" || creation.HeaderOnly %}
   package_options:
-    type: {%s creation.PkgType %}
-{% if creation.HeaderOnly %}{% stripspace %}
+{% stripspace %}{% if strings.TrimSpace(creation.PkgType) != "" %}
+{% space %}{% space %}{% space %}{% space %}
+    type: {% space %} {%s creation.PkgType %} {% newline %}
+{% endif %}
+{% if creation.HeaderOnly %}
 {% space %}{% space %}{% space %}{% space %}
     header_only: {% space %} {%v creation.HeaderOnly %} {% newline %}
-{% endif %} {% endstripspace %}
+{% endif %}
+{% endif %}{% endstripspace %}
 targets:
-  {%s= creation.ProjectName %}:
+  - {%s= creation.ProjectName %}
 
 tests:
-  {%s= creation.ProjectName %}:
+  - name: {%s= creation.ProjectName %}
     executable_options:
       source: test
       platform: {%s= creation.Platform %}

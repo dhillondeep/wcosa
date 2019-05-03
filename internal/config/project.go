@@ -115,9 +115,14 @@ func (compileOptionsImpl CompileOptionsImpl) GetCStandard(config *hil.EvalConfig
 // //////////////////////
 
 type DependencyImpl struct {
+	Name          string            `mapstructure:"name"`
 	Ref           string            `mapstructure:"ref"`
 	Arguments     []ArgumentImpl    `mapstructure:"arguments"`
 	LinkerOptions LinkerOptionsImpl `mapstructure:"linker_options"`
+}
+
+func (dependencyImpl DependencyImpl) GetName(config *hil.EvalConfig) (string, error) {
+	return applyEvaluator(dependencyImpl.Name, config)
 }
 
 func (dependencyImpl DependencyImpl) GetRef(config *hil.EvalConfig) (string, error) {
@@ -259,11 +264,16 @@ func (executableOptionsImpl ExecutableOptionsImpl) GetToolchain() Toolchain {
 // //////////////////////
 
 type TargetImpl struct {
+	Name              string                 `mastructure:"name"`
 	ExecutableOptions *ExecutableOptionsImpl `mapstructure:"executable_options"` // app only
 	PackageOptions    *PackageOptionsImpl    `mapstructure:"package_options"`    // pkg only
 	Arguments         []ArgumentImpl         `mapstructure:"arguments"`
 	CompileOptions    *CompileOptionsImpl    `mapstructure:"compile_options"`
 	LinkerOptions     LinkerOptionsImpl      `mapstructure:"linker_options"`
+}
+
+func (targetImpl TargetImpl) GetName(config *hil.EvalConfig) (string, error) {
+	return applyEvaluator(targetImpl.Name, config)
 }
 
 func (targetImpl TargetImpl) GetExecutableOptions() ExecutableOptions {
@@ -302,12 +312,17 @@ func (targetImpl TargetImpl) GetLinkerOptions() LinkerOptions {
 // //////////////////////
 
 type TestImpl struct {
+	Name              string                `mastructure:"name"`
 	ExecutableOptions ExecutableOptionsImpl `mapstructure:"executable_options"`
 	Arguments         []ArgumentImpl        `mapstructure:"arguments"`
 	TargetName        string                `mapstructure:"target_name"`
 	TargetArguments   []ArgumentImpl        `mapstructure:"target_arguments"`
 	CompileOptions    CompileOptionsImpl    `mapstructure:"compile_options"`
 	LinkerOptions     LinkerOptionsImpl     `mapstructure:"linker_options"`
+}
+
+func (testImpl TestImpl) GetName(config *hil.EvalConfig) (string, error) {
+	return applyEvaluator(testImpl.Name, config)
 }
 
 func (testImpl TestImpl) GetExecutableOptions() ExecutableOptions {
@@ -345,15 +360,15 @@ func (testImpl TestImpl) GetLinkerOptions() LinkerOptions {
 // //////////////////////
 
 type projectConfigImpl struct {
-	Type             string                     `mapstructure:"type"`
-	Project          ProjectImpl                `mapstructure:"project"`
-	Variables        []VariableImpl             `mapstructure:"variables"`
-	Arguments        []ArgumentImpl             `mapstructure:"arguments"`
-	Scripts          map[string]string          `mapstructure:"scripts"`
-	Targets          map[string]*TargetImpl     `mapstructure:"targets"`
-	Tests            map[string]*TestImpl       `mapstructure:"tests"`
-	Dependencies     map[string]*DependencyImpl `mapstructure:"dependencies"`
-	TestDependencies map[string]*DependencyImpl `mapstructure:"test_dependencies"`
+	Type             string            `mapstructure:"type"`
+	Project          ProjectImpl       `mapstructure:"project"`
+	Variables        []VariableImpl    `mapstructure:"variables"`
+	Arguments        []ArgumentImpl    `mapstructure:"arguments"`
+	Scripts          map[string]string `mapstructure:"scripts"`
+	Targets          []*TargetImpl     `mapstructure:"targets"`
+	Tests            []*TestImpl       `mapstructure:"tests"`
+	Dependencies     []*DependencyImpl `mapstructure:"dependencies"`
+	TestDependencies []*DependencyImpl `mapstructure:"test_dependencies"`
 }
 
 func (projectConfigImpl *projectConfigImpl) GetType() string {
@@ -396,32 +411,32 @@ func (projectConfigImpl *projectConfigImpl) GetScripts() Scripts {
 
 func (projectConfigImpl *projectConfigImpl) GetTargets() Targets {
 	targets := Targets{}
-	for name, value := range projectConfigImpl.Targets {
-		targets[name] = value
+	for _, target := range projectConfigImpl.Targets {
+		targets = append(targets, target)
 	}
 	return targets
 }
 
 func (projectConfigImpl *projectConfigImpl) GetTests() Tests {
 	tests := Tests{}
-	for name, value := range projectConfigImpl.Tests {
-		tests[name] = value
+	for _, test := range projectConfigImpl.Tests {
+		tests = append(tests, test)
 	}
 	return tests
 }
 
 func (projectConfigImpl *projectConfigImpl) GetDependencies() Dependencies {
 	dependencies := Dependencies{}
-	for name, value := range projectConfigImpl.Dependencies {
-		dependencies[name] = value
+	for _, dependency := range projectConfigImpl.Dependencies {
+		dependencies = append(dependencies, dependency)
 	}
 	return dependencies
 }
 
 func (projectConfigImpl *projectConfigImpl) GetTestDependencies() Dependencies {
 	dependencies := Dependencies{}
-	for name, value := range projectConfigImpl.TestDependencies {
-		dependencies[name] = value
+	for _, dependency := range projectConfigImpl.TestDependencies {
+		dependencies = append(dependencies, dependency)
 	}
 	return dependencies
 }
