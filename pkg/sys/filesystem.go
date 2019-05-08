@@ -2,7 +2,6 @@ package sys
 
 import (
 	"errors"
-	"io"
 	"io/ioutil"
 	"os"
 	"path/filepath"
@@ -11,33 +10,6 @@ import (
 )
 
 var fs = afero.NewOsFs()
-
-////////////// Dependency injection for testing ////////////////
-var fsCreate = func(name string) (afero.File, error) {
-	return fs.Create(name)
-}
-
-var ioCopy = func(dest io.Writer, src io.Reader) (int64, error) {
-	return io.Copy(dest, src)
-}
-
-var fileSync = func(file afero.File) error {
-	return file.Sync()
-}
-
-var aferoReadDir = func(fs afero.Fs, dirname string) ([]os.FileInfo, error) {
-	return afero.ReadDir(fs, dirname)
-}
-
-var fsMkdirAll = func(path string, perm os.FileMode) error {
-	return fs.MkdirAll(path, perm)
-}
-
-var fsRemoveAll = func(dst string) error {
-	return fs.RemoveAll(dst)
-}
-
-//////////////////////////////////////////////////////////////
 
 // SetFileSystem set filesystem used inside the application
 func SetFileSystem(givenFs afero.Fs) {

@@ -1,6 +1,12 @@
 package constants
 
 const (
+	WINDOWS = "windows"
+	DARWIN  = "darwin"
+	LINUX   = "linux"
+)
+
+const (
 	ARG = "arg"
 	VAR = "var"
 )

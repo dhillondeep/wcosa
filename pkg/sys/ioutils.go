@@ -9,44 +9,36 @@ package sys
 import (
 	"bytes"
 	"os"
-	"path"
 	"path/filepath"
 	"runtime"
 	"strings"
-)
-
-const (
-	WINDOWS = "windows"
-	DARWIN  = "darwin"
-	LINUX   = "linux"
 )
 
 var sep = string(filepath.Separator)
 
 // GetRoot returns root folder where the executable is located
 func GetRoot() (string, error) {
-	ex, err := os.Executable()
+	ex, err := osExecutable()
 	if err != nil {
 		return "", err
 	}
 
-	fileInfo, err := os.Lstat(ex)
+	fileInfo, err := osLstat(ex)
 	if err != nil {
 		return "", err
 	}
 
 	if fileInfo.Mode()&os.ModeSymlink != 0 {
-		newPath, err := os.Readlink(ex)
+		newPath, err := osReadlink(ex)
 		if err != nil {
-			return "", nil
+			return "", err
 		}
 
 		newPath = filepath.Dir(newPath)
 
 		// check if the path is relative
 		if !filepath.IsAbs(newPath) {
-			oldPath := filepath.Dir(ex)
-			ex, err = filepath.Abs(path.Join(oldPath, newPath))
+			ex, err = filepathAbs(filepath.Join(filepath.Dir(ex), newPath))
 			if err != nil {
 				return "", err
 			}
@@ -62,15 +54,7 @@ func GetRoot() (string, error) {
 
 // GetOS returns operating system from three types (windows, darwin, and linux)
 func GetOS() string {
-	goos := runtime.GOOS
-
-	if goos == "windows" {
-		return WINDOWS
-	} else if goos == "darwin" {
-		return DARWIN
-	} else {
-		return LINUX
-	}
+	return runtime.GOOS
 }
 
 // GetArch returns architecture
@@ -84,20 +68,24 @@ func Exists(path string) bool {
 	return err == nil
 }
 
-// GetSeparator returns separator based on the OS
-func GetSeparator() string {
+// GetSep returns separator based on the OS
+func GetSep() string {
 	return sep
 }
 
-// JoinPaths joins paths provided using operating system specific seperator
+// JoinPaths joins paths provided using operating system specific separator
 func JoinPaths(values ...string) string {
-	var buffer bytes.Buffer
-	for _, value := range values {
-		buffer.WriteString(value)
-		buffer.WriteString(GetSeparator())
+	if len(values) > 0 {
+		var buffer bytes.Buffer
+		for _, value := range values {
+			buffer.WriteString(value)
+			buffer.WriteString(GetSep())
+		}
+		pth := buffer.String()
+		return filepath.Clean(pth[:len(pth)-1])
+	} else {
+		return ""
 	}
-	pth := buffer.String()
-	return filepath.Clean(pth[:len(pth)-1])
 }
 
 // IsDir checks if the given path is a directory. If path does not exist, error is thrown

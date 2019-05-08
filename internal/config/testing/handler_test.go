@@ -44,51 +44,51 @@ func (suite *ConfigTestSuite) SetupTest() {
 	suite.config = hillang.GetDefaultEvalConfig()
 
 	// save configs
-	err := sys.WriteFile(noScopeValuesDir+sys.GetSeparator()+constants.WioConfigFile, []byte(noScopeValues))
+	err := sys.WriteFile(noScopeValuesDir+sys.GetSep()+constants.WioConfigFile, []byte(noScopeValues))
 	require.NoError(suite.T(), err)
 
-	err = sys.WriteFile(someScopeValuesDir+sys.GetSeparator()+constants.WioConfigFile, []byte(someScopeValues))
+	err = sys.WriteFile(someScopeValuesDir+sys.GetSep()+constants.WioConfigFile, []byte(someScopeValues))
 	require.NoError(suite.T(), err)
 
-	err = sys.WriteFile(arrayValuesProvidedDir+sys.GetSeparator()+constants.WioConfigFile, []byte(arrayValuesProvided))
+	err = sys.WriteFile(arrayValuesProvidedDir+sys.GetSep()+constants.WioConfigFile, []byte(arrayValuesProvided))
 	require.NoError(suite.T(), err)
 
-	err = sys.WriteFile(appConfigWarningsDir+sys.GetSeparator()+constants.WioConfigFile, []byte(appConfigWarnings))
+	err = sys.WriteFile(appConfigWarningsDir+sys.GetSep()+constants.WioConfigFile, []byte(appConfigWarnings))
 	require.NoError(suite.T(), err)
 
-	err = sys.WriteFile(pkgConfigWarningsDir+sys.GetSeparator()+constants.WioConfigFile, []byte(pkgConfigWarnings))
+	err = sys.WriteFile(pkgConfigWarningsDir+sys.GetSep()+constants.WioConfigFile, []byte(pkgConfigWarnings))
 	require.NoError(suite.T(), err)
 
-	err = sys.WriteFile(stringToSliceFieldsDir+sys.GetSeparator()+constants.WioConfigFile, []byte(stringToSliceFields))
+	err = sys.WriteFile(stringToSliceFieldsDir+sys.GetSep()+constants.WioConfigFile, []byte(stringToSliceFields))
 	require.NoError(suite.T(), err)
 
-	err = sys.WriteFile(stringToSliceFieldsCommasDir+sys.GetSeparator()+constants.WioConfigFile,
+	err = sys.WriteFile(stringToSliceFieldsCommasDir+sys.GetSep()+constants.WioConfigFile,
 		[]byte(stringToSliceFieldsCommas))
 	require.NoError(suite.T(), err)
 
-	err = sys.WriteFile(randomFileContentDir+sys.GetSeparator()+constants.WioConfigFile, []byte(randomFileContent))
+	err = sys.WriteFile(randomFileContentDir+sys.GetSep()+constants.WioConfigFile, []byte(randomFileContent))
 	require.NoError(suite.T(), err)
 
-	err = sys.WriteFile(invalidSchemaDir+sys.GetSeparator()+constants.WioConfigFile, []byte(invalidSchema))
+	err = sys.WriteFile(invalidSchemaDir+sys.GetSep()+constants.WioConfigFile, []byte(invalidSchema))
 	require.NoError(suite.T(), err)
 
-	err = sys.WriteFile(unsupportedTagDir+sys.GetSeparator()+constants.WioConfigFile, []byte(unsupportedTag))
+	err = sys.WriteFile(unsupportedTagDir+sys.GetSep()+constants.WioConfigFile, []byte(unsupportedTag))
 	require.NoError(suite.T(), err)
 
-	err = sys.WriteFile(hilUsageDir+sys.GetSeparator()+constants.WioConfigFile, []byte(hilUsage))
+	err = sys.WriteFile(hilUsageDir+sys.GetSep()+constants.WioConfigFile, []byte(hilUsage))
 	require.NoError(suite.T(), err)
 
-	err = sys.WriteFile(invalidHilUsageDir+sys.GetSeparator()+constants.WioConfigFile, []byte(invalidHilUsage))
+	err = sys.WriteFile(invalidHilUsageDir+sys.GetSep()+constants.WioConfigFile, []byte(invalidHilUsage))
 	require.NoError(suite.T(), err)
 
-	err = sys.WriteFile(configScriptExecDir+sys.GetSeparator()+constants.WioConfigFile, []byte(configScriptExec))
+	err = sys.WriteFile(configScriptExecDir+sys.GetSep()+constants.WioConfigFile, []byte(configScriptExec))
 	require.NoError(suite.T(), err)
 
-	err = sys.WriteFile(configScriptExecInvalidDir+sys.GetSeparator()+constants.WioConfigFile,
+	err = sys.WriteFile(configScriptExecInvalidDir+sys.GetSep()+constants.WioConfigFile,
 		[]byte(configScriptExecInvalid))
 	require.NoError(suite.T(), err)
 
-	err = sys.WriteFile(configShortHandToFullDir+sys.GetSeparator()+constants.WioConfigFile,
+	err = sys.WriteFile(configShortHandToFullDir+sys.GetSep()+constants.WioConfigFile,
 		[]byte(configShortHandToFull))
 	require.NoError(suite.T(), err)
 }
