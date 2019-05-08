@@ -1,0 +1,12 @@
+<component name="ProjectRunConfigurationManager">
+  <configuration default="false" name="go test wio" type="GoTestRunConfiguration" factoryName="Go Test" nameIsGenerated="true">
+    <module name="wio" />
+    <working_directory value="$PROJECT_DIR$" />
+    <parameters value="-tags test" />
+    <framework value="gotest" />
+    <kind value="DIRECTORY" />
+    <package value="wio" />
+    <directory value="$PROJECT_DIR$" />
+    <method v="2" />
+  </configuration>
+</component>
