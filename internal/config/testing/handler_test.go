@@ -2,9 +2,9 @@ package testing
 
 import (
 	"fmt"
+	"github.com/dhillondeep/afero"
 	"github.com/hashicorp/go-version"
 	"github.com/hashicorp/hil"
-	"github.com/spf13/afero"
 	"github.com/stretchr/testify/require"
 	"github.com/stretchr/testify/suite"
 	"testing"
