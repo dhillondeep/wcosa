@@ -1,49 +1,23 @@
 # Development Setup
 
-## Building Wio with Your Changes
+Wio is developed using go and version being used is 1.12.  Wio uses [task](https://github.com/go-task/task) 
+to build the project. You will need to have this installed. Installing instructions for this tool can be 
+found on https://taskfile.dev/#/installation
 
-Wio uses [mage](https://github.com/magefile/mage) to sync vendor dependencies, build Wio, and other things. You must run mage from the Wio directory.
-
-Install mage
+#### Building wio
 ```bash
-go get github.com/magefile/mage
+task templateGen
+task build
 ```
 
-To build wio
+#### Testing
+Currently there are only unit tests that can be run
 ```bash
-mage build
+task templateGen
+task unitTest
 ```
 
-Wio binary is created inside the `bin` fodler of your root directory. You can source `wenv` for unix based systems and `env.bat` or `env.ps1` for windows.
-This will add the binary to the path.
-
-To build wio
-```bash
-mage build
-```
-
-To clean build files
-```bash
-mage clean
-```
-
-To install dependencies
-```bash
-mage install
-```
-
-Currently the script only runs tests on `bash` based systems. To run the tests:
-```bash
-wmake test
-```
-
-To list all available commands along with descriptions:
-```bash
-mage -l
-```
-
-
-### Installing Go
-
-Wio development should be done on Go version 1.11
-
+## Adding features and fixes
+In order to create a feature, you will need to create new branch explaining the feature. The code inside the branch
+should have full test coverage. Then PR can be made against `develop-1.0.0` branch. After all the tests have been
+passed, code will be merged.
