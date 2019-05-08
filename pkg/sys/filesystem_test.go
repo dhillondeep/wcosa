@@ -715,43 +715,84 @@ func TestWriteFile(t *testing.T) {
 
 	fs := GetFileSystem()
 
-	data := []byte("Hello World")
+	t.Run("Happy path - file does not exist so it get's created", func(t *testing.T) {
+		data := []byte("Hello World")
 
-	// file does not exist
-	err := WriteFile("newFile.txt", data)
-	require.NoError(t, err)
+		err := WriteFile("newFile.txt", data)
+		require.NoError(t, err)
 
-	newFile, err := fs.Open("newFile.txt")
-	require.NoError(t, err)
-	defer func() {
-		require.NoError(t, newFile.Close())
-	}()
+		newFile, err := fs.Open("newFile.txt")
+		require.NoError(t, err)
+		defer func() {
+			require.NoError(t, newFile.Close())
+		}()
 
-	newFileData := make([]byte, len(data))
-	require.NoError(t, err)
-	_, err = newFile.Read(newFileData)
+		newFileData := make([]byte, len(data))
+		require.NoError(t, err)
+		_, err = newFile.Read(newFileData)
 
-	require.Equal(t, data, newFileData)
+		require.Equal(t, data, newFileData)
+	})
 
-	// file already exists
-	data = []byte("Hello World Updated")
+	t.Run("Happy path - file exists so it get's overiden", func(t *testing.T) {
+		data := []byte("Hello World Updated")
 
-	err = WriteFile("newFile.txt", data)
-	require.NoError(t, err)
+		err := WriteFile("newFile.txt", data)
+		require.NoError(t, err)
 
-	newFileOverride, err := fs.Open("newFile.txt")
-	require.NoError(t, err)
-	defer func() {
-		require.NoError(t, newFileOverride.Close())
-	}()
+		newFileOverride, err := fs.Open("newFile.txt")
+		require.NoError(t, err)
+		defer func() {
+			require.NoError(t, newFileOverride.Close())
+		}()
 
-	newFileOverrideData := make([]byte, len(data))
-	require.NoError(t, err)
-	_, err = newFileOverride.Read(newFileOverrideData)
+		newFileOverrideData := make([]byte, len(data))
+		require.NoError(t, err)
+		_, err = newFileOverride.Read(newFileOverrideData)
 
-	require.Equal(t, data, newFileOverrideData)
+		require.Equal(t, data, newFileOverrideData)
+	})
+
+	t.Run("Error - fs create error", func(t *testing.T) {
+		oldFsCreate := fsCreate
+		defer func() {
+			fsCreate = oldFsCreate
+		}()
+		fsCreate = func(name string) (file afero.File, e error) {
+			return nil, errors.New("some Error")
+		}
+
+		err := WriteFile("newFile.txt", []byte("yay"))
+		require.Error(t, err)
+	})
 }
 
 func TestReadFile(t *testing.T) {
+	SetFileSystem(afero.NewMemMapFs())
+
+	fs := GetFileSystem()
+
+	data := []byte("Hello World")
+
+	t.Run("Happy path - file is read and data matches", func(t *testing.T) {
+		file1, err := fs.Create("/file1.txt")
+		require.NoError(t, err)
+		defer func() {
+			require.NoError(t, file1.Close())
+		}()
+
+		_, err = file1.Write(data)
+		require.NoError(t, err)
+
+		read, err := ReadFile("/file1.txt")
+		require.NoError(t, err)
+
+		require.Equal(t, data, read)
+	})
+
+	t.Run("Error - file does not exist", func(t *testing.T) {
+		_, err := ReadFile("newFile.txt")
+		require.Error(t, err)
+	})
 
 }

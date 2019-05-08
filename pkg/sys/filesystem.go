@@ -60,17 +60,13 @@ func CopyFile(source, destination string, override bool) (err error) {
 	if err != nil {
 		return err
 	}
-	defer func() {
-		err = srcFile.Close()
-	}()
+	defer srcFile.Close()
 
 	destFile, err := fsCreate(destination) // creates if file doesn't exist
 	if err != nil {
 		return err
 	}
-	defer func() {
-		err = destFile.Close()
-	}()
+	defer destFile.Close()
 
 	_, err = ioCopy(destFile, srcFile) // check first var for number of bytes copied
 	if err != nil {
@@ -134,23 +130,19 @@ func ReadFile(fileName string) (data []byte, err error) {
 	if err != nil {
 		return nil, err
 	}
-	defer func() {
-		err = file.Close()
-	}()
+	defer file.Close()
 
 	return ioutil.ReadAll(file)
 }
 
 // WriteFile writes text to a file on normal filesystem
 func WriteFile(fileName string, data []byte) (err error) {
-	f, err := fs.Create(fileName)
+	f, err := fsCreate(fileName)
 	if err != nil {
 		return err
 	}
 
-	defer func() {
-		err = f.Close()
-	}()
+	defer f.Close()
 
 	_, err = f.Write(data)
 	return
