@@ -38,7 +38,7 @@ func WriteJson(fileName string, in interface{}) error {
 
 // WriteYaml writes yaml data to a file on filesystem
 func WriteYaml(fileName string, in interface{}) error {
-	data, err := yaml.Marshal(in)
+	data, err := yamlMarshal(in)
 	if err != nil {
 		return err
 	}

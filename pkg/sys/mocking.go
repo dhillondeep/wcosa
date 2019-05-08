@@ -2,6 +2,7 @@ package sys
 
 import (
 	"github.com/dhillondeep/afero"
+	"gopkg.in/yaml.v2"
 	"io"
 	"os"
 	"path/filepath"
@@ -46,4 +47,8 @@ var osReadlink = func(name string) (string, error) {
 
 var filepathAbs = func(path string) (string, error) {
 	return filepath.Abs(path)
+}
+
+var yamlMarshal = func(in interface{}) (out []byte, err error) {
+	return yaml.Marshal(in)
 }
