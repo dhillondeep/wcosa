@@ -1,0 +1,48 @@
+version: '2'
+
+vars:
+  EXECNAME: "wio"
+
+env:
+  GO111MODULE: on
+
+tasks:
+  build:
+    dir: cmd/wio
+    cmds:
+      - go build "-ldflags=-s -w" -o ../../bin/{{.EXECNAME}} -v
+    silent: true
+
+  setup:
+    cmds:
+      - '{{if eq OS "windows"}} go get -u golang.org/x/sys/windows{{else}} go get -u golang.org/x/sys/unix {{end}}'
+      - go get -u github.com/valyala/quicktemplate/qtc
+      - go get -u golang.org/x/lint/golint
+    silent: true
+
+  templateGen:
+    dir: templates
+    cmd:
+      - qtc
+
+  unitTest:
+    cmds:
+      - go test -v ./... -tags test
+
+  travisUnitTest:
+    cmds:
+      - task: templateGen
+      - go test -v ./... -covermode=count -coverprofile=coverage.out
+
+  format:
+    cmds:
+      - go fmt ./...
+
+  clean:
+    cmds:
+      - go clean
+
+  lint:
+    cmds:
+      - golint cmd/... internal/... pkg/...
+

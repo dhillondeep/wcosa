@@ -9,18 +9,18 @@ env:
 
 go_import_path: wio
 
-before_install:
-  - source wenv
-  - sudo apt-get update
-  - sudo apt-get install gcc-avr avr-libc avrdude
-  - sudo apt-get install libboost-system-dev libboost-thread-dev libboost-coroutine-dev
-  - go get github.com/magefile/mage
 install:
-  - mage setup
+  - curl -sL https://taskfile.dev/install.sh | sh
+  - go get golang.org/x/tools/cmd/cover
+  - go get github.com/mattn/goveralls
 
-script:
-  - mage build
-  - mage fmtLint
-  - go env
-  - go test -v ./...
-  - mage test
+jobs:
+  include:
+    - stage: unitTest
+      script:
+        - task travisUnitTest
+        - goveralls -coverprofile=coverage.out -service=travis-ci -repotoken $COVERALLS_TOKEN
+    - stage: build
+      script:
+        - task templateGen
+        - task build
