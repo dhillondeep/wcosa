@@ -2,6 +2,7 @@ package resolve
 
 import (
 	"fmt"
+	"github.com/hashicorp/go-getter"
 	"os"
 	"strings"
 	"wio/internal/constants"
@@ -12,7 +13,6 @@ import (
 	"wio/pkg/util/sys"
 
 	s "github.com/blang/semver"
-	"github.com/hashicorp/go-getter"
 )
 
 const (
@@ -132,7 +132,7 @@ func (i *Info) createNodesAndFetch(deps map[string]types.Dependency, root *Node,
 
 	for name, dep := range deps {
 		if dep == nil {
-			return util.Error("%s dependency cannot be empty")
+			return util.Error("%s dependency cannot be empty", name)
 		}
 
 		// custom url is not provided
