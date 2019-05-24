@@ -50,7 +50,7 @@ type DependencyUrl interface {
 }
 
 type Dependency interface {
-	GetUrl()  DependencyUrl
+	GetUrl() DependencyUrl
 	IsVendor() bool
 	GetVersion() string
 	GetOsSupported() []string
