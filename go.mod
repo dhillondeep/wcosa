@@ -2,7 +2,6 @@ module wio
 
 require (
 	github.com/blang/semver v3.5.1+incompatible
-	github.com/cheggaaa/pb v1.0.27
 	github.com/creack/goselect v0.0.0-20180501195510-58854f77ee8d // indirect
 	github.com/dsnet/compress v0.0.0-20171208185109-cc9eb1d7ad76 // indirect
 	github.com/fatih/color v1.7.0

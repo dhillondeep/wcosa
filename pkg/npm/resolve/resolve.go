@@ -54,7 +54,7 @@ func (i *Info) customUrlResolve(name string, dep types.Dependency, customPath st
 
 	dst := sys.Path(customPath, name) + "__" + givenVer.String()
 	subDir := "/"
-	
+
 	if install && !sys.Exists(dst) {
 		// add options to the source url
 		url := dep.GetUrl().GetName()

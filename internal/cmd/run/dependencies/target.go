@@ -67,12 +67,12 @@ func (targetSet *TargetSet) Add(value *Target, isLibrary bool) {
 		if val, exists := targetSet.nameMap[value.Name]; exists {
 			*val += 1
 			namePostfix = *val
+			value.Name += "__" + strconv.Itoa(namePostfix)
 		} else {
 			namePostfix = 0
 			targetSet.nameMap[value.Name] = &namePostfix
 		}
 
-		value.Name += "__" + strconv.Itoa(namePostfix)
 		if isLibrary {
 			value.Name = "LIB__" + value.Name
 		}
