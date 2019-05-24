@@ -11,12 +11,14 @@ require (
 	github.com/joho/godotenv v1.3.0
 	github.com/magefile/mage v1.4.0
 	github.com/mattn/go-colorable v0.1.0
+	github.com/mattn/go-isatty v0.0.8 // indirect
 	github.com/mholt/archiver v3.1.1+incompatible
 	github.com/mitchellh/go-homedir v1.0.0
 	github.com/nwaples/rardecode v1.0.0 // indirect
 	github.com/pierrec/lz4 v2.0.5+incompatible // indirect
 	github.com/stretchr/testify v1.3.0
 	github.com/thoas/go-funk v0.0.0-20181020164546-fbae87fb5b5c
+	github.com/ulikunitz/xz v0.5.6 // indirect
 	github.com/urfave/cli v1.20.0
 	github.com/xi2/xz v0.0.0-20171230120015-48954b6210f8 // indirect
 	go.bug.st/serial.v1 v0.0.0-20180827123349-5f7892a7bb45
