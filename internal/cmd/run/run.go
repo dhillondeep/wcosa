@@ -229,7 +229,8 @@ func configureTargetsBuildFiles(info *runInfo, targets []types.Target) ([]string
 				return nil, err
 			}
 		} else {
-			log.Infoln(log.Cyan, "Build files up to date for target %s", target.GetName())
+			log.Info(log.Cyan, "Build files up to date for target ")
+			log.Infoln(log.Green, "%s", target.GetName())
 		}
 
 		targetDir := targetPath(info, target)

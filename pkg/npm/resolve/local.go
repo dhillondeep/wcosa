@@ -1,7 +1,7 @@
 package resolve
 
 import (
-	"io/ioutil"
+	"path/filepath"
 	"wio/internal/constants"
 	"wio/internal/types"
 	"wio/pkg/util"
@@ -12,21 +12,25 @@ func findLocalConfigs(root string) ([]string, error) {
 	paths := []string{
 		sys.Path(root, sys.Vendor),
 		sys.Path(root, sys.WioFolder, sys.Modules),
+		sys.Path(root, sys.WioFolder, sys.Modules, sys.Custom),
 	}
 	var ret []string
 	for _, path := range paths {
-		if !sys.Exists(path) {
-			continue
-		}
-		infos, err := ioutil.ReadDir(path)
+		matches, err := filepath.Glob(path)
 		if err != nil {
 			return nil, err
 		}
-		for _, info := range infos {
-			if !info.IsDir() {
+
+		for _, match := range matches {
+			status, err := util.IsDir(match)
+			if err != nil {
+				return nil, err
+			}
+
+			if !status {
 				continue
 			}
-			dir := sys.Path(path, info.Name())
+			dir := sys.Path(match)
 			if sys.Exists(sys.Path(dir, sys.Config)) {
 				ret = append(ret, dir)
 			}

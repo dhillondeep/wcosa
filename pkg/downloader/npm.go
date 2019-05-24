@@ -66,7 +66,7 @@ func (npmDownloaded NpmDownloader) DownloadModule(path, name, version string, re
 
 	node := &resolve.Node{Name: name, ConfigVersion: version}
 
-	if err = info.ResolveTree(node); err != nil {
+	if err = info.ResolveTree(node, true); err != nil {
 		return "", err
 	}
 

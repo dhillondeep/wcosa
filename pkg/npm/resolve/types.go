@@ -37,6 +37,7 @@ type Node struct {
 	ResolvedVersion *s.Version
 	Dependencies    []*Node
 	Vendor          bool
+	CustomUrl       bool
 }
 
 type Package struct {
@@ -119,7 +120,7 @@ func (i *Info) GetData(name string) (*npm.Data, error) {
 	return ret, nil
 }
 
-func (i *Info) GetVersion(name, ver string, vendor bool) (*npm.Version, error) {
+func (i *Info) GetVersion(name, ver string) (*npm.Version, error) {
 	if ret := i.getVer(name, ver); ret != nil {
 		return ret, nil
 	}
@@ -135,8 +136,6 @@ func (i *Info) GetVersion(name, ver string, vendor bool) (*npm.Version, error) {
 	} else if ret != nil {
 		i.setVer(name, ver, ret)
 		return ret, nil
-	} else if vendor {
-		return nil, util.Error("vendor package %s@%s not found", name, ver)
 	}
 
 	ret, err = client.FetchPackageVersion(name, ver)

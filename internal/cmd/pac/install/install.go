@@ -39,7 +39,7 @@ func (c Cmd) Execute() error {
 		}
 	}
 
-	if err := c.info.ResolveRemote(c.config); err != nil {
+	if err := c.info.ResolveRemote(c.config, true); err != nil {
 		return err
 	}
 	return c.info.InstallResolved()

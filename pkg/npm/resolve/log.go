@@ -33,7 +33,12 @@ func logResolveDone(root *Node) {
 }
 
 func printTree(node *Node, pre string) {
-	log.Infoln(log.Green, "%s@%s", node.Name, node.ResolvedVersion.String())
+	version := node.ConfigVersion
+	if !node.CustomUrl {
+		version = node.ResolvedVersion.String()
+	}
+
+	log.Infoln(log.Green, "%s@%s", node.Name, version)
 	for i := 0; i < len(node.Dependencies)-1; i++ {
 		log.Info("%s|_ ", pre)
 		printTree(node.Dependencies[i], pre+"|  ")

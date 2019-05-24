@@ -24,6 +24,7 @@ const (
 	Config     = "wio.yml"
 	Modules    = "packages"
 	Vendor     = "vendor"
+	Custom     = "custom"
 	Download   = "cache"
 	TargetDir  = "targets"
 	BinDir     = "bin"

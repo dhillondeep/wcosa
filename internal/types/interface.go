@@ -43,7 +43,14 @@ type Library interface {
 	GetLinkerFlags() []string
 }
 
+type DependencyUrl interface {
+	GetName() string
+	GetDir() string
+	GetOptions() map[string]string
+}
+
 type Dependency interface {
+	GetUrl()  DependencyUrl
 	IsVendor() bool
 	GetVersion() string
 	GetOsSupported() []string

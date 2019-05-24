@@ -164,14 +164,40 @@ func (l *LibraryImpl) GetLinkerFlags() []string {
 	return l.LinkerFlags
 }
 
+type DependencyUrlImpl struct {
+	Name    string            `yaml:"name,omitempty"`
+	Dir     string            `yaml:"dir,omitempty"`
+	Options map[string]string `yaml:"options,omitempty"`
+}
+
+func (d *DependencyUrlImpl) GetName() string {
+	return d.Name
+}
+
+func (d *DependencyUrlImpl) GetDir() string {
+	return d.Dir
+}
+
+func (d *DependencyUrlImpl) GetOptions() map[string]string {
+	return d.Options
+}
+
 type DependencyImpl struct {
-	Vendor       bool     `yaml:"vendor,omitempty"`
-	Version      string   `yaml:"version"`
-	OsSupported  []string `yaml:"os_supported,omitempty"`
-	Visibility   string   `yaml:"link_visibility,omitempty"`
-	LinkerFlags  []string `yaml:"linker_flags,omitempty"`
-	CompileFlags []string `yaml:"compile_flags,omitempty"`
-	Definitions  []string `yaml:"definitions,omitempty"`
+	Url          *DependencyUrlImpl `yaml:"url,omitempty"`
+	Vendor       bool               `yaml:"vendor,omitempty"`
+	Version      string             `yaml:"version"`
+	OsSupported  []string           `yaml:"os_supported,omitempty"`
+	Visibility   string             `yaml:"link_visibility,omitempty"`
+	LinkerFlags  []string           `yaml:"linker_flags,omitempty"`
+	CompileFlags []string           `yaml:"compile_flags,omitempty"`
+	Definitions  []string           `yaml:"definitions,omitempty"`
+}
+
+func (d *DependencyImpl) GetUrl() DependencyUrl {
+	if d.Url == nil {
+		return nil
+	}
+	return d.Url
 }
 
 func (d *DependencyImpl) GetVersion() string {
@@ -418,7 +444,11 @@ func (c *ConfigImpl) GetDependencies() map[string]Dependency {
 	}
 	s := map[string]Dependency{}
 	for name, value := range c.Dependencies {
-		s[name] = value
+		if value == nil {
+			s[name] = nil
+		} else {
+			s[name] = value
+		}
 	}
 	return s
 }

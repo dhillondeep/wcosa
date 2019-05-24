@@ -218,7 +218,7 @@ func CreateBuildTargets(projectDir string, target types.Target) (*TargetSet, *Ta
 		return nil, nil, err
 	}
 
-	err = i.ResolveRemote(config)
+	err = i.ResolveRemote(config, false)
 	if err != nil {
 		return nil, nil, err
 	}
@@ -250,6 +250,10 @@ func CreateBuildTargets(projectDir string, target types.Target) (*TargetSet, *Ta
 			if configDependency, exists = config.GetDependencies()[dep.Name]; !exists {
 				return nil, nil, util.Error("%s@%s dependency is invalid and information is wrong in wio.yml",
 					dep.Name, dep.ResolvedVersion.String())
+			}
+
+			if configDependency == nil {
+				configDependency = &types.DependencyImpl{}
 			}
 
 			parentInfo := &parentGivenInfo{

@@ -7,7 +7,7 @@ import (
 	"wio/pkg/util"
 	"wio/pkg/util/sys"
 
-	funk "github.com/thoas/go-funk"
+	"github.com/thoas/go-funk"
 )
 
 type definitionsInfo struct {
@@ -77,11 +77,19 @@ func resolveTree(i *resolve.Info, currNode *resolve.Node, parentTarget *Target, 
 	librarySet *TargetSet, globalFlags, globalDefinitions []string, parentGiven *parentGivenInfo) error {
 	var err error
 
-	pkg, err := i.GetPkg(currNode.Name, currNode.ResolvedVersion.String())
+	pkgResolvedVersion := ""
+	if !currNode.CustomUrl {
+		pkgResolvedVersion = currNode.ResolvedVersion.String()
+	} else {
+		pkgResolvedVersion = currNode.ConfigVersion
+	}
+
+	pkg, err := i.GetPkg(currNode.Name, pkgResolvedVersion)
 	if err != nil {
 		return err
 	} else if pkg == nil {
-		return util.Error("%s dependency does not exist. Check vendor or wio install", currNode.Name)
+		return util.Error("%s@%s dependency does not exist. Check vendor or wio install",
+			currNode.Name, pkgResolvedVersion)
 	}
 
 	cxxStandard, cStandard, err := cmake.GetStandard(pkg.Config.GetInfo().GetOptions().GetStandard())
