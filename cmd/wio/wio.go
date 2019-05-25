@@ -93,6 +93,21 @@ var updateFlags = []cli.Flag{
 	},
 }
 
+var installFlags = []cli.Flag{
+	cli.StringFlag{
+		Name:  "url",
+		Usage: "Url for the dependency.",
+	},
+	cli.StringFlag{
+		Name:  "dir",
+		Usage: "Subdirectory inside the url.",
+	},
+	cli.StringFlag{
+		Name:  "options",
+		Usage: "Options to use while downloading from url.",
+	},
+}
+
 var buildFlags = []cli.Flag{
 	cli.BoolFlag{
 		Name:  "force",
@@ -241,7 +256,7 @@ var commands = []cli.Command{
 		Name:      "install",
 		Usage:     "Install packages from remote server.",
 		UsageText: "wio install [packages...]",
-		Flags:     appWideFlags,
+		Flags:     append(installFlags, appWideFlags...),
 		Action: func(c *cli.Context) {
 			command = install.Cmd{Context: c}
 		},

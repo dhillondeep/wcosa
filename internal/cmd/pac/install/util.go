@@ -7,7 +7,7 @@ import (
 	"wio/pkg/util"
 )
 
-func (cmd Cmd) getArgs(info *resolve.Info) (name string, ver string, err error) {
+func (cmd Cmd) getArgs(info *resolve.Info, versionCheck bool) (name string, ver string, err error) {
 	args := cmd.Context.Args()
 	switch len(args) {
 	case 0:
@@ -27,14 +27,16 @@ func (cmd Cmd) getArgs(info *resolve.Info) (name string, ver string, err error) 
 	default:
 		name = args[0]
 		ver = args[1]
-		if semver.Parse(ver) != nil {
-			exists := false
-			exists, err = info.Exists(name, ver)
-			if err == nil && !exists {
-				err = util.Error("version %s does not exist", ver)
+		if versionCheck {
+			if semver.Parse(ver) != nil {
+				exists := false
+				exists, err = info.Exists(name, ver)
+				if err == nil && !exists {
+					err = util.Error("version %s does not exist", ver)
+				}
+			} else if ret := semver.MakeQuery(ver); ret == nil {
+				err = util.Error("invalid version expression: %s", ver)
 			}
-		} else if ret := semver.MakeQuery(ver); ret == nil {
-			err = util.Error("invalid version expression: %s", ver)
 		}
 	}
 	return

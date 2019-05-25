@@ -80,7 +80,7 @@ func (i *Info) customUrlResolve(name string, dep types.Dependency, customPath st
 		log.Info(log.Cyan, "... ")
 
 		if err := getter.Get(dst, url, func(client *getter.Client) error {
-			client.Pwd = customPath
+			client.Pwd = i.dir
 			return nil
 		}); err != nil {
 			log.WriteFailure()
