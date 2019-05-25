@@ -17,27 +17,26 @@ build:
   - arm64
   goarm:
   - 7
-nfpms:
-  -
-    formats:
-    - deb
-    vendor: "wio"
-    homepage: "https:github.com/wio/wio"
-    maintainer: "Deep Dhillon <deep@deepdhillon.ca>"
-    description: "C/C++ development environment"
-    license: "MIT"
-    name_template: "{{.ProjectName}}_{{.Version}}_{{.Os}}_{{.Arch}}"
-    replacements:
-      amd64: 64bit
-      386: 32bit
-      arm: arm
-      arm64: arm64
-      darwin: macOS
-      linux: linux
-      windows: windows
-    dependencies:
-    - cmake
-    - make
+nfpm:
+  formats:
+  - deb
+  vendor: "wio"
+  homepage: "https:github.com/wio/wio"
+  maintainer: "Deep Dhillon <deep@deepdhillon.ca>"
+  description: "C/C++ development environment"
+  license: "MIT"
+  name_template: "{{.ProjectName}}_{{.Version}}_{{.Os}}_{{.Arch}}"
+  replacements:
+    amd64: 64bit
+    386: 32bit
+    arm: arm
+    arm64: arm64
+    darwin: macOS
+    linux: linux
+    windows: windows
+  dependencies:
+  - cmake
+  - make
 archives:
   - id: wio
     format: tar.gz
