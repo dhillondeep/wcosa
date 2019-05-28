@@ -1,14 +1,14 @@
 package upgrade
 
 const (
-	wioExecName = "wio{{extension}}"
-	preWioExecName = "wio_{{platform}}_{{arch}}{{extension}}"
-	wioAssetName  = "wio_.*_{{platform}}_{{arch}}.{{format}}"
-	preWioAssetName  = "wio_{{platform}}_{{arch}}.{{format}}"
-	checksumFile = "asset:wio_.*_checksums.txt"
-	preChecksumFile = "asset:checksums.txt"
+	wioExecName             = "wio{{extension}}"
+	preWioExecName          = "wio_{{platform}}_{{arch}}{{extension}}"
+	wioAssetName            = "wio_.*_{{platform}}_{{arch}}.{{format}}"
+	preWioAssetName         = "wio_{{platform}}_{{arch}}.{{format}}"
+	checksumFile            = "asset:wio_.*_checksums.txt"
+	preChecksumFile         = "asset:checksums.txt"
 	compatibilityLowerBound = "0.7.0"
-	assetNameChangeVersion = "0.9.0"
+	assetNameChangeVersion  = "0.9.0"
 )
 
 var currArchMapping = map[string]string{
